@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" href="style.css" type="text/css" />
+<div id="page">
+<a href="index.htm"  class="btn btn--s">&lt;</a>&nbsp;&nbsp;<strong>System Information</strong>
+
+<table>
+<tr>
+	<td colspan="2">
+	<span><hr></span>
+</td>
+</tr>
+<tr>
+	<td align="right">Free heap :</td>
+	<td>
+		<strong><span id="heap"></span></strong>
+	</td>
+</tr>
+<tr>
+	<td align="right">File name :</td>
+	<td>
+		<span id="filename"></span>
+	</td>
+</tr>
+<tr>
+	<td align="right">Compile date :</td>
+	<td>
+		<span id="compiledate"></span>
+	</td>
+</tr>
+<tr>
+	<td align="right">Compile time :</td>
+	<td>
+		<span id="compiletime"></span>
+	</td>
+</tr>
+<tr>
+	<td align="right">Last boot :</td>
+	<td>
+		<span id="lastboot"></span>
+	</td>
+</tr>
+<tr>
+  <td align="right">Chip Id :</td>
+  <td>
+    <span id="chipid"></span>
+  </td>
+</tr>
+<tr>
+  <td align="right">CPU freq:</td>
+  <td>
+     <span id="cpufreq"></span>
+  </td>
+</tr>
+<tr>
+  <td align="right">Sketch size :</td>
+  <td>
+    <span id="sketchsize"></span>
+  </td>
+</tr>
+<tr>
+  <td align="right">Free sketch space :</td>
+  <td>
+    <span id="freesketchspace"></span>
+  </td>
+</tr>
+<tr>
+  <td align="right">Flash Chip ID :</td>
+  <td>
+    <span id="flashchipid"></span>
+  </td>
+</tr>
+<tr>
+  <td align="right">Flash Chip Mode :</td>
+  <td>
+    <span id="flashchipmode"></span>
+  </td>
+</tr>
+<tr>
+  <td align="right">Flash chip size :</td>
+  <td>
+    <span id="flashchipsize"></span>
+  </td>
+</tr>
+<tr>
+  <td align="right">Flash chip real size :</td>
+  <td>
+    <span id="flashchiprealsize"></span>
+  </td>
+</tr>
+<tr>
+  <td align="right">Flash chip speed :</td>
+  <td>
+    <span id="flashchipspeed"></span>
+  </td>
+</tr>
+<tr>
+  <td align="right">Cycle count :</td>
+  <td>
+    <span id="cyclecount"></span>
+  </td>
+</tr>
+<tr>
+  <td align="right">Core version :</td>
+  <td>
+    <span id="corever"></span>
+  </td>
+</tr>
+<tr>
+  <td align="right">SDK version :</td>
+  <td>
+    <span id="sdkver"></span>
+  </td>
+</tr>
+<tr>
+  <td align="right">Boot mode :</td>
+  <td>
+    <span id="bootmode"></span>
+  </td>
+</tr>
+<tr>
+  <td align="right">Boot version :</td>
+  <td>
+    <span id="bootversion"></span>
+  </td>
+</tr>
+<tr>
+  <td align="right">Last Reset due to :</td>
+  <td>
+    <span id="resetreason"></span>
+  </td>
+</tr>
+<tr>
+	<td colspan="2" align="center">
+		<!--<a href="javascript:GetState(); initEvt()" class="btn btn-m btn-blue">Refresh</a>-->
+	</td>
+</tr>
+</table>
+<a style="horizontal-align: center" href="javascript:GetState(); initEvt()" class="btn btn--m btn--blue">Refresh</a>
+</div>
+<!--<script src="microajax.js"></script>-->
+<script>
+var ws = null;
+
+window.onload = function () {
+  getConfigValues("/systeminfo.json");
+  startSocket();
+  //startEvents();
+}
+function startSocket(){
+  ws = new WebSocket('ws://'+document.location.host+'/ws',['arduino']);
+  ws.binaryType = "arraybuffer";
+  ws.onopen = function(e){
+		var obj = new Object();
+    obj.url = window.location.pathname;
+    var myJSON = JSON.stringify(obj);
+    ws.send(myJSON);
+  };
+  ws.onclose = function(e){
+    console.log("WebSocket error. Code: " + e.code + ", Reason: " + e.reason + ", wasClean?: " + e.wasClean);
+  };
+  ws.onerror = function(e){
+    // console.log("ws error", e);
+    console.log("WebSocket error. Code: " + e.code + ", Reason: " + e.reason + ", wasClean?: " + e.wasClean);
+  };
+  ws.onmessage = function(e){
+    var msg = "";
+    if(e.data instanceof ArrayBuffer){
+      msg = "BIN:";
+      var bytes = new Uint8Array(e.data);
+      for (var i = 0; i < bytes.length; i++) {
+        msg += String.fromCharCode(bytes[i]);
+      }
+    } else {
+      msg = "TXT:"+e.data;
+      console.log(msg);
+      if (e.data == "suicide") {
+        ws.close();
+      }
+      else if (isJSON(e.data)) {
+        var json = JSON.parse(e.data);
+        if (json.hasOwnProperty('cpufreq')) {
+          document.getElementById("heap").textContent = json.heap;
+          document.getElementById("filename").textContent = json.filename;
+          document.getElementById("lastboot").textContent = json.lastboot;
+          document.getElementById("chipid").textContent = json.chipid;
+          document.getElementById("cpufreq").textContent = json.cpufreq;
+          document.getElementById("sketchsize").textContent = json.sketchsize;
+          document.getElementById("freesketchspace").textContent = json.freesketchspace;
+          document.getElementById("flashchipid").textContent = json.flashchipid;
+          document.getElementById("flashchipsize").textContent = json.flashchipsize;
+          document.getElementById("flashchiprealsize").textContent = json.flashchiprealsize;
+          document.getElementById("flashchipspeed").textContent = json.flashchipspeed;
+          document.getElementById("cyclecount").textContent = json.cyclecount;
+          document.getElementById("corever").textContent = json.corever;
+          document.getElementById("sdkver").textContent = json.sdkver;
+          document.getElementById("resetreason").textContent = json.resetreason;
+        }
+        else if (json.hasOwnProperty('heap')) {
+          document.getElementById("heap").textContent = json.heap;
+        }
+      }
+    }
+  };
+}
+function startEvents(){
+  var es = new EventSource('/events');
+  console.log(es.readyState);
+  es.onopen = function(e) {
+    console.log("Events Opened");
+  };
+  es.onerror = function(e) {
+    console.log("Events Error.", e);
+    if (e.target.readyState != EventSource.OPEN) {
+      console.log("Events Closed");
+    }
+  };
+  es.onmessage = function(e) {
+    console.log("Event: " + e.data);
+    if (isJSON(e.data)) {
+    var json = JSON.parse(e.data);
+          // document.getElementById("heap").textContent = json.heap;
+          document.getElementById("filename").textContent = json.filename;
+          document.getElementById("lastboot").textContent = json.lastboot;
+          document.getElementById("chipid").textContent = json.chipid;
+          document.getElementById("cpufreq").textContent = json.cpufreq;
+          document.getElementById("sketchsize").textContent = json.sketchsize;
+          document.getElementById("freesketchspace").textContent = json.freesketchspace;
+          document.getElementById("flashchipid").textContent = json.flashchipid;
+          document.getElementById("flashchipsize").textContent = json.flashchipsize;
+          document.getElementById("flashchiprealsize").textContent = json.flashchiprealsize;
+          document.getElementById("flashchipspeed").textContent = json.flashchipspeed;
+          document.getElementById("cyclecount").textContent = json.cyclecount;
+          document.getElementById("corever").textContent = json.corever;
+          document.getElementById("sdkver").textContent = json.sdkver;
+          document.getElementById("resetreason").textContent = json.resetreason;
+    }
+  };
+  // es.addEventListener('ota', function(e) {
+  // }, false);
+  es.addEventListener('heap', function(e) {
+    console.log("Event: " + e.data);
+    if (isJSON(e.data)) {
+    var json = JSON.parse(e.data);
+      document.getElementById("heap").textContent = json.heap;
+    }
+  }, false);
+}
+// https://stackoverflow.com/questions/3710204/how-to-check-if-a-string-is-a-valid-json-string-in-javascript-without-using-try
+function isJSON(str) {
+  try {
+      return (JSON.parse(str) && !!str);
+  } catch (e) {
+      return false;
+  }
+}
+function getConfigValues(address) {
+  var req = new XMLHttpRequest();
+  if (req) {
+    req.open("GET", address, true);
+    req.addEventListener("load", reqListener);
+    req.send();
+  }
+}
+
+function reqListener () {
+  console.log(this.responseText);
+  if (isJSON(this.responseText)) {
+    json = JSON.parse(this.responseText);
+    console.log(json);
+    // document.getElementById("heap").textContent = json.heap;
+    document.getElementById("filename").textContent = json.filename;
+    document.getElementById("compiledate").textContent = json.compiledate;
+    document.getElementById("compiletime").textContent = json.compiletime;
+    document.getElementById("lastboot").textContent = json.lastboot;
+    document.getElementById("chipid").textContent = json.chipid;
+    document.getElementById("cpufreq").textContent = json.cpufreq + " MHz";
+    document.getElementById("sketchsize").textContent = json.sketchsize + " bytes";
+    document.getElementById("freesketchspace").textContent = json.freesketchspace + " bytes";
+    document.getElementById("flashchipid").textContent = json.flashchipid;
+    document.getElementById("flashchipmode").textContent = json.flashchipmode;
+    document.getElementById("flashchipsize").textContent = json.flashchipsize + " bytes";
+    document.getElementById("flashchiprealsize").textContent = json.flashchiprealsize + " bytes";
+    document.getElementById("flashchipspeed").textContent = json.flashchipspeed + " Hz";
+    document.getElementById("cyclecount").textContent = json.cyclecount;
+    document.getElementById("corever").textContent = json.corever;
+    document.getElementById("sdkver").textContent = json.sdkver;
+    document.getElementById("bootmode").textContent = json.bootmode;
+    document.getElementById("bootversion").textContent = json.bootversion;
+    document.getElementById("resetreason").textContent = json.resetreason;
+  }
+}
+</script>

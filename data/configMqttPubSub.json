@@ -1,0 +1,5 @@
+{
+  "publish_1": ["ESP2937814/mqttstatus",2,true,"CONNECTED"],
+  "subscribe_1":  ["ESP13579541/meterreading/1s",0],
+  "subscribe_2":  ["/rumah/sts/1s/kwh1/voltage",0]
+}

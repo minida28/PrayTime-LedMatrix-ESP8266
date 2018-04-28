@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="style.css">
+<body style="width:300px">
+<a href="index.htm" class="btn btn--s">&lt;</a>&nbsp;&nbsp;<strong>Set Time and Date</strong>
+<hr>
+<div id="status_box" class="alert alert-info">Loading..</div>
+    <table border="0" cellspacing="0" cellpadding="3" style="width:100%, table-layout: fixed">
+        <tr>
+          <td colspan="2" style="width:50%" align="right">
+            <strong style="color:red">Time Zone Led Matrix</strong>
+          </td>
+        </tr>
+        <tr>
+            <!--<td style="width:50%" align="right">Tanggal RTC:</td>-->
+            <td colspan="2">
+                <span id="system_timezone">waiting...</span>
+            </td>
+        </tr>
+        <tr>
+          <td colspan="2" style="width:50%" align="right">
+            <strong style="color:red">Time Zone Komputer/HP</strong>
+          </td>
+        </tr>
+        <tr>
+            <!--<td style="width:50%" align="right">Tanggal RTC:</td>-->
+            <td colspan="2">
+                <span id="timezone_komputer_hape">waiting...</span>
+            </td>
+        </tr>
+    </table>
+    <br>
+
+    <table border="0" cellspacing="0" cellpadding="3" style="width:100%, table-layout: fixed">
+        <tr>
+          <td colspan="2" style="width:50%" align="right">
+            <strong style="color:red">Tanggal & Jam RTC</strong>
+          </td>
+        </tr>
+        <tr>
+            <!--<td style="width:50%" align="right">Tanggal RTC:</td>-->
+            <td colspan="2">
+                <span id="dateTimeRtc">waiting...</span>
+            </td>
+        </tr>
+    </table>
+    
+    <table border="0" cellspacing="0" cellpadding="3" style="width:100%, table-layout: fixed">
+        <tr>
+          <td colspan="2" style="width:50%" align="right">
+            <strong style="color:white, background-color:#c35)"><a href="https://time.is/" id="time_is_link" rel="nofollow" style="color:white, background-color:#c35)">Time.is</a></strong>
+          </td>
+        </tr>
+        <tr style="display:none">
+          <td colspan="2">
+            UTC time: <span id="timeisUTC_time">waiting...</span><br/>
+            UTC date: <span id="timeisUTC_date">waiting...</span><br/>
+            UTC timestamp: <span id="timeisUTC_timestamp">waiting...</span><br/>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="2">
+            <span id="timeisLocalTime">waiting...</span><br/>
+          </td>
+        </tr>
+    </table>
+    
+    <table border="0" cellspacing="0" cellpadding="3" style="width:100%, table-layout: fixed">
+        <tr>
+          <td colspan="2" style="width:50%" align="right">
+            <strong>Tanggal & Jam Komputer/Hape</strong>
+          </td>
+        </tr>
+        <tr>
+            <!--<td style="width:50%" align="right">Tanggal RTC:</td>-->
+            <td colspan="2">
+                <span id="dateTimeString">waiting...</span>
+            </td>
+        </tr>
+    </table>
+    <br>
+
+<form action="" method="post" onsubmit="return false">
+    <table border="0" cellspacing="0" cellpadding="3" style="width:100%, table-layout: fixed">
+        <tr>
+            <td align="right">Sinkronkan ke Time.is</td>
+            <td>
+                <input id="sync_to_timeis" name="syncChoice" type="radio" value="timeis" onchange="something(this.value)" checked required>
+            </td>
+        </tr>
+        <tr>
+            <td align="right">Sinkronkan dengan jam hape/laptop</td>
+            <td>
+                <input id="sync_to_hapelaptop" name="syncChoice" type="radio" value="hapelaptop" onchange="something(this.value)" required>
+            </td>
+        </tr>
+        <tr>
+            <td align="right">Set manually</td>
+            <td>
+                <input id="sync_manual" name="syncChoice" type="radio" value="manual" onchange="something(this.value)" required>
+            </td>
+        </tr>
+    </table>
+    <!--<br>-->
+    <table border="0" cellspacing="0" cellpadding="3" style="width:100%, table-layout: fixed">
+        <tr id="dayRow" name="manualDateTime" hidden>
+            <td style="width:60%" align="right">Tanggal:</td>
+            <td>
+                <input id="day" name="day" type="number" size="4" maxlength="2" min="1" max="31" onchange="calculateManualTimeStamp(this.value)" required>
+            </td>
+        </tr>
+        <tr id="monthRow" name="manualDateTime" hidden>
+            <td align="right">Bulan:</td>
+            <td>
+                <input id="month" name="month" type="number" size="4" maxlength="2" min="1" max="12" onchange="calculateManualTimeStamp(this.value)" required>
+            </td>
+        </tr>
+        <tr id="yearRow" name="manualDateTime" hidden>
+            <td align="right">Tahun:</td>
+            <td>
+                <input id="year" name="year" type="number" size="4" maxlength="4" min="2017" max="2500" onchange="calculateManualTimeStamp(this.value)" required>
+            </td>
+        </tr>
+        <tr id="hourRow" name="manualDateTime" hidden>
+            <td align="right">Jam:</td>
+            <td>
+                <input id="hour" name="hour" type="number" size="4" maxlength="2" min="0" max="23" onchange="calculateManualTimeStamp(this.value)" required>
+            </td>
+        </tr>
+        <tr id="minuteRow" name="manualDateTime" hidden>
+            <td align="right">Menit:</td>
+            <td>
+                <input id="minute" name="minute" type="number" size="4" maxlength="2" min="0" max="59" onchange="calculateManualTimeStamp(this.value)" required>
+            </td>
+        </tr>
+        <tr id="secondRow" name="manualDateTime" hidden>
+            <td align="right">Detik:</td>
+            <td>
+                <input id="second" name="second" type="number" size="4" maxlength="2" min="0" max="59" onchange="calculateManualTimeStamp(this.value)" required>
+            </td>
+        </tr>
+        <tr>
+            <td align="right">Time.is Timestamp:</td>
+            <td>
+                <input id="timeistimestamp" name="timeisTimestamp" type="number" required>
+            </td>
+        </tr>
+        <tr>
+            <td align="right">Hape/laptop Timestamp</td>
+            <td>
+                <input id="hapeLaptopTimestamp" name="hapeLaptopTimestamp" type="number" required>
+            </td>
+        </tr>
+        <tr>
+            <td align="right">Manual Timestamp:</td>
+            <td>
+                <input id="manualtimestamp" name="manualTimestamp" type="number" required>
+            </td>
+        </tr>
+    		<tr>
+    			<td colspan="2" align="center">
+    			<input type="button" id="syncBtn" style="width:100%" class="btn btn--m btn--blue" value="Sync"></td>
+    		</tr>
+    </table>
+</form>
+    <table border="0" cellspacing="0" cellpadding="3" style="width:100%, table-layout: fixed">
+        <tr>
+          <td colspan="2" style="width:100%" align="right">
+            <strong>Websocket status</strong>
+          </td>
+        </tr>
+        <tr>
+            <!--<td style="width:50%" align="right">Tanggal RTC:</td>-->
+            <td colspan="2" style="width:100%" align="middle">
+                <span id="connectionStatus">Idle</span>
+                <!--<input type="text" id="connectionStatus" value="Idle" style="border: 0" />-->
+            </td>
+        </tr>
+        <tr>
+          <td>
+            <input type="button" value="Connect" onclick="wsOpen()" style="width:100%" class="btn btn--m btn--blue" />
+          </td>
+          <td>
+            <input type="button" value="Disconnect" onclick="disconnect()" style="width:100%" class="btn btn--m btn--blue" />
+          </td>
+        </tr>
+    </table>
+    <br>
+<hr>
+
+
+<!--<script src="microajax.js"></script>-->
+
+<script src="//widget.time.is/id.js"></script>
+<script>
+  time_is_widget.init({
+  	timeisUTC_time : {
+  	 id: "UTC_za00",
+  	 template:"TIME",
+  	 //callback: "TimeIs"
+  	},
+  	timeisUTC_date : {
+  	  id: "UTC_za00",
+  	  template:"DATE",
+  	  date_format:"daynum/monthnum/year, dayname",
+  	  callback: "TimeIs"
+  	},
+	});
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.14/moment-timezone-with-data.min.js"></script>
+
+<script language="javascript" type="text/javascript">
+
+  window.onload = function () {
+    //load("https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment.min.js", "js", function () {
+          load("microajax.js", "js", function () {
+      				wsOpen();
+      				// startPolling();
+              doOnce();
+              //BrowserTime();
+              calculateManualTimeStamp()
+              something();
+          });
+    //});
+  }
+
+  function load(e, t, n) {
+      if ("js" == t) {
+          var a = document.createElement("script");
+          a.src = e,
+          a.type = "text/javascript",
+          a.async = !1,
+          a.onload = function () { n() },
+          document.getElementsByTagName("head")[0].appendChild(a)
+      } else if ("css" == t) {
+          var a = document.createElement("link");
+          a.href = e,
+          a.rel = "stylesheet",
+          a.type = "text/css",
+          a.async = !1,
+          a.onload = function () { n() },
+          document.getElementsByTagName("head")[0].appendChild(a)
+      }
+  }
+    
+  
+  var sync = false;
+  
+  // Get the button, and when the user clicks on it, execute myFunction
+  document.getElementById("syncBtn").onclick = function() {myFunction()};
+  
+  /* myFunction toggles between adding and removing the show class, which is used to hide and show the dropdown content */
+  function myFunction() {
+      sync = !sync;
+      
+      var btnText = document.getElementById("syncBtn");
+      if (sync) {
+        btnText.value = "Stop sync";
+      } else {
+        btnText.value = "Sync";
+      }
+  }
+
+
+  var tahun, bulan, hari, jam, menit, detik, millidetik;
+  
+  var timeNow;
+  
+  var currentTimeZoneOffsetInSeconds;
+  
+  var timeUTC_millisecond;
+  
+  var timeUTC_second;
+  
+  var locale_timestamp;
+  
+  var timerBrowserTime = setInterval(function(){ BrowserTime() }, 1000);
+  
+  // DATE IN READABLE FORMAT
+  //http://marcoscaceres.github.io/jsi18n/#advanced-langtags
+  var dateOptions = {
+      weekday: "long",
+      year: "numeric",
+      month: "short",
+      day: "numeric"
+  };
+  var timeOptions = {
+      "hour":"2-digit",
+      "second":"2-digit",
+      "minute":"numeric",
+      "timeZoneName":"short"
+  };
+  var dateTimeOptions = {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'short',
+    day:'numeric',
+    hour: '2-digit',
+    second: '2-digit',
+    minute: 'numeric',
+    timeZoneName: 'short'
+  };
+  
+  function doOnce(date) {
+    timeNow = new Date();
+    
+    let localtime_ISO = toLocaleISOStringWITHOUTMilliSecond(timeNow);
+    
+    //DAY
+    if (localtime_ISO.substring(8,9) === "0") {
+        document.getElementById('day').value = localtime_ISO.substring(9,10);
+        hari = localtime_ISO.substring(9,10);
+    } else {
+        document.getElementById('day').value = localtime_ISO.substring(8,10);
+        hari = localtime_ISO.substring(8,10);
+    }
+    //MONTH
+    if (localtime_ISO.substring(5,6) === "0") {
+        document.getElementById('month').value = localtime_ISO.substring(6,7);
+        bulan = localtime_ISO.substring(6,7);
+    } else {
+        document.getElementById('month').value = localtime_ISO.substring(5,7);
+        bulan = localtime_ISO.substring(5,7);
+    }
+    //YEAR
+    document.getElementById('year').value = localtime_ISO.substring(0,4);
+    tahun = localtime_ISO.substring(0,4);
+    //HOUR
+    if (localtime_ISO.substring(11,12) === "0") {
+        document.getElementById('hour').value = localtime_ISO.substring(12,13);
+        jam = localtime_ISO.substring(12,13);
+    } else {
+        document.getElementById('hour').value = localtime_ISO.substring(11,13);
+        jam = localtime_ISO.substring(11,13);
+    }
+    //MINUTE
+    if (localtime_ISO.substring(14,15) === "0") {
+        document.getElementById('minute').value = localtime_ISO.substring(15,16);
+        menit = localtime_ISO.substring(15,16);
+    } else {
+        document.getElementById('minute').value = localtime_ISO.substring(14,16);
+        menit = localtime_ISO.substring(14,16);
+    }
+    //SECOND
+    if (localtime_ISO.substring(17,18) === "0") {
+        document.getElementById('second').value = localtime_ISO.substring(18,19);
+        detik = localtime_ISO.substring(18,19);
+    } else {
+        document.getElementById('second').value = localtime_ISO.substring(17,19);
+        detik = localtime_ISO.substring(17,19);
+    }
+    
+    timeUTC_millisecond = timeNow.getTime();
+    timeUTC_second = (timeUTC_millisecond/1000).toFixed();
+    //document.getElementById('utc').value = timeUTC_second;
+    
+    //The getTimezoneOffset() method returns the time zone difference,
+    //in minutes, from UTC to current locale (host system settings).
+    //var x = new Date();
+    currentTimeZoneOffsetInSeconds = timeNow.getTimezoneOffset() * 60;
+    //console.log(currentTimeZoneOffsetInSeconds);
+    
+    locale_timestamp = timeUTC_second - currentTimeZoneOffsetInSeconds;
+    document.getElementById('hapeLaptopTimestamp').value = timeUTC_second;
+    
+    
+    // DATE & TIME IN LOCALE & READABLE FORMAT
+    document.getElementById('dateTimeString').textContent = timeNow.toLocaleDateString("id", dateTimeOptions);
+  }
+  
+  function BrowserTime() {
+    timeNow = new Date();
+    
+    // DATE IN LOCALE & READABLE FORMAT
+    document.getElementById('dateTimeString').textContent = timeNow.toLocaleDateString("id", dateTimeOptions);
+    
+    var timeUTC_millisecond = timeNow.getTime();
+    var timeUTC_second = (timeUTC_millisecond/1000).toFixed();
+    
+    //The getTimezoneOffset() method returns the time zone difference,
+    //in minutes, from UTC to current locale (host system settings).
+    //var x = new Date();
+    currentTimeZoneOffsetInSeconds = timeNow.getTimezoneOffset() * 60;
+    //console.log(currentTimeZoneOffsetInSeconds);
+    
+    var locale_timestamp = timeUTC_second - currentTimeZoneOffsetInSeconds;
+    
+    //corrected timestamp
+    document.getElementById('hapeLaptopTimestamp').value = timeUTC_second;
+    document.getElementById('timezone_komputer_hape').textContent = currentTimeZoneOffsetInSeconds*-1/3600;
+  }
+  
+  function TimeIs() {
+    var timeisUTC_time;
+    timeisUTC_time = document.getElementById('timeisUTC_time').textContent;
+    var timeisUTC_date;
+    timeisUTC_date = document.getElementById('timeisUTC_date').textContent;
+
+    //DAY
+    var day;
+    if (timeisUTC_date.substring(0,1) === "0") {
+        day = timeisUTC_date.substring(1,2);
+    } else {
+        day = timeisUTC_date.substring(0,2);
+    }
+    //MONTH
+    var month;
+    if (timeisUTC_date.substring(3,4) === "0") {
+        month = timeisUTC_date.substring(4,5);
+    } else {
+        month = timeisUTC_date.substring(3,5);
+    }
+    //YEAR
+    var year;
+    year = timeisUTC_date.substring(6,10);
+    //HOUR
+    var hour;
+    if (timeisUTC_time.substring(0,1) === "0") {
+        hour = timeisUTC_time.substring(1,2);
+    } else {
+        hour = timeisUTC_time.substring(0,2);
+    }
+    //MINUTE
+    var minute;
+    if (timeisUTC_time.substring(3,4) === "0") {
+        minute = timeisUTC_time.substring(4,5);
+    } else {
+        minute = timeisUTC_time.substring(3,5);
+    }
+    //SECOND
+    var second;
+    if (timeisUTC_time.substring(6,7) === "0") {
+        second = timeisUTC_time.substring(7,8);
+    } else {
+        second = timeisUTC_time.substring(6,8);
+    }
+    //MILLISECOND
+    
+    var timeisUTC_OBJ = new Date(Date.UTC(year, month-1, day, hour, minute, second));
+    
+    var timeisUTCtimestamp = timeisUTC_OBJ.valueOf(); //exact timestamp; remember: timestamp always refer to UTC
+    
+    var timeisUTCtimestamp_second = timeisUTCtimestamp/1000;
+    
+    // var timeisLocaleTimestamp_second = timeisLocaleTimestamp/1000;
+    
+    var timeZoneOffset_minutes = timeisUTC_OBJ.getTimezoneOffset();
+    
+    var timeZoneOffset_second = timeZoneOffset_minutes * 60;
+
+    var timezoneLedMatrix = parseFloat(document.getElementById("system_timezone").textContent);
+    
+    var localDateTimeString =  timeisUTC_OBJ.toLocaleString('id-ID-u-ca-gregory', dateTimeOptions);
+
+    document.getElementById('timeisUTC_timestamp').textContent = timeisUTCtimestamp_second;
+    document.getElementById('timeisLocalTime').textContent = localDateTimeString;
+    document.getElementById('timeistimestamp').value = timeisUTCtimestamp_second;
+    
+    
+
+    if (sync) {
+      if (stateButtonSyncManual) {
+        ws.send("m " + document.getElementById('manualtimestamp').value);
+      }
+      else if (stateButtonSyncToInternet) {
+        ws.send("i " + document.getElementById('hapeLaptopTimestamp').value);
+      }
+      else if (stateButtonSyncToTimeis) {
+        ws.send("t " + document.getElementById('timeistimestamp').value);
+      }
+    }
+
+    return timeisUTCtimestamp_second;
+  }
+    
+  // https://blog.serverdensity.com/automatic-timezone-conversion-in-javascript/
+  function getDate(timestamp)
+    {
+    // Multiply by 1000 because JS works in milliseconds instead of the UNIX seconds
+    var date = new Date(timestamp * 1000);
+    
+    var year = date.getUTCFullYear();
+    var month = date.getUTCMonth() + 1; // getMonth() is zero-indexed, so we'll increment to get the correct month number
+    var day = date.getUTCDate();
+    var hours = date.getUTCHours();
+    var minutes = date.getUTCMinutes();
+    var seconds = date.getUTCSeconds();
+    
+    month = (month < 10) ? '0' + month : month;
+    day = (day < 10) ? '0' + day : day;
+    hours = (hours < 10) ? '0' + hours : hours;
+    minutes = (minutes < 10) ? '0' + minutes : minutes;
+    seconds = (seconds < 10) ? '0' + seconds: seconds;
+    
+    return year + '-' + month + '-' + day + ' ' + hours + ':' + minutes;
+  }
+  
+  function UTCtimestamp() {
+      var now_millis = Date.now();
+      var now_millis_newdate = new Date();
+      var now_second = Math.round((now_millis/1000));
+      console.log(now_second, now_millis, now_millis_newdate.getTime());
+      
+  }
+
+  //source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString
+  function pad(number) {
+    if (number < 10) {
+      return '0' + number;
+    }
+    return number;
+  }
+
+  function toLocaleISOStringWITHOUTMilliSecond(date) {
+    var offset = date.getTimezoneOffset()/60;
+    return date.getFullYear() +
+      '-' + pad(date.getMonth() + 1) +
+      '-' + pad(date.getDate()) +
+      'T' + pad(date.getHours()) +
+      ':' + pad(date.getMinutes()) +
+      ':' + pad(date.getSeconds()) 
+      //'.' + (date.getUTCMilliseconds() / 1000).toFixed(3).slice(2, 5)
+      ;
+  };
+  
+  function toLocaleISOStringWITHMilliSecond(date) {
+    var offset = date.getTimezoneOffset()/60;
+    return date.getFullYear() +
+      '-' + pad(date.getMonth() + 1) +
+      '-' + pad(date.getDate()) +
+      'T' + pad(date.getHours() - offset) +
+      ':' + pad(date.getMinutes()) +
+      ':' + pad(date.getSeconds()) +
+      '.' + (date.getUTCMilliseconds() / 1000).toFixed(3).slice(2, 5)
+      ;
+  };
+  
+  var stateButtonSyncManual = document.getElementById("sync_manual").checked;
+  var stateButtonSyncToInternet = document.getElementById("sync_to_hapelaptop").checked;
+  var stateButtonSyncToTimeis = document.getElementById("sync_to_timeis").checked;
+	function something() {
+    stateButtonSyncManual = document.getElementById("sync_manual").checked;
+    stateButtonSyncToInternet = document.getElementById("sync_to_hapelaptop").checked;
+    stateButtonSyncToTimeis = document.getElementById("sync_to_timeis").checked;
+    
+    if (stateButtonSyncManual == true) {
+      document.getElementById('day').disabled = false;
+      document.getElementById('month').disabled = false;
+      document.getElementById('year').disabled = false;
+      document.getElementById('hour').disabled = false;
+      document.getElementById('minute').disabled = false;
+      document.getElementById('second').disabled = false;
+      
+      document.getElementById('dayRow').hidden = false;
+      document.getElementById('monthRow').hidden = false;
+      document.getElementById('yearRow').hidden = false;
+      document.getElementById('hourRow').hidden = false;
+      document.getElementById('minuteRow').hidden = false;
+      document.getElementById('secondRow').hidden = false;
+      // show('manualDateTime');
+    }
+    else if (stateButtonSyncToTimeis == true || stateButtonSyncToInternet == true) {
+      document.getElementById('day').disabled = true;
+      document.getElementById('month').disabled = true;
+      document.getElementById('year').disabled = true;
+      document.getElementById('hour').disabled = true;
+      document.getElementById('minute').disabled = true;
+      document.getElementById('second').disabled = true;
+      
+      document.getElementById('dayRow').hidden = true;
+      document.getElementById('monthRow').hidden = true;
+      document.getElementById('yearRow').hidden = true;
+      document.getElementById('hourRow').hidden = true;
+      document.getElementById('minuteRow').hidden = true;
+      document.getElementById('secondRow').hidden = true;
+      
+      // hide('manualDateTime');
+    }
+  }
+    
+    //new Date(year, month, day, hours, minutes, seconds, milliseconds)
+    //var tahun, bulan, hari, jam, menit, detik, millidetik;
+    
+    function calculateManualTimeStamp() {
+      
+        //DAY
+        hari = document.getElementById('day').value;
+        //MONTH
+        bulan = document.getElementById('month').value;
+        //YEAR
+        tahun = document.getElementById('year').value;
+        //HOUR
+        jam = document.getElementById('hour').value;
+        //MINUTE
+        menit = document.getElementById('minute').value;
+        //SECOND
+        detik = document.getElementById('second').value;
+        //MILLISECOND
+
+        
+        console.log(hari,bulan,tahun,jam,menit,detik);
+        
+        var manualTimeStamp_millisecond = Date.UTC(tahun, bulan-1, hari, jam, menit, detik);
+        var manualTimeStamp_second = manualTimeStamp_millisecond/1000;
+        
+        var manualUTCtimestamp_second = manualTimeStamp_second + currentTimeZoneOffsetInSeconds;
+        
+        console.log("Manual UTC timestamp: ", manualUTCtimestamp_second);
+
+        document.getElementById('manualtimestamp').value = manualUTCtimestamp_second;
+        
+        return manualUTCtimestamp_second;
+    }
+    
+    function toggle(thisname) {
+     tr=document.getElementsByTagName('tr')
+     for (i=0;i<tr.length;i++){
+      if (tr[i].getAttribute(thisname)){
+       if ( tr[i].hidden== false ){
+         tr[i].hidden = true;
+       }
+       else {
+        tr[i].style.display = 'none';
+       }
+      }
+     }
+    }
+
+    function hide(thisname) {
+      // console.log("showhide");
+      var x = document.getElementsByName(thisname);
+      var i;
+      for (i = 0; i < x.length; i++) {
+          if (x[i].hidden == false) {
+              x[i].hidden == true;
+          }
+      }
+      console.log("hide", i);
+    }
+    
+    function show(thisname) {
+      // console.log("showhide");
+      var x = document.getElementsByName(thisname);
+      var i;
+      for (i = 0; i < x.length; i++) {
+          if (x[i].hidden == true) {
+              x[i].hidden == false;
+          }
+      }
+      console.log("show", i);
+    }
+ 
+
+</script>
+<script language="javascript" type="text/javascript">
+
+			var ws;
+			var retries;
+		// 	var series = new TimeSeries();
+		// 	window.onload = function() {
+		// 		wsOpen();
+		// 		startPolling();
+		// 	}
+			function setMsg(cls, text) {
+				sbox = document.getElementById('status_box');
+				sbox.className = "alert alert-" + cls;
+				sbox.textContent = text;
+				console.log(text);
+			}
+			function startPolling() {
+				// var chart = new SmoothieChart({millisPerPixel:11,grid:{fillStyle:'#ffffff',strokeStyle:'#ffffff',borderVisible:false},
+				// 	labels:{fillStyle:'#000000'},maxValue:1024,minValue:0});
+				// chart.addTimeSeries(series, {lineWidth:2,strokeStyle:'#03a9f4',fillStyle:'#f1f5fa'});
+				// chart.streamTo(document.getElementById("chartCanvas"), 500);
+				setInterval(function() { wsWrite('A'); }, 1000);
+			}
+			function onMessage(evt) {
+				//var dv = new DataView(evt.data);
+				//console.log("dv = ", dv);
+				//var val = dv.getUint16(0);
+				// var val = dv.getFloat32(0);
+				//console.log("val = ", val);
+				//if (val == 0xBEEF || val == 0xDEAD)
+					//console.log("LED switched");
+				//else
+					//series.append(new Date().getTime(), val);
+					//console.log("LED die");
+			  
+			  console.log("evt.data = ", evt.data);
+			  
+				retries = 0;
+				
+    		if (isJSON(evt.data)) {
+          var jsonTimeDate = JSON.parse(evt.data);
+          var timezoneLedMatrix = parseFloat(jsonTimeDate.system_timezone);
+          //console.log(timezoneLedMatrix);
+          document.getElementById("system_timezone").textContent = timezoneLedMatrix;
+  
+          var timestampRtc_second = parseInt(jsonTimeDate.rtc_timestamp);
+          if (isNaN(timestampRtc_second)) {
+            document.getElementById("dateTimeRtc").textContent = jsonTimeDate.rtc_timestamp;
+          } else {
+            // var timestampRtcUTC_second = timestampRtc_second + timezoneLedMatrix*3600;
+            var timestampRtcUTC_second = timestampRtc_second;
+            var timestampRtcUTC_millisecond = timestampRtcUTC_second*1000;
+            var DateTimeRtcUTC = new Date(timestampRtcUTC_millisecond);
+            var zone = "Asia/Jakarta";
+            var dateTimeRtc = moment.tz(DateTimeRtcUTC, "Asia/Jakarta").format();
+            document.getElementById("dateTimeRtc").textContent = dateTimeRtc;
+            
+            // var c = moment.tz(DateTimeRtcUTC, zone).format("Z")
+            // console.log(c);
+          }		  
+    		}
+			}
+	function wsOpen() {
+		if (ws === undefined || ws.readyState != 0) {
+			if (retries)
+				setMsg("red", "Connection timeout, retrying..");
+			else
+				setMsg("blue", "Connecting..");
+			ws = new WebSocket("ws://" + location.host + "/ws");
+			ws.binaryType = 'arraybuffer';
+			ws.onopen = function(evt) {
+			  console.log("WebSocket is open. Connected to " + evt.target.url, evt);
+			  retries = 0; setMsg("green", "Connected");
+        var obj = new Object();
+        obj.url = window.location.pathname;
+        var myJSON = JSON.stringify(obj);
+        console.log(myJSON);
+        ws.send(myJSON);
+			};
+    	ws.onclose = function(evt)     	{
+    	  console.log("WebSocket close. Code: " + evt.code + ", Reason: " + evt.reason);
+    	  clearInterval(sendPingVar);
+    	  console.log(clearInterval.name);
+    	  setMsg("red", "Disconnected");
+    	};
+			ws.onerror = function(error) {
+			  console.log("WebSocket ERROR ", error);
+			  clearInterval(sendPingVar);
+			  console.log(clearInterval.name);
+			  setMsg("red", "Connection error!");
+			};
+			ws.onmessage = function(evt) { onMessage(evt); };
+		}
+	}
+			function wsOpenStream() {
+				var uri = "/streamStats"
+				var ws = new WebSocket("ws://" + location.host + uri);
+				ws.onmessage = function(evt) {
+				// 	console.log(evt.data);
+				// 	var stats = JSON.parse(evt.data);
+				// 	console.log(stats);
+				// 	document.getElementById('uptime').textContent = stats.uptime + ' seconds';
+				// 	document.getElementById('heap').textContent = stats.freeHeap + ' bytes';
+				// 	document.getElementById('led').textContent = (stats.led == 1) ? 'On' : 'Off';
+				};
+			}
+			function wsWrite(data) {
+				if (ws.readyState == 3 || retries++ > 5)
+					wsOpen();
+				else if (ws.readyState == 1)
+					ws.send(data);
+			}
+			function gpio() {
+				if (document.getElementById('led-switch').checked)
+					wsWrite('E');
+				else
+					wsWrite('D');
+			}
+			
+      // https://stackoverflow.com/questions/3710204/how-to-check-if-a-string-is-a-valid-json-string-in-javascript-without-using-try
+      function isJSON(str) {
+        try {
+            return (JSON.parse(str) && !!str);
+        } catch (e) {
+            return false;
+        }
+      }
+
+</script>
+</body>

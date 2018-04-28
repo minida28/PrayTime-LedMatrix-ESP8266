@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no">
+	<link rel="stylesheet" type="text/css" href="siimple.min.css">
+	<!--<link rel="stylesheet" type="text/css" href="style.css">-->
+	<!--<link rel="shortcut icon" href="favicon.ico">-->
+	<title>System Overview</title>
+<style>
+/*body {font-family: Verdana, Arial, 'sans-serif';}*/
+body {font-family: Consolas, monaco, monospace;}
+.siimple-jumbotron-title, .siimple-table-cell {font-family: "Lucida Sans Typewriter", "Lucida Console", Monaco, "Bitstream Vera Sans Mono", monospace;}
+</style>
+</head>
+<body>
+  
+<div class="siimple-jumbotron  siimple-jumbotron--blue siimple-jumbotron--small" style="padding-top:40px; padding-bottom:40px">
+  <div id="jumboLoc"></div>
+  <div id="jumboClock" class="siimple-jumbotron-title"></div>
+  <div id="dateTime"></div>
+</div>
+<div class="siimple-content siimple-content--small">
+	<div class="siimple-grid">
+	  <div class="siimple-grid-row">
+	    <div class="siimple-grid-col siimple-grid-col--12">
+        <div class="siimple-tabs siimple-tabs--boxed siimple-tab--small">
+          <a href="/"><div class="siimple-tabs-tab">Menu</div></a>
+          <a href="/info.html"><div class="siimple-tabs-tab">Info</div></a>
+          <a href="/sholat.html"><div class="siimple-tabs-tab">Sholat Time</div></a>
+        </div>
+	    </div>
+	  </div>
+	  <div class="siimple-grid-row">
+	    <div class="siimple-grid-col siimple-grid-col--12">
+	      <b><div id="status_box" class="alert alert-info"></div></b>
+	    </div>
+      <div class="siimple-grid-col siimple-grid-col--6">
+      </div>
+	  </div>
+	  <div class="siimple-grid-row">
+	    <div class="siimple-grid-col siimple-grid-col--6 siimple-grid-col-sm--12">
+	      <div class="siimple-table siimple-table--striped">
+	        <div class="siimple-table-body">
+		        <div class="siimple-table-row">
+		          <div class="siimple-table-cell"><b>Uptime</b></div>
+		          <div id="x_uptime" class="siimple-table-cell"><div class="siimple-spinner siimple-spinner--blue siimple-spinner--small"></div></div>
+		        </div>
+		        <div class="siimple-table-row">
+		          <div class="siimple-table-cell"><b>Last sync</b></div>
+		          <div id="x_last_sync" class="siimple-table-cell"><div class="siimple-spinner siimple-spinner--blue siimple-spinner--small"></div></div>
+		        </div>
+		        <div class="siimple-table-row">
+		          <div class="siimple-table-cell"><b>Next sync</b></div>
+		          <div id="x_next_sync" class="siimple-table-cell"><div class="siimple-spinner siimple-spinner--blue siimple-spinner--small"></div></div>
+		        </div>
+		        <div class="siimple-table-row">
+		          <div class="siimple-table-cell"><b>Room Temp</b></div>
+		          <div id="x_roomTemp" class="siimple-table-cell"><div class="siimple-spinner siimple-spinner--blue siimple-spinner--small"></div></div>
+		        </div>
+		        <div class="siimple-table-row">
+		          <div class="siimple-table-cell"><b>RTC Temp</b></div>
+		          <div id="x_rtcTemp" class="siimple-table-cell"><div class="siimple-spinner siimple-spinner--blue siimple-spinner--small"></div></div>
+		        </div>
+		        <div class="siimple-table-row">
+		          <div class="siimple-table-cell"><b>Heap start</b></div>
+		          <div id="heapstart" class="siimple-table-cell"><div class="siimple-spinner siimple-spinner--blue siimple-spinner--small"></div></div>
+		        </div>
+		        <div class="siimple-table-row">
+		          <div class="siimple-table-cell"><b>Heap end</b></div>
+		          <div id="heapend" class="siimple-table-cell"><div class="siimple-spinner siimple-spinner--blue siimple-spinner--small"></div></div>
+		        </div>
+		      </div>
+	      </div>
+	    </div>
+      <div class="siimple-grid-col siimple-grid-col--6 siimple-grid-col-sm--12">
+	      <div class="siimple-table siimple-table--striped">
+	        <div class="siimple-table-body">
+		        <div class="siimple-table-row">
+		          <div class="siimple-table-cell" style="width:20%, table-layout: fixed"><b>SSID</b></div>
+		          <div id="x_ssid" class="siimple-table-cell"><div class="siimple-spinner siimple-spinner--blue siimple-spinner--small"></div></div>
+		        </div>
+		        <div class="siimple-table-row">
+		          <div class="siimple-table-cell" style="width:20%, table-layout: fixed"><b>STA IP</b></div>
+		          <div id="x_sta_ip" class="siimple-table-cell"><div class="siimple-spinner siimple-spinner--blue siimple-spinner--small"></div></div>
+		        </div>
+		        <div class="siimple-table-row">
+		          <div class="siimple-table-cell" style="width:20%, table-layout: fixed"><b>STA_MAC</b></div>
+		          <div id="x_sta_mac" class="siimple-table-cell"><div class="siimple-spinner siimple-spinner--blue siimple-spinner--small"></div></div>
+		        </div>
+		        <div class="siimple-table-row">
+		          <div class="siimple-table-cell" style="width:20%, table-layout: fixed"><b>AP_IP</b></div>
+		          <div id="x_ap_ip" class="siimple-table-cell"><div class="siimple-spinner siimple-spinner--blue siimple-spinner--small"></div></div>
+		        </div>
+		        <div class="siimple-table-row">
+		          <div class="siimple-table-cell" style="width:20%, table-layout: fixed"><b>AP_MAC</b></div>
+		          <div id="x_ap_mac" class="siimple-table-cell"><div class="siimple-spinner siimple-spinner--blue siimple-spinner--small"></div></div>
+		        </div>
+		        <div class="siimple-table-row">
+		          <div class="siimple-table-cell"><b>Netmask</b></div>
+		          <div id="x_netmask" class="siimple-table-cell"><div class="siimple-spinner siimple-spinner--blue siimple-spinner--small"></div></div>
+		        </div>
+		        <div class="siimple-table-row">
+		          <div class="siimple-table-cell"><b>Gateway</b></div>
+		          <div id="x_gateway" class="siimple-table-cell"><div class="siimple-spinner siimple-spinner--blue siimple-spinner--small"></div></div>
+		        </div>
+		        <div class="siimple-table-row">
+		          <div class="siimple-table-cell"><b>DNS</b></div>
+		          <div id="x_dns" class="siimple-table-cell"><div class="siimple-spinner siimple-spinner--blue siimple-spinner--small"></div></div>
+		        </div>
+		        <div class="siimple-table-row">
+		          <div class="siimple-table-cell"><b>Chip ID</b></div>
+		          <div id="chipId" class="siimple-table-cell"><div class="siimple-spinner siimple-spinner--blue siimple-spinner--small"></div></div>
+		        </div>
+		        <div class="siimple-table-row">
+		          <div class="siimple-table-cell"><b>CPU freq</b></div>
+		          <div id="cpuFreq" class="siimple-table-cell"><div class="siimple-spinner siimple-spinner--blue siimple-spinner--small"></div></div>
+		        </div>
+		        <div class="siimple-table-row">
+		          <div class="siimple-table-cell"><b>sketchSize</b></div>
+		          <div id="sketchSize" class="siimple-table-cell"><div class="siimple-spinner siimple-spinner--blue siimple-spinner--small"></div></div>
+		        </div>
+		        <div class="siimple-table-row">
+		          <div class="siimple-table-cell"><b>freeSketchSpace</b></div>
+		          <div id="freeSketchSpace" class="siimple-table-cell"><div class="siimple-spinner siimple-spinner--blue siimple-spinner--small"></div></div>
+		        </div>
+		        <div class="siimple-table-row">
+		          <div class="siimple-table-cell"><b>flashChipId</b></div>
+		          <div id="flashChipId" class="siimple-table-cell"><div class="siimple-spinner siimple-spinner--blue siimple-spinner--small"></div></div>
+		        </div>
+		        <div class="siimple-table-row">
+		          <div class="siimple-table-cell"><b>flashChipSize</b></div>
+		          <div id="flashChipSize" class="siimple-table-cell"><div class="siimple-spinner siimple-spinner--blue siimple-spinner--small"></div></div>
+		        </div>
+		        <div class="siimple-table-row">
+		          <div class="siimple-table-cell"><b>flashChipRealSize</b></div>
+		          <div id="flashChipRealSize" class="siimple-table-cell"><div class="siimple-spinner siimple-spinner--blue siimple-spinner--small"></div></div>
+		        </div>
+		        <div class="siimple-table-row">
+		          <div class="siimple-table-cell"><b>flashChipSpeed</b></div>
+		          <div id="flashChipSpeed" class="siimple-table-cell"><div class="siimple-spinner siimple-spinner--blue siimple-spinner--small"></div></div>
+		        </div>
+		        <div class="siimple-table-row">
+		          <div class="siimple-table-cell"><b>cycleCount</b></div>
+		          <div id="cycleCount" class="siimple-table-cell"><div class="siimple-spinner siimple-spinner--blue siimple-spinner--small"></div></div>
+		        </div>
+		        <div class="siimple-table-row">
+		          <div class="siimple-table-cell"><b>Core Ver.</b></div>
+		          <div id="coreVer" class="siimple-table-cell"><div class="siimple-spinner siimple-spinner--blue siimple-spinner--small"></div></div>
+		        </div>
+		        <div class="siimple-table-row">
+		          <div class="siimple-table-cell"><b>SDK Ver.</b></div>
+		          <div id="sdkVer" class="siimple-table-cell"><div class="siimple-spinner siimple-spinner--blue siimple-spinner--small"></div></div>
+		        </div>
+		        <div class="siimple-table-row">
+		          <div class="siimple-table-cell"><b>Reset cause</b></div>
+		          <div id="rstReason" class="siimple-table-cell"><div class="siimple-spinner siimple-spinner--blue siimple-spinner--small"></div></div>
+		        </div>
+		        <div class="siimple-table-row">
+		          <div class="siimple-table-cell"><b>Last boot</b></div>
+		          <div id="x_last_boot" class="siimple-table-cell"><div class="siimple-spinner siimple-spinner--blue siimple-spinner--small"></div></div>
+		        </div>
+		      </div>
+	      </div>
+      </div>
+	  </div>
+	</div>
+</div>
+<div class="siimple-footer siimple-footer--teal siimple-footer--fluid" align="center">
+  Made with love by siimple
+</div>
+<script>
+  window.onload = function () {
+    load("siimple.min.css", "css", function () {
+      wsOpen();
+      startPolling();
+    });
+  }
+
+  function load(e, t, n) {
+    if ("js" == t) {
+      var a = document.createElement("script");
+      a.src = e,
+      a.type = "text/javascript",
+      a.async = !1,
+      a.onload = function () { n() },
+      document.getElementsByTagName("head")[0].appendChild(a)
+    } else if ("css" == t) {
+      var a = document.createElement("link");
+      a.href = e,
+      a.rel = "stylesheet",
+      a.type = "text/css",
+      a.async = !1,
+      a.onload = function () { n() },
+      document.getElementsByTagName("head")[0].appendChild(a)
+    }
+  }
+
+	var ws;
+	var retries;
+	var sendPingVar;
+// 	var myVar = setInterval(function(){ myTimer() }, 1000);
+	var killed = false; // true if this client has closed the connection by its self (as instructed by esp)
+
+	function setMsg(cls, text) {
+		sbox = document.getElementById('status_box');
+		sbox.className = "siimple-alert siimple-alert--" + cls;
+		sbox.textContent = text;
+		//console.log(text);
+	}
+	function wsOpen() {
+		if (ws === undefined || ws.readyState != 0) {
+			if (retries)
+				setMsg("red", "Connection timeout, retrying..");
+			else
+				setMsg("blue", "Connecting..");
+			ws = new WebSocket("ws://" + location.host + "/ws");
+			ws.binaryType = 'arraybuffer';
+			ws.onopen = function(evt) {
+			  console.log("WebSocket is open. Connected to " + evt.target.url, evt);
+			  retries = 0; setMsg("green", "Connected");
+        var obj = new Object();
+        obj.url = window.location.pathname;
+        var myJSON = JSON.stringify(obj);
+        console.log(myJSON);
+        ws.send(myJSON);
+			};
+    	ws.onclose = function(evt)     	{
+    	  console.log("WebSocket close. Code: " + evt.code + ", Reason: " + evt.reason);
+    	  clearInterval(sendPingVar);
+    	  console.log(clearInterval.name);
+    	  setMsg("red", "Disconnected");
+    	};
+			ws.onerror = function(error) {
+			  console.log("WebSocket ERROR ", error);
+			  clearInterval(sendPingVar);
+			  console.log(clearInterval.name);
+			  setMsg("red", "Connection error!");
+			};
+			ws.onmessage = function(evt) { onMessage(evt); };
+		}
+	}
+	function onMessage(evt) {
+		retries = 0;
+    if (isJSON(evt.data)) {
+      var jsonData = JSON.parse(evt.data);
+      console.log(jsonData);
+      if (jsonData.type == "infoStatic") {
+        document.getElementById("jumboLoc").textContent = "Time in " + jsonData.loc + " now:";
+        document.getElementById("x_ssid").textContent = jsonData.ssid;
+        document.getElementById("x_sta_ip").textContent = jsonData.sta_ip;
+        document.getElementById("x_sta_mac").textContent = jsonData.sta_mac;
+        document.getElementById("x_ap_ip").textContent = jsonData.ap_ip;
+        document.getElementById("x_ap_mac").textContent = jsonData.ap_mac;
+        document.getElementById("x_netmask").textContent = jsonData.netmask;
+        document.getElementById("x_gateway").textContent = jsonData.gateway;
+        document.getElementById("x_dns").textContent = jsonData.dns;
+        document.getElementById("coreVer").textContent = jsonData.corever;
+        document.getElementById("sdkVer").textContent = jsonData.sdkver;
+        document.getElementById("rstReason").textContent = jsonData.resetreason;
+        document.getElementById("chipId").textContent = jsonData.chipid;
+        document.getElementById("cpuFreq").textContent = jsonData.cpufreq;
+        document.getElementById("sketchSize").textContent = jsonData.sketchsize;
+        document.getElementById("freeSketchSpace").textContent = jsonData.freesketchspace;
+        document.getElementById("flashChipId").textContent = jsonData.flashchipid;
+        document.getElementById("flashChipSize").textContent = jsonData.flashchipsize;
+        document.getElementById("flashChipRealSize").textContent = jsonData.flashchiprealsize;
+        document.getElementById("flashChipSpeed").textContent = jsonData.flashchipspeed;
+        document.getElementById("cycleCount").textContent = jsonData.cyclecount;
+        document.getElementById("x_last_boot").textContent = jsonData.lastboot;
+      }
+      else if (jsonData.type == "infoDynamic") {
+        document.getElementById("x_last_sync").textContent = jsonData.lastsync;
+        document.getElementById("x_next_sync").textContent = jsonData.nextsync;
+        document.getElementById("x_uptime").textContent = jsonData.uptime;
+        document.getElementById("heapstart").textContent = jsonData.heapstart;
+        document.getElementById("heapend").textContent = jsonData.heapend;
+        document.getElementById("x_roomTemp").textContent = jsonData.roomtemp + ' °C';
+        document.getElementById("x_rtcTemp").textContent = jsonData.rtctemp + ' °C';
+        document.getElementById("jumboClock").textContent = jsonData.time;
+        document.getElementById("dateTime").textContent = jsonData.date;
+      }
+    }
+    else {
+      console.log(evt.data);
+    }
+	}
+  function startPolling() {
+    console.log(startPolling.name);
+		// setInterval(function() { wsWrite('A'); }, 1000);
+		sendPingVar = setInterval(function() { sendPing(); }, 60000);
+	}
+	function wsWrite(data) {
+	  if (killed == false) {
+	    console.log('retries = ', retries)
+  		if (ws.readyState == 3 || retries++ > 5)
+  			wsOpen();
+	  }
+	}
+	function gpio() {
+		if (document.getElementById('led-switch').checked)
+			wsWrite('E');
+		else
+			wsWrite('D');
+	}
+  // https://stackoverflow.com/questions/3710204/how-to-check-if-a-string-is-a-valid-json-string-in-javascript-without-using-try
+  function isJSON(str) {
+    try {
+      return (JSON.parse(str) && !!str);
+    } catch (e) {
+      return false;
+    }
+  }
+  function sendPing() {
+  	ws.send('ping'); console.log(sendPing.name);
+  }
+    
+</script>
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="style.css">
+<body style="width:300px">
+<a href="index.htm"  class="btn btn--s">&lt;</a>&nbsp;&nbsp;<strong>System Settings</strong>
+	<hr>
+	<form>
+	  <table border="1" cellspacing="1" cellpadding="2" style="width:100%, table-layout: fixed">
+	    <tr>
+	      <td align="center">
+			    <a href="/edit.html" class="btn btn--m btn--blue">FS Editor</a>
+		    </td>
+		    <td align="center">
+			    <a href="javascript:restartESP()" class="btn btn--m btn--blue">Restart(Ori)</a>
+		    </td>
+	    </tr>
+        <tr>
+            <td colspan="1" align="center">
+                <a href="/update" class="btn btn--m btn--blue" style="width:80%">OTA Update</a>
+            </td>
+					<td align="center">
+							<a href="/reset" class="btn btn--m btn--blue" style="width:75px">Reset</a>
+					</td>
+        </tr>
+    </table>
+  </form>
+  <hr />
+  <form id="wwwAuthForm" action="" method="post">
+      <table border="1" cellspacing="1" cellpadding="2" style="width:100%, table-layout: fixed">
+          <tr>
+              <td style="width:120px" align="right">Use auth:</td>
+              <td>
+                  <input type="checkbox" id="wwwauth" name="wwwauth" onchange="something(this.value)">
+              </td>
+          </tr>
+          <tr>
+              <td align="right">Web User:</td>
+              <td>
+                  <input type="text" id="wwwuser" name="wwwuser" value="">
+              </td>
+          </tr>
+          <tr>
+              <td align="right">Password:</td>
+              <td>
+                  <input type="password" id="wwwpass" name="wwwpass" value="">
+              </td>
+          </tr>
+          <tr>
+              <td align="left" colspan="2">Notice password is used for<br/>HTTP Auth, AP Mode and OTA</td>
+          </tr>
+          <tr>
+              <td colspan="2" align="center">
+                  <a href='javascript:submitFrm(document.forms["wwwAuthForm"])' style="width:30%" class="btn btn--m btn--blue">Save</a>
+              </td>
+          </tr>
+          
+      </table>
+  </form>
+  <table border="1" cellspacing="1" cellpadding="2" style="width:100%, table-layout: fixed">
+    <tr>
+        <td id="submitResult"></td>
+    </tr>
+  </table>
+  
+<!--<script src="microajax.js"></script>-->
+<script>
+  
+window.onload = function ()	{
+  // GetState();
+  getConfigValues("/admin/wwwauth");
+  enableAuthFields(document.getElementById("wwwauth"));
+}
+
+function enableAuthFields(cb) {
+    //document.getElementById("wwwuser").disabled = !cb.checked;
+    //document.getElementById("wwwpass").disabled = !cb.checked;
+}
+
+function submitFrm(frm) {
+  frm.submit();
+}
+
+function restartESP() {
+    setValues("/admin/restart");
+}
+
+function getConfigValues(address) {
+  var req = new XMLHttpRequest();
+  if (req) {
+    req.open("GET", address, true);
+    req.addEventListener("load", reqListener);
+    req.send();
+  }
+}
+
+function reqListener () {
+  //console.log(this.responseText);
+  var json = JSON.parse(this.responseText);
+  console.log(json);
+  document.getElementById("wwwauth").checked = json.wwwauth;
+  document.getElementById("wwwuser").value = json.wwwuser;
+  document.getElementById("wwwpass").value = json.wwwpass;
+  something();
+  // document.getElementById("dhcp").checked = json.dhcp;
+  // document.getElementById("static_ip").value = json.ap_ip[0]+"."+json.ap_ip[1]+"."+json.ap_ip[2]+"."+json.ap_ip[3];
+  // document.getElementById("netmask").value = json.netmask[0]+"."+json.netmask[1]+"."+json.netmask[2]+"."+json.netmask[3];
+  // document.getElementById("gateway").value = json.gateway[0]+"."+json.gateway[1]+"."+json.gateway[2]+"."+json.gateway[3];
+  // document.getElementById("dns").value = json.dns[0]+"."+json.dns[1]+"."+json.dns[2]+"."+json.dns[3];
+}
+  
+function something(element) {
+  var testVal = document.getElementById("wwwauth").checked;
+  console.log(testVal);
+  if (testVal) {
+    document.getElementById("wwwuser").disabled = false;
+    document.getElementById("wwwpass").disabled = false;
+  } else {
+    document.getElementById("wwwuser").disabled = true;
+    document.getElementById("wwwpass").disabled = true;
+  }
+}
+</script>

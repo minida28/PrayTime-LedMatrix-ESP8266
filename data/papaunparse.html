@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" type="text/css" href="style.css">
+<strong>Administration</strong>
+<hr>
+<a href="config.html" style="width:250px" class="btn btn--m btn--blue" >Network Settings</a>
+<br>
+<a href="ntp.html"   style="width:250px"  class="btn btn--m btn--blue" >Time Settings</a>
+<br>
+<a href="info.html"   style="width:250px"  class="btn btn--m btn--blue" >System Overview</a>
+<br>
+<a href="setrtctime.html"   style="width:250px"  class="btn btn--m btn--blue" >Set Date & Time</a>
+<br>
+<a href="sholatconfig.html"   style="width:250px"  class="btn btn--m btn--blue" >Pengaturan Sholat</a>
+<br>
+<a href="sholat.html"   style="width:250px"  class="btn btn--m btn--blue" >Jadwal Sholat</a>
+<br>
+<a href="runningled.html"   style="width:250px"  class="btn btn--m btn--blue" >Setting Running LED</a>
+<br>
+<a href="system.html"   style="width:250px"  class="btn btn--m btn--blue" >System Settings</a>
+<br>
+<a href="praytimesorg.html"   style="width:250px"  class="btn btn--m btn--blue" >praytimes V2.3</a>
+<br>
+<a href="praytimesorgV1.2.1.html"   style="width:250px"  class="btn btn--m btn--blue" >praytimes V1.2.1</a>
+<br>
+<a href="pure.html"   style="width:250px"  class="btn btn--m btn--blue" >Pure</a>
+<br>
+<a href="runningled_mini.html"   style="width:250px"  class="btn btn--m btn--blue" >Mini</a>
+<br>
+<a href="papaunparse.html"   style="width:250px"  class="btn btn--m btn--blue" >Papa Unparse</a>
+<br>
+
+<!--<script src="microajax.js"></script>-->
+
+<script>
+		window.onload = function ()
+		{
+			load("microajax.js","js", function()
+			{
+				load("style.css","css", function()
+				{
+					//setValues("/admin/sholatconfig");
+					//setTimeout(something, 500);
+					load("papaparse.min.js","js", function()
+					{
+  					load("timezones.js","js", function()
+  					{
+  					  loadLocationDB();
+  					});
+					});
+				});
+			});
+		}
+		
+    function loadLocationDB() {
+      console.log("Parsing location database..");
+      var csv = Papa.unparse({
+      	fields: ["value", "abbr", "offset", "isdst", "text", "utc"],
+      	data: DATA
+      });
+      console.log(csv);
+      // Papa.parse("LocationDB.csv", {
+      //   download: true,
+      //   header: true,
+      //   skipEmptyLines: true,
+      //   comments: true,
+      //   error: function(err, file, inputElem, reason) { /* handle*/ },
+      //   complete: function(results) {
+      //     console.log(results);
+      //     allResults.push(results.data);
+      //     console.log(allResults[0][0]);
+      //     console.log("Number of location:", results.data.length); //number of location in db
+      //     var locationIndex;
+      //     var currLocation = document.getElementById('confLocation').value;
+      //     for (var i = 0; i < results.data.length; i++) {
+      //       var inputSelect = document.getElementById("location");
+      //       if(currLocation.toUpperCase() === results.data[i].Location.toUpperCase()) {
+      //         inputSelect.options[inputSelect.options.length] = new Option(results.data[i].Location, results.data[i].Location, true, true);
+      //         console.log(results.data[i].Location);
+      //       } else {
+      //         inputSelect.options[inputSelect.options.length] = new Option(results.data[i].Location, results.data[i].Location);
+      //       }
+      //     }
+      //     //locationIndex = document.getElementById('location').selectedIndex;
+      //     //document.getElementById('lat').innerHTML = allResults[0][locationIndex].Lat;
+      //     //document.getElementById('lon').innerHTML = allResults[0][locationIndex].Lon;
+          
+      //     //document.getElementById('latitude').value = allResults[0][locationIndex].Lat;
+      //     //document.getElementById('longitude').value = allResults[0][locationIndex].Lon;
+      //   }
+      // });
+    }
+    
+
+        function load(e, t, n) {
+            if ("js" == t) {
+                var a = document.createElement("script");
+                a.src = e,
+                a.type = "text/javascript",
+                a.async = !1,
+                a.onload = function () { n() },
+                document.getElementsByTagName("head")[0].appendChild(a)
+            } else if ("css" == t) {
+                var a = document.createElement("link");
+                a.href = e,
+                a.rel = "stylesheet",
+                a.type = "text/css",
+                a.async = !1,
+                a.onload = function () { n() },
+                document.getElementsByTagName("head")[0].appendChild(a)
+            }
+        }
+
+</script>
+
+

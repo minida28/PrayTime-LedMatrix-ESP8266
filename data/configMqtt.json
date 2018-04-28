@@ -1,0 +1,10 @@
+{
+  "mqtt_server": "192.168.10.3",
+  "mqtt_port": 1883,
+  "mqtt_user": "miqbal",
+  "mqtt_pass": "miqbal123",
+  "mqtt_clientid": "ESP2937814",
+  "mqtt_keepalive": 5,
+  "mqtt_cleansession": true,
+  "mqtt_lwt": ["ESP2937814/mqttstatus",2,true,"DISCONNECTED"]
+}

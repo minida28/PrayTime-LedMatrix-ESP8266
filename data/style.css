@@ -1,0 +1,124 @@
+body {
+    width:300px;
+    color: rgba(144, 12, 63, 1);
+    /*font-family: avenir, helvetica, arial, sans-serif;*/
+    /*font-family: "Lucida Sans Typewriter", "Lucida Console", Monaco, "Bitstream Vera Sans Mono", monospace;*/
+    font-family: "Lucida Console", Monaco, "Bitstream Vera Sans Mono", monospace;
+    font-size: 13px;
+    letter-spacing: 0.09em;
+    background-color: #F9EDCC;
+}
+
+hr {
+    /*background-color: #eee;*/
+    background-color: rgba(144, 12, 63, 0.2);
+    border: 0 none;
+    /*color: #eee;*/
+    /*color: rgba(144, 12, 63, 0.2);*/
+    height: 1px;
+}
+
+.btn, .btn:link, .btn:visited {
+    border-radius: 0.3em;
+    border-style: solid;
+    border-width: 1px;
+    color: #111;
+    display: inline-block;
+    font-family: avenir, helvetica, arial, sans-serif;
+    letter-spacing: 0.15em;
+    margin-bottom: 0.5em;
+    padding: 1em 0.75em;
+    text-decoration: none;
+    text-transform: uppercase;
+    -webkit-transition: color 0.4s, background-color 0.4s, border 0.4s;
+    transition: color 0.4s, background-color 0.4s, border 0.4s;
+}
+
+    .btn:hover, .btn:focus {
+        color: #7FDBFF;
+        border: 1px solid #7FDBFF;
+        -webkit-transition: background-color 0.3s, color 0.3s, border 0.3s;
+        transition: background-color 0.3s, color 0.3s, border 0.3s;
+    }
+
+    .btn:active {
+        color: #0074D9;
+        border: 1px solid #0074D9;
+        -webkit-transition: background-color 0.3s, color 0.3s, border 0.3s;
+        transition: background-color 0.3s, color 0.3s, border 0.3s;
+    }
+
+.btn--s {
+    font-size: 12px;
+}
+
+.btn--m {
+    font-size: 14px;
+}
+
+.btn--l {
+    font-size: 20px;
+    border-radius: 0.25em !important;
+}
+
+.btn--full, .btn--full:link {
+    border-radius: 0.25em;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    width: 100%;
+}
+
+.btn--blue:link, .btn--blue:visited {
+    color: #fff;
+    background-color: #0074D9;
+}
+
+.btn--blue:hover, .btn--blue:focus {
+    color: #fff !important;
+    background-color: #0063aa;
+    border-color: #0063aa;
+}
+
+.btn--blue:active {
+    color: #fff;
+    background-color: #001F3F;
+    border-color: #001F3F;
+}
+
+table {
+    width:100%;
+    margin: 5px;
+    /*table-layout:fixed;*/
+    border-spacing:1;
+}
+
+th {
+    background-color: #CCCCCC;
+}
+
+td {
+  /*width:1px;*/
+  white-space:nowrap;
+  text-align:left;
+  padding:3
+}
+
+.button {
+    background-color: #4CAF50; /* Green */
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+}
+
+
+@media screen and (min-width: 32em) {
+    .btn--full {
+        max-width: 16em !important;
+    }
+}

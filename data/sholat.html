@@ -1,0 +1,284 @@
+<!DOCTYPE html>	
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, user-scalable=no">
+  <link rel="stylesheet" type="text/css" href="siimple.min.css">
+<style>
+/*body {font-family: Verdana, Arial, 'sans-serif';}*/
+/*body {font-family: Consolas, monaco, monospace;}*/
+.siimple-jumbotron-title, .siimple-table-cell {font-family: "Lucida Sans Typewriter", "Lucida Console", Monaco, "Bitstream Vera Sans Mono", monospace;}
+</style>
+  <!--<link rel="stylesheet" type="text/css" href="style.css">-->
+  <!--<link rel="shortcut icon" href="favicon.png">-->
+  <title>Sholat Time</title>
+</head>
+<body>
+<div class="siimple-jumbotron  siimple-jumbotron--teal siimple-jumbotron--small" style="padding-top:40px; padding-bottom:40px">
+  <div id="jumboLoc"></div>
+  <div id="jumboCountdown" class="siimple-jumbotron-title"></div>
+  <div id="jumboNextTime" class="siimple-jumbotron-subtitle" style="margin-top:0; margin-bottom:0"></div>
+</div>
+<div class="siimple-content siimple-content--small">
+	<div class="siimple-grid">
+	  <div class="siimple-grid-row">
+	    <div class="siimple-grid-col siimple-grid-col--12">
+        <div class="siimple-tabs siimple-tabs--boxed siimple-tab--small">
+          <a href="/"><div class="siimple-tabs-tab">Menu</div></a>
+          <a href="/info.html"><div class="siimple-tabs-tab">Info</div></a>
+          <a href="/sholat.html"><div class="siimple-tabs-tab">Sholat Time</div></a>
+        </div>
+	    </div>
+	  </div>
+	  <div class="siimple-grid-row">
+	    <div class="siimple-grid-col siimple-grid-col--6 siimple-grid-col-sm--12">
+	      <b><div id="status_box" class="alert alert-info"></div></b>
+	    </div>
+	  </div>
+	  <div class="siimple-grid-row">
+      <div class="siimple-grid-col siimple-grid-col--6 siimple-grid-col-sm--12">
+	      <div class="siimple-table siimple-table--striped">
+	        <div class="siimple-table-body">
+		        <div class="siimple-table-row">
+		          <div class="siimple-table-cell"><b>Connected in</b></div>
+		          <div id="connTime" class="siimple-table-cell"><div class="siimple-spinner siimple-spinner--blue siimple-spinner--small"></div></div>
+		        </div>
+		        <div class="siimple-table-row">
+		          <div class="siimple-table-cell"><b>Fajr</b></div>
+		          <div id="x_fajr" class="siimple-table-cell"><div class="siimple-spinner siimple-spinner--blue siimple-spinner--small"></div></div>
+		        </div>
+		        <div class="siimple-table-row">
+		          <div class="siimple-table-cell"><b>Syuruq</b></div>
+		          <div id="x_syuruq" class="siimple-table-cell"><div class="siimple-spinner siimple-spinner--blue siimple-spinner--small"></div></div>
+		        </div>
+		        <div class="siimple-table-row">
+		          <div class="siimple-table-cell"><b>Dhuhr</b></div>
+		          <div id="x_dhuhr" class="siimple-table-cell"><div class="siimple-spinner siimple-spinner--blue siimple-spinner--small"></div></div>
+		        </div>
+		        <div class="siimple-table-row">
+		          <div class="siimple-table-cell"><b>Ashr</b></div>
+		          <div id="x_ashr" class="siimple-table-cell"><div class="siimple-spinner siimple-spinner--blue siimple-spinner--small"></div></div>
+		        </div>
+		        <div class="siimple-table-row">
+		          <div class="siimple-table-cell"><b>Magrib</b></div>
+		          <div id="x_maghrib" class="siimple-table-cell"><div class="siimple-spinner siimple-spinner--blue siimple-spinner--small"></div></div>
+		        </div>
+		        <div class="siimple-table-row">
+		          <div class="siimple-table-cell"><b>Isya</b></div>
+		          <div id="x_isya" class="siimple-table-cell"><div class="siimple-spinner siimple-spinner--blue siimple-spinner--small"></div></div>
+		        </div>
+		      </div>
+	      </div>
+      </div>
+	  </div>
+	</div>
+</div>
+<!--footer-->
+<div class="siimple-footer siimple-footer--teal siimple-footer--fluid" align="center">
+  Made with love by siimple
+</div>
+<script>
+  window.onload = function () {
+    load("siimple.min.css", "css", function () {
+      wsOpen();
+      startPolling();
+      startConnectionTimer();
+    });
+  }
+
+  function load(e, t, n) {
+    if ("js" == t) {
+      var a = document.createElement("script");
+      a.src = e,
+      a.type = "text/javascript",
+      a.async = !1,
+      a.onload = function () { n() },
+      document.getElementsByTagName("head")[0].appendChild(a)
+    } else if ("css" == t) {
+      var a = document.createElement("link");
+      a.href = e,
+      a.rel = "stylesheet",
+      a.type = "text/css",
+      a.async = !1,
+      a.onload = function () { n() },
+      document.getElementsByTagName("head")[0].appendChild(a)
+    }
+  }
+  
+	var ws;
+	var retries;
+	var sendPingVar;
+	var killed = false; // true if this client has closed the connection by its self (as instructed by esp)
+	var startSecond;
+	var connectionTimerVar;
+
+	function setMsg(cls, text) {
+		sbox = document.getElementById('status_box');
+		sbox.className = "siimple-alert siimple-alert--" + cls;
+		sbox.textContent = text;
+		//console.log(text);
+	}
+	function wsOpen() {
+		if (ws === undefined || ws.readyState != 0) {
+			if (retries)
+				setMsg("red", "Connection timeout, retrying..");
+			else
+				setMsg("blue", "Connecting..");
+			ws = new WebSocket("ws://" + location.host + "/ws");
+			ws.binaryType = 'arraybuffer';
+			ws.onopen = function(evt) {
+			  console.log("WebSocket is open. Connected to " + evt.target.url, evt);
+			  retries = 0; setMsg("green", "Connected");
+			  //ws.send('Hallo from Browser :-) ' + new Date());
+    		// setInterval(function(){ sendPing() }, 5000);
+    		var obj = new Object();
+        obj.url = window.location.pathname;
+        var myJSON = JSON.stringify(obj);
+        console.log(myJSON);
+        ws.send(myJSON);
+			};
+    	ws.onclose = function(evt)     	{
+    	  //console.log("WebSocket CLOSE ", evt);
+    	  setMsg("red", "Disconnected");
+    	  console.log("WebSocket close. Code: " + evt.code + ", Reason: " + evt.reason);
+    	  clearInterval(sendPingVar); console.log(clearInterval.name);
+    	  clearInterval(connectionTimerVar); console.log(clearInterval.name);
+    	};
+			ws.onerror = function(error) {
+			  console.log("WebSocket ERROR ", error);
+			  clearInterval(sendPingVar);console.log(clearInterval.name);
+			  clearInterval(connectionTimerVar); console.log(clearInterval.name);
+			  setMsg("red", "Connection error!");
+			};
+			ws.onmessage = function(evt) { onMessage(evt); };
+			//wsOpenStream();
+			//retries = 0;
+		}
+	}
+	function onMessage(evt) {
+		retries = 0;
+		
+    if (isJSON(evt.data)) {
+      var jsonData = JSON.parse(evt.data);
+      console.log(jsonData);
+      if (jsonData.type == "sholatStatic") {
+        document.getElementById("jumboLoc").textContent = jsonData.loc;
+        document.getElementById("x_fajr").textContent = jsonData.fajr;
+        document.getElementById("x_syuruq").textContent = jsonData.syuruq;
+        document.getElementById("x_dhuhr").textContent = jsonData.dhuhr;
+        document.getElementById("x_ashr").textContent = jsonData.ashr;
+        document.getElementById("x_maghrib").textContent = jsonData.maghrib;
+        document.getElementById("x_isya").textContent = jsonData.isya;
+      }
+      else if (jsonData.type == "sholatDynamic") {
+        var hour; var minute; var second;
+        if(jsonData.hasOwnProperty('s')) {
+          hour = parseInt(jsonData.h); minute = parseInt(jsonData.m); second = parseInt(jsonData.s);
+          // document.getElementById("timeLeft").textContent = hour + ":" + minute + ":" + second;
+          if (second != 0) {
+            minute = minute+1;
+            if (minute == 60) {
+              minute = 0;
+              hour = hour+1;
+              document.getElementById("jumboCountdown").textContent = hour + "hr " + minute + "min";
+            }
+            else if (minute != 60) {
+              if (hour > 0) {
+                document.getElementById("jumboCountdown").textContent = hour + "hr " + minute + "min";
+              }
+              else if (minute > 10) {
+                document.getElementById("jumboCountdown").textContent = minute + " minute";
+              }
+              else if (minute <= 10) {
+                minute = minute-1;
+                if (minute > 0) {
+                  document.getElementById("jumboCountdown").textContent = minute + "min " + second + "s";
+                }
+                else {
+                  document.getElementById("jumboCountdown").textContent = second + " secs";
+                }
+              }
+            }
+          }
+          else if (second == 0) {
+            // minute = minute;
+            if (hour > 0) {
+              document.getElementById("jumboCountdown").textContent = hour + "hr " + minute + "min";
+            }
+            else if (minute > 10) {
+              document.getElementById("jumboCountdown").textContent = minute + " minute";
+            }
+            else if (minute <= 10) {
+              if (minute > 0) {
+                document.getElementById("jumboCountdown").textContent = minute + "min " + second + "s";
+              }
+              else {
+                document.getElementById("jumboCountdown").textContent = second + " secs";
+              }
+            }
+          }
+          document.getElementById("jumboNextTime").textContent = "to " + jsonData.next;
+        }
+      }
+    }
+    else {
+      console.log(evt.data);
+    }
+	}
+	function wsWrite(data) {
+	  if (killed == false) {
+	    console.log('retries = ', retries)
+  		if (ws.readyState == 3 || retries++ > 5)
+  			wsOpen();
+	  }
+		// if (ws.readyState == 3 || retries++ > 5)
+		// 	wsOpen();
+		// else if (ws.readyState == 1)
+		// 	ws.send(data);
+	}
+	function gpio() {
+		if (document.getElementById('led-switch').checked)
+			wsWrite('E');
+		else
+			wsWrite('D');
+	}
+	
+  // https://stackoverflow.com/questions/3710204/how-to-check-if-a-string-is-a-valid-json-string-in-javascript-without-using-try
+  function isJSON(str) {
+    try {
+        return (JSON.parse(str) && !!str);
+    } catch (e) {
+        return false;
+    }
+  }
+  
+  function startPolling() {
+    console.log(startPolling.name);
+		// setInterval(function() { wsWrite('A'); }, 1000);
+		sendPingVar = setInterval(function() { sendPing(); }, 60000);
+	}
+  function startConnectionTimer() {
+    //console.log(startPolling.name);
+		// setInterval(function() { wsWrite('A'); }, 1000);
+		document.getElementById("connTime").textContent = '0:00:00';
+		var date1 = new Date();
+		startSecond = date1.valueOf() / 1000;
+		connectionTimerVar = setInterval(function() { connectionTimer(); }, 1000);
+	}
+  
+  function sendPing() {
+    ws.send('ping'); console.log(sendPing.name);
+  }
+  function connectionTimer() {
+    var date2 = new Date();
+    var current = date2.valueOf() / 1000;
+    var timeDiff = current - startSecond;
+    hours = Math.floor(timeDiff  / 3600);
+    timeDiff %= 3600;
+    minutes = Math.floor(timeDiff / 60);
+    seconds = Math.floor(timeDiff % 60);
+    document.getElementById("connTime").textContent = hours +':'+ ('0'+minutes).slice(-2) +':'+ ('0'+seconds).slice(-2);
+    // console.log( hours +':'+ ('0'+minutes).slice(-2) +':'+ ('0'+seconds).slice(-2) );
+  }
+    
+</script>
+</body>

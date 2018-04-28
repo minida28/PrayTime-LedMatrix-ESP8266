@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no">
+	<link rel="stylesheet" type="text/css" href="siimple.min.css">
+	<!--<link rel="stylesheet" type="text/css" href="style.css">-->
+	<!--<link rel="shortcut icon" href="favicon.ico">-->
+	<title>Main Menu</title>
+<style>
+body {font-family: Verdana, Arial, 'sans-serif';}
+/*body {font-family: Consolas, monaco, monospace;}*/
+.siimple-jumbotron-title, .siimple-table-cell {font-family: "Lucida Sans Typewriter", "Lucida Console", Monaco, "Bitstream Vera Sans Mono", monospace;}
+</style>
+</head>
+<body>
+<div class="siimple-content siimple-content--small">
+  <div class="siimple-grid">
+	  <div class="siimple-grid-row">
+	    <div class="siimple-grid-col siimple-grid-col--6 siimple-grid-col-md--12">
+        <div class="siimple-box siimple-box--pink">
+          <!--<div class="siimple-box-title">LED Matrix Settings</div>-->
+          <div class="siimple-box-subtitle">Main Menu</div>
+          <!--<div class="siimple-box-detail">Main Menu</div>-->
+        </div>
+        
+          <div class="siimple-menu">
+            <!--<div class="siimple-menu-group">Main Menu</div>-->
+            <!--<hr>-->
+              <a class="siimple-menu-item" href="statusnetwork.html">Network Status</a>
+              <a class="siimple-menu-item" href="statustime.html">Time Status</a>
+              <a class="siimple-menu-item" href="statussystem.html">System Information</a>
+              <a class="siimple-menu-item" href="confignetwork.html">NETWORK CONFIG</a>
+              <a class="siimple-menu-item" href="configtime.html">TIME CONFIG</a>
+              <a class="siimple-menu-item" href="configsholat.html">SHOLAT CONFIG</a>
+              <a class="siimple-menu-item" href="configrunningled.html">RUNNING LED CONFIG</a>
+              <a class="siimple-menu-item" href="mqtt.html">MQTT Settings</a>
+              <a class="siimple-menu-item" href="config.html">Network Settings</a>
+              <a class="siimple-menu-item" href="info.html">System Overview</a>
+              <a class="siimple-menu-item" href="setrtctime.html">Set Date & Time</a>
+              <a class="siimple-menu-item" href="sholatconfig.html">Pengaturan Sholat</a>
+              <a class="siimple-menu-item" href="sholat.html">Jadwal Sholat</a>
+              <a class="siimple-menu-item" href="system.html">System Settings</a>
+              <a class="siimple-menu-item" href="websocket.html">Websocket</a>
+              <a class="siimple-menu-item" href="async.htm">Async</a>
+              <a class="siimple-menu-item" href="praytimesorg.html">praytimes V2.3</a>
+              <a class="siimple-menu-item" href="praytimesorgV1.2.1.html">praytimes V1.2.1</a>
+              <a class="siimple-menu-item" href="acetest.html">ACE Editor</a>
+              <a class="siimple-menu-item" href="edit.html">Edit</a>
+              <a class="siimple-menu-item" href="edit2.html">Edit 2</a>
+              <a class="siimple-menu-item" href="raw.htm">Raw</a>
+              <hr>
+          </div>
+	    </div>
+	  </div>
+	</div>
+
+</div>
+<script>
+  window.onload = function () {
+    load("siimple.min.css", "css", function () {
+      // load("microajax.js", "js", function () {
+        // Do something after load...
+        // run();
+      // });
+    });
+  }
+
+  function load(e, t, n) {
+    if ("js" == t) {
+      var a = document.createElement("script");
+      a.src = e,
+      a.type = "text/javascript",
+      a.async = !1,
+      a.onload = function () { n() },
+      document.getElementsByTagName("head")[0].appendChild(a)
+    } else if ("css" == t) {
+      var a = document.createElement("link");
+      a.href = e,
+      a.rel = "stylesheet",
+      a.type = "text/css",
+      a.async = !1,
+      a.onload = function () { n() },
+      document.getElementsByTagName("head")[0].appendChild(a)
+    }
+  }
+  
+  
+    var heap,temp,digi;
+    var reloadPeriod = 1000;
+    var running = false;
+    
+    function loadValues(){
+      if(!running) return;
+      var xh = new XMLHttpRequest();
+      xh.onreadystatechange = function(){
+        if (xh.readyState == 4){
+          if(xh.status == 200) {
+            var res = JSON.parse(xh.responseText);
+            //heap.add(res.heap);
+            //temp.add(res.analog);
+            //digi.add(res.gpio);
+            console.log(res.heap);
+            if(running) 
+              setTimeout(loadValues, reloadPeriod);
+          } else running = false;
+        }
+      };
+      xh.open("GET", "/all", true);
+      xh.send(null);
+    };
+    
+    function run(){
+      if(!running){
+        running = true;
+        loadValues();
+      }
+    }
+
+</script>
+</body>
+</html>
+

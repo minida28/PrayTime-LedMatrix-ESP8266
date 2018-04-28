@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="style.xml"?>
+<root>
+<specVersion>
+<major>1</major>
+<minor>0</minor>
+</specVersion>
+<URLBase>http://%s/</URLBase>
+<device>
+<deviceType>upnp:rootdevice</deviceType>
+<friendlyName>%s</friendlyName>
+<presentationURL>%s</presentationURL>
+<serialNumber>%u</serialNumber>
+<modelName>%s</modelName>
+<modelNumber>%s</modelNumber>
+<modelURL>http://www.espressif.com</modelURL>
+<manufacturer>Espressif Systems</manufacturer>
+<manufacturerURL>http://www.espressif.com</manufacturerURL>
+<UDN>uuid:38323636-4558-4dda-9188-cda0e6%02x%02x%02x</UDN>
+</device>
+</root>

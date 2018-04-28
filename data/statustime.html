@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" href="style.css" type="text/css" />
+<div id="page">
+<a href="index.htm"  class="btn btn--s">&lt;</a>&nbsp;&nbsp;<strong>Time Status</strong>
+
+<table>
+<tr>
+	<td colspan="2">
+	<span><hr></span>
+</td>
+</tr>
+<tr>
+	<td align="right">Date :</td>
+	<td>
+		<span id="date"></span>
+	</td>
+</tr>
+<tr>
+  <td align="right">Time :</td>
+  <td>
+    <span id="time"></span>
+  </td>
+</tr>
+<tr>
+  <td align="right">Uptime :</td>
+  <td>
+     <span id="uptime"></span>
+  </td>
+</tr>
+<tr>
+  <td align="right">Last sync :</td>
+  <td>
+    <span id="lastsync"></span>
+  </td>
+</tr>
+<tr>
+  <td align="right">Next sync :</td>
+  <td>
+    <span id="nextsync"></span>
+  </td>
+</tr>
+<tr>
+	<td colspan="2" align="center">
+		<!--<a href="javascript:GetState(); initEvt()" class="btn btn-m btn-blue">Refresh</a>-->
+	</td>
+</tr>
+</table>
+<a style="horizontal-align: center" href="javascript:GetState(); initEvt()" class="btn btn--m btn--blue">Refresh</a>
+</div>
+<!--<script src="microajax.js"></script>-->
+<script>
+var ws = null;
+
+window.onload = function () {
+  startSocket();
+  //startEvents();
+}
+function startSocket(){
+  ws = new WebSocket('ws://'+document.location.host+'/ws',['arduino']);
+  ws.binaryType = "arraybuffer";
+  ws.onopen = function(e){
+		var obj = new Object();
+    obj.url = window.location.pathname;
+    var myJSON = JSON.stringify(obj);
+    ws.send(myJSON);
+  };
+  ws.onclose = function(e){
+  };
+  ws.onerror = function(e){
+    console.log("ws error", e);
+  };
+  ws.onmessage = function(e){
+    var msg = "";
+    if(e.data instanceof ArrayBuffer){
+      msg = "BIN:";
+      var bytes = new Uint8Array(e.data);
+      for (var i = 0; i < bytes.length; i++) {
+        msg += String.fromCharCode(bytes[i]);
+      }
+    } else {
+      msg = "TXT:"+e.data;
+    if (isJSON(e.data)) {
+      var json = JSON.parse(e.data);
+        document.getElementById("date").textContent = json.date;
+        document.getElementById("time").textContent = json.time;
+        document.getElementById("uptime").textContent = json.uptime;
+        document.getElementById("lastsync").textContent = json.lastsync;
+        document.getElementById("nextsync").textContent = json.nextsync;
+      }
+    }
+  };
+}
+function startEvents(){
+  var es = new EventSource('/events');
+  es.onopen = function(e) {
+    console.log("Events Opened");
+  };
+  es.onerror = function(e) {
+    if (e.target.readyState != EventSource.OPEN) {
+      console.log("Events Closed");
+    }
+  };
+  es.onmessage = function(e) {
+    console.log("Event: " + e.data);
+    if (isJSON(e.data)) {
+    var json = JSON.parse(e.data);
+      document.getElementById("date").textContent = json.date;
+      document.getElementById("time").textContent = json.time;
+      document.getElementById("uptime").textContent = json.uptime;
+      document.getElementById("lastsync").textContent = json.lastsync;
+      document.getElementById("nextsync").textContent = json.nextsync;
+    }
+  };
+  es.addEventListener('ota', function(e) {
+  }, false);
+  es.addEventListener('timeDate', function(e) {
+  }, false);
+}
+// https://stackoverflow.com/questions/3710204/how-to-check-if-a-string-is-a-valid-json-string-in-javascript-without-using-try
+function isJSON(str) {
+  try {
+      return (JSON.parse(str) && !!str);
+  } catch (e) {
+      return false;
+  }
+}
+</script>

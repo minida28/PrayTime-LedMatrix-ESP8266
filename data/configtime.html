@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="style.css">
+<style>
+</style>
+<body style="width:300px">
+<a href="index.htm"  class="btn btn--s">&lt;</a>&nbsp;&nbsp;<strong>Time Settings</strong>
+<hr>
+<p id="demo"></p>
+<form action="" method="post">
+	<table>
+		<tr>
+			<td>Timezone</td>
+			<td>
+				<select  id="timezone" name="timezone">
+          <option value="70">Waktu Indonesia Barat (WIB)</option>
+          <option value="80">Waktu Indonesia Tengah (WITA)</option>
+          <option value="90">Waktu Indonesia Timur (WIT)</option>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td align="right">DST</td>
+			<td>
+			<input type="checkbox" id="dst" name="dst"></td>
+		</tr>
+		<tr>
+			<td align="right">Enable NTP</td>
+			<td>
+			<input type="checkbox" id="enablentp" name="enablentp" onchange="something(this.value)"></td>
+		</tr>
+		<tr>
+			<td align="right">NTP Server 0</td>
+			<td>
+			<input type="text" id="ntpserver_0" name="ntpserver_0" maxlength="172" value=""></td>
+		</tr>
+		<tr>
+			<td align="right">NTP Server 1</td>
+			<td>
+			<input type="text" id="ntpserver_1" name="ntpserver_1" maxlength="172" value=""></td>
+		</tr>
+		<tr>
+			<td align="right">NTP Server 2</td>
+			<td>
+			<input type="text" id="ntpserver_2" name="ntpserver_2" maxlength="172" value=""></td>
+		</tr>
+		<tr>
+			<td align="right">Enable RTC</td>
+			<td>
+			<input type="checkbox" id="enablertc" name="enablertc"></td>
+		</tr>
+		<tr>
+			<td align="right">Sync Interval</td>
+			<td>
+			<input type="number" id="syncinterval" name="syncinterval" size="3" min="20" max="31104000" maxlength="8" value=""> seconds</td>
+		</tr>
+		<tr>
+			<td colspan="2" align="center">
+			<input type="button" class="button" value="Save Settings" id="btnSaveConfig" onclick="sendConfig()"></td>
+		</tr>
+	</table>
+</form>
+<!--<script src="microajax.js"></script>-->
+<script language="javascript" type="text/javascript">
+
+var ws = null;
+var json;
+
+window.onload = function () {
+  getConfigValues("/config.json");
+  startSocket();
+  //startEvents();
+}
+function startSocket(){
+  ws = new WebSocket('ws://'+document.location.host+'/ws',['arduino']);
+  ws.binaryType = "arraybuffer";
+  ws.onopen = function(e){
+		var obj = new Object();
+    obj.url = window.location.pathname;
+    var myJSON = JSON.stringify(obj);
+    ws.send(myJSON);
+  };
+  ws.onclose = function(e){
+  };
+  ws.onerror = function(e){
+    console.log("ws error", e);
+  };
+  ws.onmessage = function(e){
+    var msg = "";
+    if(e.data instanceof ArrayBuffer){
+      msg = "BIN:";
+      var bytes = new Uint8Array(e.data);
+      for (var i = 0; i < bytes.length; i++) {
+        msg += String.fromCharCode(bytes[i]);
+      }
+    } else {
+      msg = "TXT:"+e.data;
+      console.log(msg);
+      if (isJSON(e.data)) {
+        var json = JSON.parse(e.data);
+        document.getElementById("date").textContent = json.date;
+        document.getElementById("time").textContent = json.time;
+        document.getElementById("uptime").textContent = json.uptime;
+        document.getElementById("lastsync").textContent = json.lastsync;
+        document.getElementById("nextsync").textContent = json.nextsync;
+      }
+    }
+  };
+}
+// https://stackoverflow.com/questions/3710204/how-to-check-if-a-string-is-a-valid-json-string-in-javascript-without-using-try
+function isJSON(str) {
+  try {
+      return (JSON.parse(str) && !!str);
+  } catch (e) {
+      return false;
+  }
+}
+
+function getConfigValues(address) {
+  var req = new XMLHttpRequest();
+  if (req) {
+    req.open("GET", address, true);
+    req.addEventListener("load", reqListener);
+    req.send();
+  }
+}
+function reqListener () {
+  //console.log(this.responseText);
+  json = JSON.parse(this.responseText);
+  console.log(json);
+  document.getElementById("timezone").value = json.timezone;
+  document.getElementById("dst").checked = json.dst;
+  document.getElementById("enablentp").checked = json.enablentp;
+  document.getElementById("ntpserver_0").value = json.ntpserver_0;
+  document.getElementById("ntpserver_1").value = json.ntpserver_1;
+  document.getElementById("ntpserver_2").value = json.ntpserver_2;
+  document.getElementById("enablertc").checked = json.enablertc;
+  document.getElementById("syncinterval").value = json.syncinterval;
+  something();
+}
+function something(element) {
+  var ntpVal = document.getElementById("enablentp").checked;
+  console.log(ntpVal);
+  if (ntpVal) {
+    document.getElementById("ntpserver_0").disabled = false;
+    document.getElementById("ntpserver_1").disabled = false;
+    document.getElementById("ntpserver_2").disabled = false;
+  } else {
+    document.getElementById("ntpserver_0").disabled = true;
+    document.getElementById("ntpserver_1").disabled = true;
+    document.getElementById("ntpserver_2").disabled = true;
+  }
+}
+function sendConfig(element) {
+  json.saveconfig = window.location.pathname;
+  json.timezone = parseInt(document.getElementById("timezone").value);
+  json.dst = document.getElementById("dst").checked;
+  json.enablentp = document.getElementById("enablentp").checked;
+  json.ntpserver_0 = document.getElementById("ntpserver_0").value;
+  json.ntpserver_1 = document.getElementById("ntpserver_1").value;
+  json.ntpserver_2 = document.getElementById("ntpserver_2").value;
+  json.enablertc = document.getElementById("enablertc").checked;
+  json.syncinterval = parseInt(document.getElementById("syncinterval").value);
+  var myJSON = JSON.stringify(json);
+  ws.send(myJSON);
+  console.log("Data sent: ",myJSON);
+}
+</script>
+</body>

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>MQTT</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="page">
+<a href="index.htm" class="btn btn--s">&lt;</a>&nbsp;&nbsp;<strong>Raw</strong>
+<hr>
+<a href="/admin/generalvalues" style="width:250px" >/admin/generalvalues</a>
+<br>
+<a href="/admin/values" style="width:250px" >/admin/values</a>
+<br>
+<a href="/admin/connectionstate" style="width:250px" >/admin/connectionstate</a>
+<br>
+<a href="/admin/infovalues" style="width:250px" >/admin/infovalues</a>
+<br>
+<a href="/admin/ntpvalues" style="width:250px" >/admin/ntpvalues</a>
+<br>
+<a href="/admin/sholatvalues" style="width:250px" >/admin/sholatvalues</a>
+<br>
+<a href="/config.json" style="width:250px" >/config.json</a>
+<a href="/configrunningled.json" style="width:250px" >/configrunningled.json</a>
+<br>
+<a href="/scan" style="width:250px" >/scan</a>
+<br>
+<a href="/update/updatepossible" style="width:250px" >/update/updatepossible</a>
+<br>
+<a href="/setmd5" style="width:250px" >/setmd5</a>
+<br>
+<a href="/xml" style="width:250px" >/xml</a>
+<br>
+</div>
+
+<!--<script src="microajax.js"></script>-->
+<script>
+	window.onload = function ()
+	{
+		load("style.css","css", function()
+		{
+			load("microajax.js","js", function()
+			{
+				// Do something after load...
+			});
+		});
+	}
+	function load(e,t,n) {
+		if("js"==t) {
+			var a=document.createElement("script");
+			a.src=e,
+			a.type="text/javascript",
+			a.async=!1,
+			a.onload=function() { n() },
+			document.getElementsByTagName("head")[0].appendChild(a)
+		}
+		else if("css"==t) {
+			var a=document.createElement("link");
+			a.href=e,
+			a.rel="stylesheet",
+			a.type="text/css",
+			a.async=!1,
+			a.onload=function(){ n() },
+			document.getElementsByTagName("head")[0].appendChild(a)
+		}
+	}
+
+</script>
+</body>
+</html>
+

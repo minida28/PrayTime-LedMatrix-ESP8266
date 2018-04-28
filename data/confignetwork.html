@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="style.css">
+<style>
+  * { box-sizing: border-box; }
+  
+  $signal-strength-bar-height: 50px;
+  $signal-strength-bar-width: 80px;
+  
+  .sizing-box {
+    height: $signal-strength-bar-height;
+    width: $signal-strength-bar-width;
+  }
+  
+  .signal-bars {
+    display: inline-block;
+  }
+  
+  .signal-bars .bar {
+    width: 14%;
+    margin-left: 1%;
+    min-height: 20%;
+    display: inline-block;
+  }
+  .signal-bars .bar.first-bar  { height: 20%; }
+  .signal-bars .bar.second-bar { height: 40%; }
+  .signal-bars .bar.third-bar  { height: 60%; }
+  .signal-bars .bar.fourth-bar { height: 80%; }
+  .signal-bars .bar.fifth-bar  { height: 99%; }
+  
+  .good .bar {
+    background-color: #16a085;
+    border: thin solid darken(#16a085, 7%);
+  }
+  .bad .bar {
+    background-color: #e74c3c;
+    border: thin solid darken(#e74c3c, 20%);
+  }
+  .ok .bar {
+    background-color: #f1c40f;
+    border: thin solid darken(#f1c40f, 7%);
+  }
+  
+  .four-bars .bar.fifth-bar,
+  .three-bars .bar.fifth-bar,
+  .three-bars .bar.fourth-bar,
+  .one-bar .bar:not(.first-bar),
+  .two-bars .bar:not(.first-bar):not(.second-bar) {       background-color: #fafafa;
+    border: thin solid #f3f3f3;
+  }
+</style>
+<body>
+<a href="index.htm"  class="btn btn--s">&lt;</a>&nbsp;&nbsp;<strong>Network Config</strong>
+<hr>
+<form action="" method="post">
+	<table>
+    <tr>
+      <td align="right">Host name:</td>
+      <td>
+         <strong><span id="hostname"></span></strong>
+      </td>
+    </tr>
+    <tr>
+      <td align="right">Wifi SSID:</td>
+      <td>
+        <input type="text" id="ssid" name="ssid" value="">
+      </td>
+    </tr>
+    <tr>
+      <td align="right">Wifi pass:</td>
+      <td>
+        <input type="password" id="password" name="password" value="">
+      </td>
+    </tr>
+    <tr>
+      <td align="right">DHCP:</td>
+      <td>
+        <input type="checkbox" id="dhcp" name="dhcp" onchange="something(this.value)">
+      </td>
+    </tr>
+    <tr>
+      <td align="right">IP:</td>
+      <td>
+        <input type="text" id="static_ip" name="static_ip">
+      </td>
+    </tr>
+    <tr>
+      <td align="right">Netmask:</td>
+      <td>
+        <input type="text" id="netmask" name="netmask">
+      </td>
+    </tr>
+    <tr>
+      <td align="right">Gateway:</td>
+      <td>
+        <input type="text" id="gateway" name="gateway">
+      </td>
+    </tr>
+    <tr>
+      <td align="right">DNS 1:</td>
+      <td>
+        <input type="text" id="dns0" name="dns0">
+      </td>
+    </tr>
+    <tr>
+      <td align="right">DNS 2:</td>
+      <td>
+        <input type="text" id="dns1" name="dns1">
+      </td>
+    </tr>
+		<tr>
+			<td colspan="2" align="center">
+				<button type="button" id="btnSaveConfig" class="button" onclick="sendConfig()">Save Config</button></td>
+		</tr>
+	</table>
+</form>
+	
+<hr>
+<strong>SCAN WIFI</strong>
+<br>
+<span id="numNets">Scanning for wifi...</span>
+<br>
+
+<table>
+  <thead bgcolor='#DDDDDD'>
+    <tr>
+      <th>SSID</th>
+      <th>Channel</th>
+      <th>Secure</th>
+      <th>RSSI</th>
+    </tr>
+  </thead>
+  <tbody id="networks"></tbody>
+  <tr>
+    <td colspan="3" align="center">
+      <a href="javascript:getNetwork();" style="width:40%" class="btn btn--m btn--blue">Refresh</a>
+    </td>
+  </tr>
+</table>
+
+
+
+
+<script language="javascript" type="text/javascript">
+var ws = null;
+var json;
+
+window.onload = function () {
+  getConfigValues("/config.json");
+  startSocket();
+  //startEvents();
+  // setTimeout(getNetwork, 1000);
+}
+function startSocket(){
+  ws = new WebSocket('ws://'+document.location.host+'/ws',['arduino']);
+  ws.binaryType = "arraybuffer";
+  ws.onopen = function(e){
+		var obj = new Object();
+    obj.url = window.location.pathname;
+    var myJSON = JSON.stringify(obj);
+    ws.send(myJSON);
+  };
+  ws.onclose = function(e){
+  };
+  ws.onerror = function(e){
+    console.log("ws error", e);
+  };
+  ws.onmessage = function(e){
+    var msg = "";
+    if(e.data instanceof ArrayBuffer){
+      msg = "BIN:";
+      var bytes = new Uint8Array(e.data);
+      for (var i = 0; i < bytes.length; i++) {
+        msg += String.fromCharCode(bytes[i]);
+      }
+    } else {
+      msg = "TXT:"+e.data;
+      console.log(msg);
+      if (isJSON(e.data)) {
+        var json = JSON.parse(e.data);
+        document.getElementById("date").textContent = json.date;
+        document.getElementById("time").textContent = json.time;
+        document.getElementById("uptime").textContent = json.uptime;
+        document.getElementById("lastsync").textContent = json.lastsync;
+        document.getElementById("nextsync").textContent = json.nextsync;
+      }
+    }
+  };
+}
+// https://stackoverflow.com/questions/3710204/how-to-check-if-a-string-is-a-valid-json-string-in-javascript-without-using-try
+function isJSON(str) {
+  try {
+      return (JSON.parse(str) && !!str);
+  } catch (e) {
+      return false;
+  }
+}
+function securityStr(security) {
+  if (security == 7) {
+    return 'Open';
+  }
+  else if (security == 5) {
+    return 'WEP';
+  }
+  else if (security == 2) {
+    return 'WPA';
+  }
+  else if (security == 4) {
+    return 'WPA2';
+  }
+  else if (security == 8) {
+    return 'WPA/WPA2';
+  }
+}
+function wifiScan(res) {
+  var array;
+  if (!res || (res.target.responseText == '[]')) {
+    setTimeout(function () { getNetwork(); }, 5000);
+    return;
+  }
+  array = JSON.parse(res.target.responseText);
+  array.sort(function (a, b) { return a.rssi - b.rssi });
+  array.reverse();
+  document.getElementById("numNets").innerHTML = array.length + " networks found";
+  var table = document.getElementById("networks");
+  table.innerHTML = "";
+  for (var i = 0; i < array.length; i++) {
+    var row = document.createElement("tr");
+    row.innerHTML = "<td><a href='javascript:selssid(\"" + array[i].ssid + "\")'>" + array[i].ssid + "</td><td>" + array[i].channel + "</td><td>" + securityStr(array[i].secure) + "</td><td>" + array[i].rssi + "</td>";
+    table.appendChild(row);
+  }
+}
+function getNetwork() {
+  request = new XMLHttpRequest();
+  if (request) {
+    request.open("GET", "/scan", true);
+    request.addEventListener("load", wifiScan)
+    request.send();
+  }
+}
+function selssid(value) {
+  document.getElementById("ssid").value = value;
+}
+function getConfigValues(address) {
+  var req = new XMLHttpRequest();
+  if (req) {
+    req.open("GET", address, true);
+    req.addEventListener("load", reqListener);
+    req.send();
+  }
+}
+
+function reqListener () {
+  //console.log(this.responseText);
+  json = JSON.parse(this.responseText);
+  console.log(json);
+  document.getElementById("hostname").textContent = json.hostname;
+  document.getElementById("ssid").value = json.ssid;
+  document.getElementById("password").value = json.password;
+  document.getElementById("dhcp").checked = json.dhcp;
+  document.getElementById("static_ip").value = json.static_ip;
+  document.getElementById("netmask").value = json.netmask;
+  document.getElementById("gateway").value = json.gateway;
+  document.getElementById("dns0").value = json.dns0;
+  document.getElementById("dns1").value = json.dns1;
+  if (document.getElementById("dhcp").checked == true) {
+    document.getElementById('static_ip').disabled = true;
+    document.getElementById('netmask').disabled = true;
+    document.getElementById('gateway').disabled = true;
+    document.getElementById('dns0').disabled = true;
+    document.getElementById('dns1').disabled = true;
+  }
+}
+function something() {
+  var dhcpVal = document.getElementById('dhcp').checked;
+  console.log(dhcpVal);
+  if (dhcpVal) {
+    document.getElementById('static_ip').disabled = true;
+    document.getElementById('netmask').disabled = true;
+    document.getElementById('gateway').disabled = true;
+    document.getElementById('dns0').disabled = true;
+    document.getElementById('dns1').disabled = true;
+  } else {
+    document.getElementById('static_ip').disabled = false;
+    document.getElementById('netmask').disabled = false;
+    document.getElementById('gateway').disabled = false;
+    document.getElementById('dns0').disabled = false;
+    document.getElementById('dns1').disabled = false;
+  }
+}
+function sendConfig(element) {
+  json.saveconfig = window.location.pathname;
+  json.hostname = document.getElementById("hostname").textContent;
+  json.ssid = document.getElementById("ssid").value;
+  json.password = document.getElementById("password").value;
+  json.dhcp = document.getElementById("dhcp").checked;
+  json.static_ip = document.getElementById("static_ip").value;
+  json.netmask = document.getElementById("netmask").value;
+  json.gateway = document.getElementById("gateway").value;
+  json.dns0 = document.getElementById("dns0").value;
+  json.dns1 = document.getElementById("dns1").value;
+  var myJSON = JSON.stringify(json);
+  ws.send(myJSON);
+  console.log("Data sent: ",myJSON);
+}
+function load(e, t, n) {
+  if ("js" == t) {
+    var a = document.createElement("script");
+    a.src = e,
+    a.type = "text/javascript",
+    a.async = !1,
+    a.onload = function () { n() },
+    document.getElementsByTagName("head")[0].appendChild(a)
+  } else if ("css" == t) {
+    var a = document.createElement("link");
+    a.href = e,
+    a.rel = "stylesheet",
+    a.type = "text/css",
+    a.async = !1,
+    a.onload = function () { n() },
+    document.getElementsByTagName("head")[0].appendChild(a)
+  }
+}
+</script>
+</body>

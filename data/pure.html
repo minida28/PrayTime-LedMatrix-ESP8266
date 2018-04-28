@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A layout example with a side menu that hides on mobile, just like the Pure website.">
+    <title>Responsive Side Menu &ndash; Layout Examples &ndash; Pure</title>
+    
+    <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css" integrity="sha384-" crossorigin="anonymous">
+    
+    
+    
+        <!--[if lte IE 8]>
+            <link rel="stylesheet" href="css/layouts/side-menu-old-ie.css">
+        <![endif]-->
+        <!--[if gt IE 8]><!-->
+            <link rel="stylesheet" href="css/layouts/side-menu.css">
+        <!--<![endif]-->
+</head>
+<body>
+
+
+
+
+
+
+<div id="layout">
+    <!-- Menu toggle -->
+    <a href="#menu" id="menuLink" class="menu-link">
+        <!-- Hamburger icon -->
+        <span></span>
+    </a>
+
+    <div id="menu">
+        <div class="pure-menu">
+            <a class="pure-menu-heading" href="#">Company</a>
+
+            <ul class="pure-menu-list">
+                <li class="pure-menu-item"><a href="#" class="pure-menu-link">Home</a></li>
+                <li class="pure-menu-item"><a href="#" class="pure-menu-link">About</a></li>
+
+                <li class="pure-menu-item menu-item-divided pure-menu-selected">
+                    <a href="#" class="pure-menu-link">Services</a>
+                </li>
+
+                <li class="pure-menu-item"><a href="#" class="pure-menu-link">Contact</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div id="main">
+        <div class="header">
+            <h1>Led Matrix Settings</h1>
+            <h2>A subtitle for your page goes here</h2>
+        </div>
+
+        <div class="content">
+          
+            <form class="pure-form pure-form-aligned">
+                <fieldset>
+                    <div class="pure-control-group">
+                        <label for="operatingMode">Operating Mode</label>
+              					<select  id="operatingMode" name="operatingMode" onchange="something(this.value);">
+              					  <option style="display:none" label=" "></option>
+              						<option value="0">NORMAL MODE</option>
+              						<option value="1">CONFIG MODE</option>
+              						<option value="2">EDIT MODE</option>
+              					</select>
+                    </div>
+                    <div class="pure-control-group">
+                        <label for="pageMode0">Default page</label>
+              					<select  id="pageMode0" name="pageMode0">
+              					  <option style="display:none" label=" "></option>
+              						<option value="0">JAM & TANGGAL</option>
+              						<option value="1">WAKTU MENUJU SHOLAT</option>
+              						<option value="2">WAKTU SHOLAT SAAT INI</option>
+              						<option value="3">JAM SAJA</option>
+              						<option value="4">DAYA LISTRIK</option>
+              						<option value="5">RUNNING TEXT</option>
+              						<option value="6">JAM & TEMPERATURE</option>
+              						<option value="7">SANDBOX</option>
+              						<option value="8">WAKTU MENUJU SHOLAT TYPE 2</option>
+              						<option value="9">JAM SAJA TYPE 2</option>
+              						<option value="10">SANDBOX 2</option>
+              					</select>
+                    </div>
+                    <div class="pure-control-group">
+                        <label for="pageMode1">Default page</label>
+              					<select  id="pageMode1" name="pageMode1">
+              					  <option style="display:none" label=" "></option>
+              						<option value="0">DEVICE NAME</option>
+              						<option value="1">SSID</option>
+              						<option value="2">IP ADDRESS</option>
+              						<option value="3">GATEWAY</option>
+              						<option value="4">NETMASK</option>
+              						<option value="5">MAC ADDRESS</option>
+              						<option value="6">DNS ADDRESS</option>
+              						<option value="7">LAST SYNC</option>
+              						<option value="8">TIME</option>
+              						<option value="9">DATE</option>
+              						<option value="10">UPTIME</option>
+              						<option value="11">LASTBOOT</option>
+              						<option value="12">FREEHEAP</option>
+              					</select>
+                    </div>
+                    <div class="pure-control-group">
+                        <label for="pageMode2">Default page</label>
+              					<select  id="pageMode2" name="pageMode2">
+              					  <option style="display:none" label=" "></option>
+              						<option value="0">UNKNOWN</option>
+              					</select>
+                    </div>
+                    <div class="pure-control-group">
+                        <label for="pageMode">Sequence Mode</label>
+              					<select  id="pageMode" name="pageMode">
+              					  <option style="display:none" label=" "></option>
+              						<option value="Automatic">AUTOMATIC</option>
+              						<option value="Manual">MANUAL</option>
+              					</select>
+                    </div>
+                    <div class="pure-control-group">
+                        <label for="scroll_Row_0" class="pure-checkbox">Scroll Row 0</label>
+                        <input type="checkbox" id="scroll_Row_0" name="scroll_Row_0">
+                    </div>
+                    <div class="pure-control-group">
+                        <label for="scroll_Row_1" class="pure-checkbox">Scroll Row 1</label>
+                        <input type="checkbox" id="scroll_Row_1" name="scroll_Row_1">
+                    </div>
+                    <div class="pure-control-group">
+                        <label for="longMessageArea">Long Text</label>
+                        <textarea maxlength = "400" rows="15" style="width:90%;" id="longMessageArea" name="longMessageArea" onkeypress="process(event, this)"></textarea>
+                    </div>
+                    <div class="pure-control-group">
+                        <label for="scrollSpeedSlider">Scroll Speed</label>
+                        <input type="range" min="0" max="60" id="scrollSpeedSlider" name="scrollSpeedSlider" step="1" oninput="outputUpdate(value)">
+				  <output for="scrollSpeedSlider" id="scrollSpeedValue" name="scrollSpeedValue"></output>
+                    </div>
+            
+                    <div class="pure-controls">
+
+                        <button type="submit" class="pure-button pure-button-primary">Save</button>
+                    </div>
+                </fieldset>
+            </form>
+          
+            <h2 class="content-subhead">How to use this layout</h2>
+            <p>
+                To use this layout, you can just copy paste the HTML, along with the CSS in <a href="/css/layouts/side-menu.css" alt="Side Menu CSS">side-menu.css</a>, and the JavaScript in <a href="/js/ui.js">ui.js</a>. The JS file uses vanilla JavaScript to simply toggle an <code>active</code> class that makes the menu responsive.
+            </p>
+
+            <h2 class="content-subhead">Now Let's Speak Some Latin</h2>
+            <p>
+                Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+            </p>
+
+            <div class="pure-g">
+                <div class="pure-u-1-4">
+                    <img class="pure-img-responsive" src="http://farm3.staticflickr.com/2875/9069037713_1752f5daeb.jpg" alt="Peyto Lake">
+                </div>
+                <div class="pure-u-1-4">
+                    <img class="pure-img-responsive" src="http://farm3.staticflickr.com/2813/9069585985_80da8db54f.jpg" alt="Train">
+                </div>
+                <div class="pure-u-1-4">
+                    <img class="pure-img-responsive" src="http://farm6.staticflickr.com/5456/9121446012_c1640e42d0.jpg" alt="T-Shirt Store">
+                </div>
+                <div class="pure-u-1-4">
+                    <img class="pure-img-responsive" src="http://farm8.staticflickr.com/7357/9086701425_fda3024927.jpg" alt="Mountain">
+                </div>
+            </div>
+
+            <h2 class="content-subhead">Try Resizing your Browser</h2>
+            <p>
+                Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+            </p>
+        </div>
+    </div>
+</div>
+
+
+
+
+<script src="js/ui.js"></script>
+	<script>
+
+
+		window.onload = function ()
+		{
+				load("microajax.js","js", function()
+				{
+					setValues("/admin/runningledsettings");
+          setTimeout(something, 20);
+				});
+			//var x = document.getElementById("scrollSpeed").value;
+      var x = document.getElementById("scrollSpeedSlider");
+      var defaultVal = x.defaultValue;
+      var currentVal = x.value;
+			//readUpdate();
+		}
+		
+		function load(e,t,n) {
+			if("js"==t) {
+				var a=document.createElement("script");
+				a.src=e,
+				a.type="text/javascript",
+				a.async=!1,
+				a.onload=function(){n()},
+				document.getElementsByTagName("head")[0].appendChild(a)
+			}
+			else if("css"==t) {
+				var a=document.createElement("link");
+				a.href=e,
+				a.rel="stylesheet",
+				a.type="text/css",
+				a.async=!1,
+				a.onload=function(){n()},
+				document.getElementsByTagName("head")[0].appendChild(a)
+			}
+		}
+		
+		function outputUpdate(vol) {
+	    document.querySelector('#scrollSpeedValue').value = vol;
+    }
+    
+
+    function readTextFile(file)
+    {
+        var rawFile = new XMLHttpRequest();
+        rawFile.open("GET", file, true);
+        rawFile.onreadystatechange = function ()
+        {
+            if(rawFile.readyState === 4)
+            {
+                if(rawFile.status === 200 || rawFile.status == 0)
+                {
+                    var allText = rawFile.responseText;
+                    //alert(allText);
+                    document.getElementById('longMessageArea').value = allText;
+                }
+            }
+        }
+        rawFile.send(null);
+    }
+    
+    readTextFile("runningtext.json");
+    
+    function process(e) {
+        var code = (e.keyCode ? e.keyCode : e.which);
+        if (code == 13) { //Enter keycode
+            e.preventDefault();
+            //alert("Enter key is not allowed");
+        }
+        
+    }
+
+		// function something() {
+  //     var operatingMode = document.getElementById('operatingMode').value;
+  //     if (operatingMode == 0 ) {
+  //       document.getElementsByName('pageMode0')[0].style.display = "table-row";
+  //       document.getElementsByName('pageMode1')[0].style.display = "none";
+  //       document.getElementsByName('pageMode2')[0].style.display = "none";
+  //     }
+  //     else if (operatingMode == 1 ) {
+  //       document.getElementsByName('pageMode0')[0].style.display = "none";
+  //       document.getElementsByName('pageMode1')[0].style.display = "table-row";
+  //       document.getElementsByName('pageMode2')[0].style.display = "none";
+  //     }
+  //     else if (operatingMode == 2 ) {
+  //       document.getElementsByName('pageMode0')[0].style.display = "none";
+  //       document.getElementsByName('pageMode1')[0].style.display = "none";
+  //       document.getElementsByName('pageMode2')[0].style.display = "table-row";
+  //     }
+  //   }
+
+		// function something() {
+  //     var operatingMode = document.getElementById('operatingMode').value;
+  //     if (operatingMode == 0 ) {
+  //       document.getElementsByName('pageMode0')[0].style.visibility = "visible";
+  //       document.getElementsByName('pageMode1')[0].style.visibility = "hidden";
+  //       document.getElementsByName('pageMode2')[0].style.visibility = "hidden";
+  //     }
+  //     else if (operatingMode == 1 ) {
+  //       document.getElementsByName('pageMode0')[0].style.visibility = "hidden";
+  //       document.getElementsByName('pageMode1')[0].style.visibility = "visible";
+  //       document.getElementsByName('pageMode2')[0].style.visibility = "hidden";
+  //     }
+  //     else if (operatingMode == 2 ) {
+  //       document.getElementsByName('pageMode0')[0].style.visibility = "hidden";
+  //       document.getElementsByName('pageMode1')[0].style.visibility = "hidden";
+  //       document.getElementsByName('pageMode2')[0].style.visibility = "visible";
+  //     }
+  //   }
+  
+		function something() {
+      // var operatingMode = document.getElementById('operatingMode').querySelector("option[selected]").value;
+      var e = document.getElementById('operatingMode');
+      var operatingMode = e.options[e.selectedIndex].text;
+      console.log(operatingMode);
+      if (operatingMode == "NORMAL MODE" ) {
+        document.getElementsByName('pageMode0')[0].style.visibility = "visible";
+        document.getElementsByName('pageMode1')[0].style.visibility = "collapse";
+        document.getElementsByName('pageMode2')[0].style.visibility = "collapse";
+      }
+      else if (operatingMode == "CONFIG MODE" ) {
+        document.getElementsByName('pageMode0')[0].style.visibility = "collapse";
+        document.getElementsByName('pageMode1')[0].style.visibility = "visible";
+        document.getElementsByName('pageMode2')[0].style.visibility = "collapse";
+      }
+      else if (operatingMode == "EDIT MODE" ) {
+        document.getElementsByName('pageMode0')[0].style.visibility = "collapse";
+        document.getElementsByName('pageMode1')[0].style.visibility = "collapse";
+        document.getElementsByName('pageMode2')[0].style.visibility = "visible";
+      }
+    }
+
+
+	</script>
+
+</body>
+</html>
