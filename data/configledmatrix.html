@@ -32,8 +32,10 @@ input[type=range]{-webkit-appearance:none;margin:18px 0;width:100%}input[type=ra
 	    <div class="siimple-grid-col siimple-grid-col--12">
         <div class="siimple-tabs siimple-tabs--boxed siimple-tab--small">
           <a href="/"><div class="siimple-tabs-tab">Menu</div></a>
-          <a href="/info.html"><div class="siimple-tabs-tab">Info</div></a>
-          <a href="/sholat.html"><div class="siimple-tabs-tab">Sholat Time</div></a>
+          <a href="/configlocation.html"><div class="siimple-tabs-tab">Location</div></a>
+          <a href="/configsholat.html"><div class="siimple-tabs-tab">Sholat</div></a>
+          <a href="/configledmatrix.html"><div class="siimple-tabs-tab">LedMatrix</div></a>
+          <a href="/statussystem.html"><div class="siimple-tabs-tab">System Status</div></a>
         </div>
 	    </div>
 	  </div>
@@ -81,6 +83,8 @@ input[type=range]{-webkit-appearance:none;margin:18px 0;width:100%}input[type=ra
   					<option value="8">Waktu Menuju Sholat Type 2</option>
   					<option value="9">Jam Saja Type 2</option>
   					<option value="10">Sandbox 2</option>
+  					<option value="11">Waktu Iqamah</option>
+  					<option value="12">Jam & Tanggal Type 2</option>
   				</select>
         </div>
       </div>
@@ -120,7 +124,10 @@ input[type=range]{-webkit-appearance:none;margin:18px 0;width:100%}input[type=ra
         <div class="siimple-grid-col siimple-grid-col--9 siimple-grid-col-lg--12">
   				<select class="siimple-select siimple-select--fluid" id="pagemode2" name="pagemode2" onchange="sendFastConfig(this)">
   				  <option style="display:none" label=" "></option>
-  					<option value="0">UNKNOWN</option>
+  					<option value="0">Set Timezone</option>
+  					<option value="1">Set Location</option>
+  					<option value="2">Set Date</option>
+  					<option value="3">Set Time</option>
   				</select>
         </div>
       </div>
@@ -170,10 +177,11 @@ input[type=range]{-webkit-appearance:none;margin:18px 0;width:100%}input[type=ra
           <label class="siimple-label">Long Text</label><br>
         </div>
         <div class="siimple-grid-col siimple-grid-col--9 siimple-grid-col-lg--12">
-          <textarea class="siimple-textarea siimple-textarea--fluid" maxlength = "400" id="longtext" name="longtext" style="resize:none; min-height:50px; max-height:300px;" onkeypress="process(event, this); auto_grow(this)">
+           <!--maxlength = "400"-->
+          <textarea id="longtext" name="longtext" class="siimple-textarea siimple-textarea--fluid" rows="8" style="resize:none; min-height:50px; max-height:300px;" onkeypress="process(event, this); auto_grow(this)">
           </textarea>
           <label for="btnLongText"></label>
-          <button type="button" id="btnLongText" class="siimple-btn siimple-btn--navy" onclick="sendConfig(this.form.longtext)">Update text</button>
+          <button type="button" id="btnLongText" class="siimple-btn siimple-btn--navy" onclick="sendFastConfig(this.form.longtext)">Update text</button>
         </div>
       </div>
       
@@ -198,6 +206,25 @@ input[type=range]{-webkit-appearance:none;margin:18px 0;width:100%}input[type=ra
       </div>
       
       <div class="siimple-grid-row">
+        <div class="siimple-grid-col siimple-grid-col--3 siimple-grid-col-lg--6">
+          <label class="siimple-label">Jeda adzan</label>
+        </div>
+        <div class="siimple-grid-col siimple-grid-col--9 siimple-grid-col-lg--6">
+          <input id="adzanwaittime" type="number" min="0" max="10" class="siimple-input"> menit
+        </div>
+      </div>
+      
+      <div class="siimple-grid-row">
+        <div class="siimple-grid-col siimple-grid-col--3 siimple-grid-col-lg--6">
+          <label class="siimple-label">Jeda iqamah</label>
+        </div>
+        <div class="siimple-grid-col siimple-grid-col--9 siimple-grid-col-lg--6">
+          <input id="iqamahwaittime" type="number" min="0" max="10" class="siimple-input"> menit
+          <!--<div class="siimple-form-field-helper">This field can't be empty</div>-->
+        </div>
+      </div>
+      
+      <div class="siimple-grid-row" style="display:none">
         <div class="siimple-grid-col siimple-grid-col--3 siimple-grid-col-lg--12">
           <label class="siimple-label">Tone 0</label><br>
         </div>
@@ -207,7 +234,7 @@ input[type=range]{-webkit-appearance:none;margin:18px 0;width:100%}input[type=ra
         </div>
       </div>
       
-      <div class="siimple-grid-row">
+      <div class="siimple-grid-row" style="display:none">
         <div class="siimple-grid-col siimple-grid-col--3 siimple-grid-col-lg--12">
           <label class="siimple-label">Tone 1</label><br>
         </div>
@@ -217,7 +244,7 @@ input[type=range]{-webkit-appearance:none;margin:18px 0;width:100%}input[type=ra
         </div>
       </div>
       
-      <div class="siimple-grid-row">
+      <div class="siimple-grid-row" style="display:none">
         <div class="siimple-grid-col siimple-grid-col--3 siimple-grid-col-lg--12">
           <label class="siimple-label">Tone 2</label><br>
         </div>
@@ -227,7 +254,7 @@ input[type=range]{-webkit-appearance:none;margin:18px 0;width:100%}input[type=ra
         </div>
       </div>
       
-      <div class="siimple-grid-row">
+      <div class="siimple-grid-row" style="display:none">
         <div class="siimple-grid-col siimple-grid-col--3 siimple-grid-col-lg--12">
           <label class="siimple-label">Tone 10</label><br>
         </div>
@@ -254,10 +281,12 @@ input[type=range]{-webkit-appearance:none;margin:18px 0;width:100%}input[type=ra
 <script language="javascript" type="text/javascript">
 
 var ws = null;
-var json;
+var longText;
+var arrayBuffer;
 
 window.onload = function () {
-  getConfigValues("/configrunningled.json");
+  getConfigValues("config/ledmatrix");
+  getConfigValues("/runningtext.txt");
   startSocket();
   //startEvents();
 }
@@ -269,6 +298,17 @@ function startSocket(){
     obj.url = window.location.pathname;
     var myJSON = JSON.stringify(obj);
     ws.send(myJSON);
+    
+    //ws.send(encodeWebSocket(longText));
+    //ws.send(arrayBuffer);
+    // if (arrayBuffer) {
+    //   var byteArray = new Uint8Array(arrayBuffer);
+    //   for (var i = 0; i < byteArray.length; i++) {
+    //     // do something with each byte in the array
+    //     console.log(String.fromCharCode(byteArray[i]));
+    //     ws.send(String.fromCharCode(byteArray[i]));
+    //   }
+    // }
   };
   ws.onclose = function(e){
   };
@@ -316,22 +356,30 @@ function getConfigValues(address) {
 }
 function reqListener () {
   //console.log(this.responseText);
-  json = JSON.parse(this.responseText);
-  console.log(json);
-  document.getElementById("operatingmode").value = parseInt(json.operatingmode);
-  document.getElementById("pagemode").value = json.pagemode;
-  document.getElementById("pagemode0").value = json.pagemode0;
-  document.getElementById("pagemode1").value = json.pagemode1;
-  document.getElementById("pagemode2").value = json.pagemode2;
-  document.getElementById("scrollrow_0").checked = json.scrollrow_0;
-  document.getElementById("scrollrow_1").checked = json.scrollrow_1;
-  document.getElementById("scrollspeedslider").value = json.scrollspeed;
-  document.getElementById("scrollSpeedValue").value = json.scrollspeed;
-  document.getElementById("brightnessslider").value = json.brightness;
-  document.getElementById("brightnessValue").value = json.brightness;
-  
-  something(document.getElementById('operatingmode'));
-  // something();
+  if (isJSON(this.responseText)) {
+    let json = JSON.parse(this.responseText);
+    console.log(json);
+    document.getElementById("operatingmode").value = parseInt(json.operatingmode);
+    document.getElementById("pagemode").value = json.pagemode;
+    document.getElementById("pagemode0").value = json.pagemode0;
+    document.getElementById("pagemode1").value = json.pagemode1;
+    document.getElementById("pagemode2").value = json.pagemode2;
+    document.getElementById("scrollrow_0").checked = json.scrollrow_0;
+    document.getElementById("scrollrow_1").checked = json.scrollrow_1;
+    document.getElementById("scrollspeedslider").value = json.scrollspeed;
+    document.getElementById("scrollSpeedValue").value = json.scrollspeed;
+    document.getElementById("brightnessslider").value = json.brightness;
+    document.getElementById("brightnessValue").value = json.brightness;
+    document.getElementById("adzanwaittime").value = json.adzanwaittime;
+    document.getElementById("iqamahwaittime").value = json.iqamahwaittime;
+    
+    something(document.getElementById('operatingmode'));
+    // something();
+  }
+  else {
+    longText = this.responseText;
+    document.getElementById("longtext").value = longText;
+  }
 }
 function something(element) {
   if (element == document.getElementById('operatingmode')) {
@@ -357,6 +405,7 @@ function something(element) {
   }
 }
 function saveConfig() {
+  let json = new Object();
   json.saveconfig = window.location.pathname;
   json.operatingmode = parseInt(document.getElementById("operatingmode").value);
   json.pagemode = document.getElementById("pagemode").value;
@@ -367,10 +416,80 @@ function saveConfig() {
   json.scrollrow_1 = document.getElementById("scrollrow_1").checked;
   json.scrollspeed = parseInt(document.getElementById("scrollspeedslider").value);
   json.brightness = parseInt(document.getElementById("brightnessslider").value);
+  json.adzanwaittime = parseInt(document.getElementById("adzanwaittime").value);
+  json.iqamahwaittime = parseInt(document.getElementById("iqamahwaittime").value);
   var myJSON = JSON.stringify(json);
   ws.send(myJSON);
   console.log("Data sent: ",myJSON);
+  
+  var obj = new Object();
+  obj.longtext = document.getElementById("longtext").value;
+  var longtextJSON = JSON.stringify(obj);
+  ws.send(longtextJSON);
+  console.log("Data sent: ",longtextJSON);
 }
+
+var oReq = new XMLHttpRequest();
+oReq.open("GET", "/runningtext.txt", true);
+oReq.responseType = "arraybuffer";
+
+oReq.onload = function (oEvent) {
+  arrayBuffer = oReq.response; // Note: not oReq.responseText
+  console.log(arrayBuffer);
+  //ws.send(arrayBuffer);
+  if (arrayBuffer) {
+    var byteArray = new Uint8Array(arrayBuffer);
+    for (var i = 0; i < byteArray.byteLength; i++) {
+      // do something with each byte in the array
+      
+    }
+  }
+};
+
+oReq.send(null);
+
+
+// https://stackoverflow.com/a/10402443
+function encodeWebSocket(bytesRaw){
+    var bytesFormatted = new Array();
+    bytesFormatted[0] = 129;
+    if (bytesRaw.length <= 125) {
+        bytesFormatted[1] = bytesRaw.length;
+    } else if (bytesRaw.length >= 126 && bytesRaw.length <= 65535) {
+        bytesFormatted[1] = 126;
+        bytesFormatted[2] = ( bytesRaw.length >> 8 ) & 255;
+        bytesFormatted[3] = ( bytesRaw.length      ) & 255;
+    } else {
+        bytesFormatted[1] = 127;
+        bytesFormatted[2] = ( bytesRaw.length >> 56 ) & 255;
+        bytesFormatted[3] = ( bytesRaw.length >> 48 ) & 255;
+        bytesFormatted[4] = ( bytesRaw.length >> 40 ) & 255;
+        bytesFormatted[5] = ( bytesRaw.length >> 32 ) & 255;
+        bytesFormatted[6] = ( bytesRaw.length >> 24 ) & 255;
+        bytesFormatted[7] = ( bytesRaw.length >> 16 ) & 255;
+        bytesFormatted[8] = ( bytesRaw.length >>  8 ) & 255;
+        bytesFormatted[9] = ( bytesRaw.length       ) & 255;
+    }
+    for (var i = 0; i < bytesRaw.length; i++){
+        bytesFormatted.push(bytesRaw.charCodeAt(i));
+    }
+    return bytesFormatted;
+}
+
+function process(e) {
+    var code = (e.keyCode ? e.keyCode : e.which);
+    if (code == 13) { //Enter keycode
+        e.preventDefault();
+        //alert("Enter key is not allowed");
+    }
+}
+
+function auto_grow(element) {
+    element.style.height = "5px";
+    element.style.height = (element.scrollHeight)+"px";
+}
+
+
 
 // function sendConfig(element) {
 //   console.log(element);

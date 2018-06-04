@@ -1,0 +1,439 @@
+<!DOCTYPE html>	
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no">
+	<link rel="stylesheet" type="text/css" href="siimple.min.css">
+	<!--<link rel="stylesheet" type="text/css" href="style.css">-->
+	<link rel="shortcut icon" href="favicon.ico">
+	<title>Sholat Settings</title>
+<style>
+/*body {font-family: Verdana, Arial, 'sans-serif';}*/
+/*body {font-family: Consolas, monaco, monospace;}*/
+.siimple-jumbotron-title, .siimple-table-cell {font-family: "Lucida Sans Typewriter", "Lucida Console", Monaco, "Bitstream Vera Sans Mono", monospace;}
+</style>
+</head>
+<body>
+<div class="siimple-content siimple-content--small">
+  <div class="siimple-grid">
+    
+	  <div class="siimple-grid-row">
+	    <div class="siimple-grid-col siimple-grid-col--12">
+        <div class="siimple-box siimple-box--pink">
+          <div class="siimple-box-title">MQTT Settings</div>
+          <!--<div class="siimple-box-subtitle">This is the box subtitle</div>-->
+          <!--<div class="siimple-box-detail">This is the box detail text</div>-->
+        </div>
+	    </div>
+	  </div>
+
+	  <div class="siimple-grid-row">
+	    <div class="siimple-grid-col siimple-grid-col--12">
+        <div class="siimple-tabs siimple-tabs--boxed siimple-tab--small">
+          <a href="/"><div class="siimple-tabs-tab">Menu</div></a>
+          <a href="/configlocation.html"><div class="siimple-tabs-tab">Location</div></a>
+          <a href="/configsholat.html"><div class="siimple-tabs-tab">Sholat</div></a>
+          <a href="/configledmatrix.html"><div class="siimple-tabs-tab">LedMatrix</div></a>
+          <a href="/configmqtt.html"><div class="siimple-tabs-tab siimple-tabs-tab--selected">Mqtt</div></a>
+          <a href="/statussystem.html"><div class="siimple-tabs-tab">System Status</div></a>
+        </div>
+	    </div>
+	  </div>
+	  
+	  <div class="siimple-grid-row">
+	    <div class="siimple-grid-col siimple-grid-col--12">
+	      <b><div id="status_box" class="alert alert-info"></div></b>
+	    </div>
+      <div class="siimple-grid-col siimple-grid-col--6">
+      </div>
+	  </div>
+	  
+    <div class="siimple-grid-row">
+      <div class="siimple-grid-col siimple-grid-col--3 siimple-grid-col-lg--6">
+        <label class="siimple-label">Enabled</label>
+      </div>
+      <div class="siimple-grid-col siimple-grid-col--9 siimple-grid-col-lg--6">
+        <div class="siimple-switch">
+          <input type="checkbox" id="enabled">
+          <label for="enabled"></label>
+          <div></div>
+        </div>
+      </div>
+    </div>
+	  
+    <div class="siimple-grid-row">
+      <div class="siimple-grid-col siimple-grid-col--3 siimple-grid-col-sm--12">
+        <label class="siimple-label">Server</label>
+      </div>
+      <div class="siimple-grid-col siimple-grid-col--9 siimple-grid-col-sm--12">
+        <input id="server" type="text" class="siimple-input">
+      </div>
+    </div>
+    
+    <div class="siimple-grid-row">
+      <div class="siimple-grid-col siimple-grid-col--3 siimple-grid-col-sm--12">
+        <label class="siimple-label">Port</label>
+      </div>
+      <div class="siimple-grid-col siimple-grid-col--9 siimple-grid-col-sm--12">
+        <input id="port" type="number" class="siimple-input">
+      </div>
+    </div>
+    
+    <div class="siimple-grid-row">
+      <div class="siimple-grid-col siimple-grid-col--3 siimple-grid-col-sm--12">
+        <label class="siimple-label">Username</label>
+      </div>
+      <div class="siimple-grid-col siimple-grid-col--9 siimple-grid-col-sm--12">
+        <input id="user" type="text" class="siimple-input">
+      </div>
+    </div>
+    
+    <div class="siimple-grid-row">
+      <div class="siimple-grid-col siimple-grid-col--3 siimple-grid-col-sm--12">
+        <label class="siimple-label">Password</label>
+      </div>
+      <div class="siimple-grid-col siimple-grid-col--9 siimple-grid-col-sm--12">
+        <input id="pass" type="text" class="siimple-input">
+      </div>
+    </div>
+    
+    <div class="siimple-grid-row">
+      <div class="siimple-grid-col siimple-grid-col--3 siimple-grid-col-sm--12">
+        <label class="siimple-label">Client Id</label>
+      </div>
+      <div class="siimple-grid-col siimple-grid-col--9 siimple-grid-col-sm--12">
+        <input id="clientid" type="text" class="siimple-input">
+      </div>
+    </div>
+    
+    <div class="siimple-grid-row">
+      <div class="siimple-grid-col siimple-grid-col--3 siimple-grid-col-sm--12">
+        <label class="siimple-label">Keep Alive</label>
+      </div>
+      <div class="siimple-grid-col siimple-grid-col--9 siimple-grid-col-sm--12">
+        <input id="keepalive" type="number" class="siimple-input">
+      </div>
+    </div>
+    
+    <div class="siimple-grid-row">
+      <div class="siimple-grid-col siimple-grid-col--3 siimple-grid-col-lg--6">
+        <label class="siimple-label">Clean Session</label>
+      </div>
+      <div class="siimple-grid-col siimple-grid-col--9 siimple-grid-col-lg--6">
+        <div class="siimple-switch">
+          <input type="checkbox" id="cleansession">
+          <label for="cleansession"></label>
+          <div></div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="siimple-grid-row">
+      <div class="siimple-grid-col siimple-grid-col--3 siimple-grid-col-sm--12">
+        <label class="siimple-label">LWT Topic Prefix</label>
+      </div>
+      <div class="siimple-grid-col siimple-grid-col--9 siimple-grid-col-sm--12">
+        <input id="lwttopicprefix" type="text" class="siimple-input">
+      </div>
+    </div>
+    
+    <div class="siimple-grid-row">
+      <div class="siimple-grid-col siimple-grid-col--3 siimple-grid-col-sm--12">
+        <label class="siimple-label">LWT QoS</label>
+      </div>
+      <div class="siimple-grid-col siimple-grid-col--9 siimple-grid-col-sm--12">
+        <input id="lwtqos" type="number" class="siimple-input">
+      </div>
+    </div>
+    
+    <div class="siimple-grid-row">
+      <div class="siimple-grid-col siimple-grid-col--3 siimple-grid-col-lg--6">
+        <label class="siimple-label">LWT Retain</label>
+      </div>
+      <div class="siimple-grid-col siimple-grid-col--9 siimple-grid-col-lg--6">
+        <div class="siimple-switch">
+          <input type="checkbox" id="lwtretain">
+          <label for="lwtretain"></label>
+          <div></div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="siimple-grid-row">
+      <div class="siimple-grid-col siimple-grid-col--3 siimple-grid-col-sm--12">
+        <label class="siimple-label">LWT Payload</label>
+      </div>
+      <div class="siimple-grid-col siimple-grid-col--9 siimple-grid-col-sm--12">
+        <input id="lwtpayload" type="text" class="siimple-input">
+      </div>
+    </div>
+    
+    <br>
+    <div class="siimple-grid-row">
+      <div class="siimple-grid-col siimple-grid-col--12 siimple-grid-col-sm--12">
+        <div align="center">
+        <div class="siimple-btn siimple-btn--red" onclick="sendConfig()">Save</div>
+        </div>
+      </div>
+    </div>
+    
+  </div>
+
+
+<div class="siimple-form">
+
+  <!-- Publish 1 -->
+  <div class="siimple-form-title">Publish 1</div>
+  <div class="siimple-form-detail">Publish 1 detail</div>
+    
+  <div class="siimple-form-field">
+    <div class="siimple-form-field-label">Topic prefix</div>
+    <input id="pub1_topicprefix" type="text" class="siimple-input siimple-input--fluid">
+  </div>
+      
+  <div class="siimple-form-field">
+    <div class="siimple-form-field-label">Retain</div>
+    <div class="siimple-switch">
+      <input type="checkbox" id="pub1_retain">
+      <label for="pub1_retain"></label>
+      <div></div>
+    </div>
+  </div>
+      
+  <div class="siimple-form-field">
+    <div class="siimple-form-field-label">QoS</div>
+    <input id="pub1_qos" type="number" class="siimple-input siimple-input--fluid">
+  </div>
+      
+  <div class="siimple-form-field">
+    <div class="siimple-form-field-label">Payload</div>
+    <input id="pub1_payload" type="text" class="siimple-input siimple-input--fluid">
+  </div>
+  
+  <!-- Subscribe 1 -->
+  <div class="siimple-form-title">Subscribe 1</div>
+  <div class="siimple-form-detail">Subscribe 1 detail</div>
+    
+  <div class="siimple-form-field">
+    <div class="siimple-form-field-label">Topic</div>
+    <input id="sub1_topic" type="text" class="siimple-input siimple-input--fluid">
+  </div>
+  
+  <div class="siimple-form-field">
+    <div class="siimple-form-field-label">QoS</div>
+    <input id="sub1_qos" type="number" class="siimple-input siimple-input--fluid">
+  </div>
+
+  <label class="siimple-label">Payload received: </label>
+  <span id="countsub1" class="siimple-label"></span>
+  <br>
+  <textarea id="sub1_receivepayload" class="siimple-textarea siimple-textarea--fluid" rows="5"></textarea>
+  
+  <!-- Subscribe 2 -->
+  <div class="siimple-form-title">Subscribe 2</div>
+  <div class="siimple-form-detail">Subscribe 2 detail</div>
+    
+  <div class="siimple-form-field">
+    <div class="siimple-form-field-label">Topic</div>
+    <input id="sub2_topic" type="text" class="siimple-input siimple-input--fluid">
+  </div>
+  
+  <div class="siimple-form-field">
+    <div class="siimple-form-field-label">QoS</div>
+    <input id="sub2_qos" type="number" class="siimple-input siimple-input--fluid">
+  </div>
+  
+  <label class="siimple-label">Payload received: </label><br>
+  <textarea id="sub2_receivepayload" class="siimple-textarea siimple-textarea--fluid" rows="5"></textarea>
+      
+  <div class="siimple-form-field">
+    <div class="siimple-btn siimple-btn--blue" onclick="sendConfigPubSub()">Update PubSub</div>
+  </div>
+    
+  </div>
+  
+</div>
+
+<script id='papaparse' src="papaparse.min.js" type="text/javascript" charset="utf-8"></script>
+<script language="javascript" type="text/javascript">
+
+var ws = null;
+var countsub1 = 0;
+
+window.onload = function () {
+  getConfigValues("config/mqtt");
+  getConfigValues("configmqttpubsub.json");
+  startSocket();
+}
+function startSocket(){
+  ws = new WebSocket('ws://'+document.location.host+'/ws',['arduino']);
+  ws.binaryType = "arraybuffer";
+  ws.onopen = function(e){
+		var obj = new Object();
+    obj.url = window.location.pathname;
+    var myJSON = JSON.stringify(obj);
+    ws.send(myJSON);
+  };
+  ws.onclose = function(e){
+  };
+  ws.onerror = function(e){
+    console.log("ws error", e);
+  };
+  ws.onmessage = function(e){
+    var msg = "";
+    if(e.data instanceof ArrayBuffer){
+      msg = "BIN:";
+      var bytes = new Uint8Array(e.data);
+      for (var i = 0; i < bytes.length; i++) {
+        msg += String.fromCharCode(bytes[i]);
+      }
+    } else {
+      msg = "TXT:"+e.data;
+      document.getElementById("sub1_receivepayload").value = e.data;
+      countsub1++;
+      document.getElementById('countsub1').textContent = countsub1;
+      
+      if (isJSON(e.data))
+      {
+        var json = JSON.parse(e.data);
+        console.log(json);
+      }
+      else
+      {
+        console.log(msg);
+      }
+    }
+  };
+}
+// https://stackoverflow.com/questions/3710204/how-to-check-if-a-string-is-a-valid-json-string-in-javascript-without-using-try
+function isJSON(str) {
+  try {
+      return (JSON.parse(str) && !!str);
+  } catch (e) {
+      return false;
+  }
+}
+
+function getConfigValues(url) {
+  var req = new XMLHttpRequest();
+  if (req) {
+    req.open("GET", url, true);
+    if (url === "config/mqtt")
+    {
+      req.addEventListener("load", reqListenerMqtt);
+    }
+    else if (url === "configmqttpubsub.json")
+    {
+      req.addEventListener("load", reqListenerMqttPubSub);
+    }
+    
+    req.send();
+  }
+}
+function reqListenerMqtt () {
+  if (isJSON(this.responseText)) {
+    let json = JSON.parse(this.responseText);
+    console.log("Data received: ", json);
+
+    document.getElementById('enabled').checked = json.enabled;
+    document.getElementById('server').value = json.server;
+    document.getElementById('port').value = json.port;
+    document.getElementById('user').value = json.user;
+    document.getElementById('pass').value = json.pass;
+    document.getElementById('clientid').value = json.clientid;
+    document.getElementById('keepalive').value = json.keepalive;
+    document.getElementById('cleansession').checked = json.cleansession;
+    document.getElementById('lwttopicprefix').value = json.lwttopicprefix;
+    document.getElementById('lwtqos').value = json.lwtqos;
+    document.getElementById('lwtretain').checked = json.lwtretain;
+    document.getElementById('lwtpayload').value = json.lwtpayload;
+    
+    // something();
+  }
+  else {
+    console.log("Data received: ", json);
+  }
+}
+function reqListenerMqttPubSub () {
+  if (isJSON(this.responseText)) {
+    let json = JSON.parse(this.responseText);
+    console.log("Data received: ", json);
+
+    document.getElementById('pub1_topicprefix').value = json.pub1_topicprefix;
+    document.getElementById('pub1_qos').value = json.pub1_qos;
+    document.getElementById('pub1_retain').checked = json.pub1_retain;
+    document.getElementById('pub1_payload').value = json.pub1_payload;
+    document.getElementById('sub1_topic').value = json.sub1_topic;
+    document.getElementById('sub1_qos').value = json.sub1_qos;
+    document.getElementById('sub2_topic').value = json.sub2_topic;
+    document.getElementById('sub2_qos').value = json.sub2_qos;
+  }
+  else {
+    console.log("Data received: ", json);
+  }
+}
+
+function sendConfig(element) {
+  let json = new Object();
+  
+  json.saveconfig = window.location.pathname;
+  json.enabled = document.getElementById('enabled').checked;
+  json.server = document.getElementById('server').value;
+  json.port = parseInt(document.getElementById('port').value);
+  json.user = document.getElementById('user').value;
+  json.pass = document.getElementById('pass').value;
+  json.clientid = document.getElementById('clientid').value;
+  json.keepalive = parseInt(document.getElementById('keepalive').value);
+  json.cleansession = document.getElementById('cleansession').checked;
+  json.lwttopicprefix = document.getElementById('lwttopicprefix').value;
+  json.lwtqos = parseInt(document.getElementById('lwtqos').value);
+  json.lwtretain = document.getElementById('lwtretain').checked;
+  json.lwtpayload = document.getElementById('lwtpayload').value;
+  
+  var myJSON = JSON.stringify(json);
+  ws.send(myJSON);
+  myJSON = JSON.parse(myJSON);
+  console.log("Data sent: ",myJSON);
+}
+
+function sendConfigPubSub(element) {
+  let json = new Object();
+  
+  json.saveconfig = "configPubSub";
+  
+  json.pub1_topicprefix = document.getElementById('pub1_topicprefix').value;
+  json.pub1_qos = document.getElementById('pub1_qos').value;
+  json.pub1_retain = document.getElementById('pub1_retain').checked;
+  json.pub1_payload = document.getElementById('pub1_payload').value;
+  json.sub1_topic = document.getElementById('sub1_topic').value;
+  json.sub1_qos = document.getElementById('sub1_qos').value;
+  json.sub2_topic = document.getElementById('sub2_topic').value;
+  json.sub2_qos = document.getElementById('sub2_qos').value;
+
+  var myJSON = JSON.stringify(json);
+  ws.send(myJSON);
+  myJSON = JSON.parse(myJSON);
+  console.log("Data sent: ",myJSON);
+}
+  
+function setMsg(cls, text) {
+	sbox = document.getElementById('status_box');
+	sbox.className = "siimple-alert siimple-alert--" + cls;
+	sbox.textContent = text;
+	//console.log(text);
+}
+
+// https://stackoverflow.com/questions/3710204/how-to-check-if-a-string-is-a-valid-json-string-in-javascript-without-using-try
+function isJSON(str) {
+  try {
+      return (JSON.parse(str) && !!str);
+  } catch (e) {
+      return false;
+  }
+}
+
+function something() {
+
+}
+  
+</script>
+</body>

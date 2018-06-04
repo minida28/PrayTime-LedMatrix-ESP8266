@@ -1,5 +1,10 @@
 {
-  "publish_1": ["ESP2937814/mqttstatus",2,true,"CONNECTED"],
-  "subscribe_1":  ["ESP13579541/meterreading/1s",0],
-  "subscribe_2":  ["/rumah/sts/1s/kwh1/voltage",0]
+  "pub1_topicprefix": "mqttstatus",
+  "pub1_qos": "2",
+  "pub1_retain": true,
+  "pub1_payload": "CONNECTED",
+  "sub1_topic": "ESP13579541/meterreading/1s",
+  "sub1_qos": "0",
+  "sub2_topic": "/rumah/sts/1s/kwh1/voltage",
+  "sub2_qos": "0"
 }

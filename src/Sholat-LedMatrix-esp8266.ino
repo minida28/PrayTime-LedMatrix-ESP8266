@@ -31,7 +31,7 @@ TMP102 TMP102(0x48); // Initialize sensor at I2C address 0x48
 
 //toggleSwitch toggleSwitch(interruptPin, 50, 50);
 
-Ticker flipper;
+Ticker flipper250ms;
 Ticker tickerSetHigh;
 
 void refresh()
@@ -46,7 +46,6 @@ void refresh()
 
 void setup()
 {
-
 #ifdef SET_ANALOG_FREQUENCY
   uint16_t cpuFreq = ESP.getCpuFreqMHz();
   uint8_t cpuFreqFactor;
@@ -117,7 +116,7 @@ void setup()
   Serial.println(F("Loading settings from EEPROM... "));
   //config_load_settings();
 
-  WiFi.setSleepMode(WIFI_NONE_SLEEP);
+  //WiFi.setSleepMode(WIFI_NONE_SLEEP);
 
   AsyncWSBegin();
   //config_load_settings();
@@ -157,9 +156,9 @@ void setup()
     //Wire.setClock(450000L);
   }
 
-    // -------------------------------------------------------------------
-    // Setup PCF8574
-    // -------------------------------------------------------------------
+  // -------------------------------------------------------------------
+  // Setup PCF8574
+  // -------------------------------------------------------------------
 #ifdef USE_IO_EXPANDER
   // https://github.com/RalphBacon/PCF8574-Pin-Extender-I2C/blob/master/PCF8574_InputOutputInterrupt.ino
   // PCF8574N is 'reverse' logic inasmuch it SINKS current
@@ -329,7 +328,7 @@ void setup()
   PrintTimeStatus();
 
   // setup sync Interval
-  setInterval(15, _config.syncinterval);
+  setInterval(15, _configTime.syncinterval);
   Serial.print(F("Set Short Sync Interval to "));
   Serial.print(getShortInterval());
   Serial.println(F(" seconds"));
@@ -338,6 +337,8 @@ void setup()
   Serial.println(F(" seconds"));
 
   // setup sntp SDK
+
+  /*
   sntp_stop(); // Important! Must call stop before change timezone SDK
 
   while (!sntp_set_timezone(0))
@@ -354,6 +355,10 @@ void setup()
   //  sntp_setservername(2, "192.168.10.1");
 
   sntp_init();
+
+  */
+
+  configTime(0, 0, _configTime.ntpserver_0, _configTime.ntpserver_1);
 
   // this delay is seems required after first init
   // otherwise sntp SDK always fail (based on experience..)
@@ -381,7 +386,7 @@ void setup()
 
   // If sntp SDK enabled, check if it is working or not
 
-  if (_config.enablentp == false)
+  if (_configTime.enablentp == false)
   {
     NTP_OK = false;
 
@@ -391,7 +396,7 @@ void setup()
     Serial.print(F("> "));
     Serial.println(F("NTP NOT ENABLED (HENCE, NTP NOT OK)"));
   }
-  else if (_config.enablentp == true)
+  else if (_configTime.enablentp == true)
   {
 
     setSyncProvider(getNtpTimeSDK);
@@ -464,7 +469,7 @@ void setup()
   }
 
   // Initial time sync using RTC
-  if (_config.enablertc == false)
+  if (_configTime.enablertc == false)
   {
     RTC_OK = false;
 
@@ -474,7 +479,7 @@ void setup()
     Serial.print(F("> "));
     Serial.println(F("RTC NOT ENABLED (HENCE, RTC NOT OK)"));
   }
-  else if (_config.enablertc == true)
+  else if (_configTime.enablertc == true)
   {
 
     time_t t_rtc = get_time_from_rtc();
@@ -617,6 +622,8 @@ void setup()
 
   save_system_info();
 
+  flipper250ms.attach(0.2, flip250ms);
+
   // -------------------------------------------------------------------
   // Setup Completed
   // -------------------------------------------------------------------
@@ -626,15 +633,28 @@ void setup()
   Serial.println(F("Setup completed!"));
 }
 
+// static bool encoder0PosIncreasing;
+// static bool encoder0PosDecreasing;
+int encoder0Pos = 0;
+bool enterEditModeFromShortcut = false;
+
+void pingFault(void) {}
+
 void loop()
 {
+  static bool enablePing = true;
+  if (WiFi.status() == WL_CONNECTED && enablePing)
+  {
+    startPingAlive();
+    enablePing = false;
+  }
 
   utcTime = now();
-  localTime = utcTime + _config.timezone / 10.0 * 3600;
+  localTime = utcTime + _configLocation.timezone / 10.0 * 3600;
 
   static bool encoder0PosIncreasing;
   static bool encoder0PosDecreasing;
-  static int encoder0Pos = 0;
+  // static int encoder0Pos = 0;
   static bool ledState;
   static unsigned long startLed;
 
@@ -765,17 +785,22 @@ void loop()
   {
     unsigned long currMilis = millis();
     prevTimer500ms = currMilis;
+    // flipper250ms.detach();
+    // flipper250ms.attach(0.25, flip250ms);
     tick1000ms = true;
     prevDisplay = utcTime;
-    if (!(utcTime % 2)) {
+    if (!(utcTime % 2))
+    {
       // do something even
       state1000ms = true;
-    } else {
+    }
+    else
+    {
       state1000ms = false;
     }
   }
 
-  if (millis() < prevTimer500ms + 500)
+  if (millis() <= prevTimer500ms + 500)
   {
     state500ms = true;
   }
@@ -791,7 +816,6 @@ void loop()
 
   if (stateSwitch != stateSwitch_old)
   {
-
     stateSwitch_old = stateSwitch;
 
     if (stateSwitch == HIGH)
@@ -800,153 +824,134 @@ void loop()
       Serial.print(F("> "));
       Serial.println(F("Switch ON"));
       timerSwitch = millis();
-      //alarmState = HIGH;
-      tone0 = HIGH;
+      // alarmState = HIGH;
+      // tone0 = HIGH;
     }
     else if (stateSwitch == LOW)
     {
       digitalClockDisplay();
       Serial.print(F("> "));
       Serial.println(F("Switch OFF"));
-      if (MODE == 0)
+    }
+  }
+
+  static uint16_t count;
+  if (stateSwitch == HIGH)
+  {
+    if (millis() >= timerSwitch + 1000)
+    {
+      timerSwitch = millis();
+      count++;
+      // PRINT("count = %d\r\n", count);
+
+      if (count >= 4)
       {
-        if (millis() - timerSwitch < 1000)
-        {
-          currentPageMode0++;
-          if (currentPageMode0 >= PageTitleMode0Count)
-          {
-            currentPageMode0 = 0;
-          }
-        }
-        else if (millis() - timerSwitch > 1000)
-        {
-          MODE = 1;
-          tone1 = HIGH;
-        }
-      }
-      else if (MODE == 1)
-      {
-        if (millis() - timerSwitch < 1000)
-        {
-          currentPageMode1++;
-          if (currentPageMode1 >= PageTitleMode1Count)
-          {
-            currentPageMode1 = 0;
-          }
-        }
-        else if (millis() - timerSwitch > 1000 && millis() - timerSwitch <= 3000)
+        // tone0 = HIGH;
+
+        if (MODE == 0)
         {
           MODE = 2;
-          tone1 = HIGH;
+          enterEditModeFromShortcut = true;
         }
-        else if (millis() - timerSwitch > 3000)
+        else if (MODE == 2)
         {
           MODE = 0;
-          tone1 = HIGH;
         }
-      }
-      else if (MODE == 2)
-      {
-        if (millis() - timerSwitch < 1000)
-        {
-          currentPageMode2++;
-          if (currentPageMode2 >= PageTitleMode2Count)
-          {
-            currentPageMode2 = 0;
-          }
-        }
-        else if (millis() - timerSwitch > 1000)
-        {
-          MODE = 1;
-          tone1 = HIGH;
-        }
+
+        count = 0;
+
+        tone1 = HIGH;
+
+        // stateSwitch = LOW;
       }
     }
+  }
+  else if (stateSwitch == LOW)
+  {
+    // if (count >= 4)
+    // {
+    //   if (MODE == 0)
+    //   {
+    //     MODE = 2;
+    //   }
+    //   else if (MODE == 2)
+    //   {
+    //     MODE = 0;
+    //   }
+    //   tone1 = HIGH;
+    // }
+
+    // if (count == 7)
+    // {
+    //   MODE = 2;
+    //   tone1 = HIGH;
+    // }
+
+    count = 0;
   }
 
   if (encoder0PosIncreasing || encoder0PosDecreasing)
   {
-    if (encoder0PosIncreasing)
-    {
-      if (MODE == 0)
-      {
-        currentPageMode0++;
-        if (currentPageMode0 >= PageTitleMode0Count)
-        {
-          currentPageMode0 = 0;
-        }
-      }
-      if (MODE == 1)
-      {
-        currentPageMode1++;
-        if (currentPageMode1 >= PageTitleMode1Count)
-        {
-          currentPageMode1 = 0;
-        }
-      }
-      if (MODE == 2)
-      {
-        currentPageMode2++;
-        if (currentPageMode2 >= PageTitleMode2Count)
-        {
-          currentPageMode2 = 0;
-        }
-      }
-    }
-    else if (encoder0PosDecreasing)
-    {
-      if (MODE == 0)
-      {
-        currentPageMode0--;
-        if (currentPageMode0 <= 0 || currentPageMode0 >= PageTitleMode0Count)
-        {
-          currentPageMode0 = PageTitleMode0Count - 1;
-        }
-      }
-      if (MODE == 1)
-      {
-        currentPageMode1--;
-        if (currentPageMode1 <= 0 || currentPageMode1 >= PageTitleMode1Count)
-        {
-          currentPageMode1 = PageTitleMode1Count - 1;
-        }
-      }
-      if (MODE == 2)
-      {
-        currentPageMode2--;
-        if (currentPageMode2 <= 0 || currentPageMode2 >= PageTitleMode2Count)
-        {
-          currentPageMode2 = PageTitleMode2Count - 1;
-        }
-      }
-    }
-
-    encoder0PosIncreasing = false;
-    encoder0PosDecreasing = false;
     digitalClockDisplay();
     Serial.print(F("> "));
     Serial.print(F("Encoder Pos: "));
     Serial.println(encoder0Pos);
     tone0 = HIGH;
-  }
 
-  if (MODE != MODE_old)
-  {
-    MODE_old = MODE;
-    digitalClockDisplay();
-    Serial.print(F("> "));
-    if (MODE == 0)
-    {
-      Serial.println(F("MODE 0 [Normal Mode]"));
-    }
-    else if (MODE == 1)
-    {
-      Serial.println(F("MODE 1 [Config Mode]"));
-    }
-    else if (MODE == 2)
-    {
-      Serial.println(F("MODE 2 [Edit Mode]"));
-    }
+    // if (encoder0PosIncreasing)
+    // {
+    //   if (MODE == 0)
+    //   {
+    //     currentPageMode0++;
+    //     if (currentPageMode0 >= PageTitleMode0Count)
+    //     {
+    //       currentPageMode0 = 0;
+    //     }
+    //   }
+    //   if (MODE == 1)
+    //   {
+    //     currentPageMode1++;
+    //     if (currentPageMode1 >= PageTitleMode1Count)
+    //     {
+    //       currentPageMode1 = 0;
+    //     }
+    //   }
+    //   if (MODE == 2)
+    //   {
+    //     currentPageMode2++;
+    //     if (currentPageMode2 >= PageTitleMode2Count)
+    //     {
+    //       currentPageMode2 = 0;
+    //     }
+    //   }
+    // }
+    // else if (encoder0PosDecreasing)
+    // {
+    //   if (MODE == 0)
+    //   {
+    //     currentPageMode0--;
+    //     if (currentPageMode0 <= 0 || currentPageMode0 >= PageTitleMode0Count)
+    //     {
+    //       currentPageMode0 = PageTitleMode0Count - 1;
+    //     }
+    //   }
+    //   if (MODE == 1)
+    //   {
+    //     currentPageMode1--;
+    //     if (currentPageMode1 <= 0 || currentPageMode1 >= PageTitleMode1Count)
+    //     {
+    //       currentPageMode1 = PageTitleMode1Count - 1;
+    //     }
+    //   }
+    //   if (MODE == 2)
+    //   {
+    //     currentPageMode2--;
+    //     if (currentPageMode2 <= 0 || currentPageMode2 >= PageTitleMode2Count)
+    //     {
+    //       currentPageMode2 = PageTitleMode2Count - 1;
+    //     }
+    //   }
+    // }
   }
 
   //check, update and print time status if necessary
@@ -958,7 +963,7 @@ void loop()
 
     if (timeStatus() == timeSet)
     {
-      if (_config.enablentp == true)
+      if (_configTime.enablentp == true)
       {
         int longInterval = getInterval();
         setSyncInterval(longInterval);
@@ -971,7 +976,7 @@ void loop()
     }
     else if (timeStatus() != timeSet)
     {
-      if (_config.enablentp == true)
+      if (_configTime.enablentp == true)
       {
         int shortInterval = getShortInterval();
         setSyncInterval(shortInterval);
@@ -1162,7 +1167,7 @@ void loop()
   {
     CheckNewTimeSettingsReceived();
 
-    if (_config.enablertc == true)
+    if (_configTime.enablertc == true)
     {
       RtcStatusLoop();
       GET_RTC_TEMPERATURE();
@@ -1186,9 +1191,12 @@ void loop()
   Tone1(BUZZER, _ledMatrixSettings.brightness);
   Tone10(BUZZER, duration);
   runningled_loop();
-  //mqtt_loop();
+  mqtt_loop();
 
   tcpCleanup();
+
+  encoder0PosIncreasing = false;
+  encoder0PosDecreasing = false;
 
   tick500ms = false;
   tick1000ms = false;
@@ -1418,7 +1426,7 @@ time_t get_time_from_rtc()
       dt = Rtc.GetDateTime();
     */
 
-    time_t temp_local_time = dt + _config.timezone / 10.0 * 3600;
+    time_t temp_local_time = dt + _configLocation.timezone / 10.0 * 3600;
     time_t t = dt.Epoch32Time();
 
     printDateTime(temp_local_time);
@@ -1449,8 +1457,7 @@ time_t nextSholatTime = 0;
 
 void process_sholat_2nd_stage()
 {
-  DEBUGLOG(__PRETTY_FUNCTION__);
-  DEBUGLOG("\r\n");
+  DEBUGLOG("%s\r\n", __PRETTY_FUNCTION__);
 
   time_t timestamp_now = 0;
 
@@ -1692,6 +1699,12 @@ char *TimeToString(unsigned long t, long *hr, int *mnt, int *sec)
   return str;
 }
 
+void flip250ms()
+{
+  //  static boolean state250ms;
+  state250ms = !state250ms;
+}
+
 void flip500ms()
 {
   //  static boolean state500ms;
@@ -1805,22 +1818,35 @@ void refreshDisplay(int times)
 
 void process_runningled_page()
 {
-
-  // char h_digit_1[2];
-  // char h_digit_2[2];
-  // char m_digit_1[2];
-  // char m_digit_2[2];
-  // char s_digit_1[2];
-  // char s_digit_2[2];
-  // static char h_digit_1_old[2];
-  // static char h_digit_2_old[2];
-  // static char m_digit_1_old[2];
-  // static char m_digit_2_old[2];
-  // static char s_digit_1_old[2];
-  // static char s_digit_2_old[2];
+  // if (MODE != MODE_old)
+  // {
+  //   MODE_old = MODE;
+  //   digitalClockDisplay();
+  //   Serial.print(F("> "));
+  //   if (MODE == 0)
+  //   {
+  //     Serial.println(F("MODE 0 [Normal Mode]"));
+  //   }
+  //   else if (MODE == 1)
+  //   {
+  //     Serial.println(F("MODE 1 [Config Mode]"));
+  //   }
+  //   else if (MODE == 2)
+  //   {
+  //     Serial.println(F("MODE 2 [Edit Mode]"));
+  //   }
+  // }
 
   if (MODE == 0)
   {
+    if (MODE != MODE_old)
+    {
+      MODE_old = MODE;
+      digitalClockDisplay();
+      Serial.print(F("> "));
+      Serial.println(F("MODE 0 [Normal Mode]"));
+    }
+
     // static bool refresh;
     if (currentPageMode0_old != currentPageMode0)
     {
@@ -1924,10 +1950,10 @@ void process_runningled_page()
       // -------------------------------------------------------------------
       // ROW 1
       // -------------------------------------------------------------------
-      int weekDay = weekday();
-      int digitDay = day();
-      int digitMonth = month();
-      int digitYear = year();
+      int weekDay = weekday(localTime);
+      int digitDay = day(localTime);
+      int digitMonth = month(localTime);
+      int digitYear = year(localTime);
       // char weekdayBuf[1];
       char dayBuf[2];
       char monthBuf[2];
@@ -1937,44 +1963,48 @@ void process_runningled_page()
       itoa(digitYear, yearBuf, 10);
 
       static int page;
-      int pageMax = 8;
+      int pageMax = 9;
 
       //Construct the strings
-      char contents[30];
+      char contents[32];
       if (page == 0)
+      {
+        sprintf(contents, "%s", _configLocation.city);
+      }
+      if (page == 1)
       {
         sprintf(contents, "%s", hariStr(weekDay));
       }
-      else if (page == 1)
+      else if (page == 2)
       {
         sprintf(contents, "%d-%s", day(local_time()), monthShortStr(month(local_time())));
       }
-      else if (page == 2)
+      else if (page == 3)
       {
         //String degSymbol = "\xB0";
         sprintf(contents, "%s%cC", bufTempSensor, char(176));
       }
-      else if (page == 3)
+      else if (page == 4)
       {
         sprintf(contents, "%s %s", sholatNameStr(Fajr), sholatTimeArray[Fajr]);
       }
-      else if (page == 4)
+      else if (page == 5)
       {
         sprintf(contents, "%s %s", sholatNameStr(Sunrise), sholatTimeArray[Sunrise]);
       }
-      else if (page == 5)
+      else if (page == 6)
       {
         sprintf(contents, "%s %s", sholatNameStr(Dhuhr), sholatTimeArray[Dhuhr]);
       }
-      else if (page == 6)
+      else if (page == 7)
       {
         sprintf(contents, "%s %s", sholatNameStr(Asr), sholatTimeArray[Asr]);
       }
-      else if (page == 7)
+      else if (page == 8)
       {
         sprintf(contents, "%s %s", sholatNameStr(Maghrib), sholatTimeArray[Maghrib]);
       }
-      else if (page == 8)
+      else if (page == 9)
       {
         sprintf(contents, "%s %s", sholatNameStr(Isha), sholatTimeArray[Isha]);
       }
@@ -2194,18 +2224,18 @@ void process_runningled_page()
       int16_t x1Temp1, y1Temp1;
       uint16_t wTemp1, hTemp1;
 
-      //matrix.getTextBounds((char *)TimeName[NEXTTIMEID], 0, 0, &x1Temp1, &y1Temp1, &wTemp1, &hTemp1);
+      // char JUMUAH[] = "JUMU'AH";
 
-      char JUMUAH[] = "JUMU'AH";
+      // if (weekday(local_time()) == 6 && NEXTTIMEID == Dhuhr)
+      // {
+      //   matrix.getTextBounds(JUMUAH, 0, 0, &x1Temp1, &y1Temp1, &wTemp1, &hTemp1);
+      // }
+      // else
+      // {
+      //   matrix.getTextBounds(sholatNameStr(NEXTTIMEID), 0, 0, &x1Temp1, &y1Temp1, &wTemp1, &hTemp1);
+      // }
 
-      if (weekday(local_time()) == 6 && NEXTTIMEID == Dhuhr)
-      {
-        matrix.getTextBounds(JUMUAH, 0, 0, &x1Temp1, &y1Temp1, &wTemp1, &hTemp1);
-      }
-      else
-      {
-        matrix.getTextBounds(sholatNameStr(NEXTTIMEID), 0, 0, &x1Temp1, &y1Temp1, &wTemp1, &hTemp1);
-      }
+      matrix.getTextBounds(sholatNameStr(NEXTTIMEID), 0, 0, &x1Temp1, &y1Temp1, &wTemp1, &hTemp1);
 
       //animate time name
       static byte count;
@@ -2287,15 +2317,16 @@ void process_runningled_page()
 
       matrix.setCursor(c, row1);
 
-      //matrix.setFont(&RepetitionScrolling5pt8b);
-      if (weekday(local_time()) == 6 && NEXTTIMEID == Dhuhr)
-      {
-        matrix.print(JUMUAH);
-      }
-      else
-      {
-        matrix.print(sholatNameStr(NEXTTIMEID));
-      }
+      // if (weekday(local_time()) == 6 && NEXTTIMEID == Dhuhr)
+      // {
+      //   matrix.print(JUMUAH);
+      // }
+      // else
+      // {
+      //   matrix.print(sholatNameStr(NEXTTIMEID));
+      // }
+
+      matrix.print(sholatNameStr(NEXTTIMEID));
 
       wText = DISP_REFF + wTemp + wTemp1;
 
@@ -2457,10 +2488,12 @@ void process_runningled_page()
         matrix.setCursor(c + 4, row1);
         matrix.print(bufNow[4]);
 
-        if (font == &FreeSerifBold9pt7b) {
+        if (font == &FreeSerifBold9pt7b)
+        {
           matrix.setCursor(c + 13, row1);
         }
-        if (font == &bold_led_board_7_regular4pt7b) {
+        if (font == &bold_led_board_7_regular4pt7b)
+        {
           matrix.setCursor(c + 12, row1);
         }
 
@@ -2468,7 +2501,6 @@ void process_runningled_page()
 
         //revert font again
         matrix.setFont(&FreeSerifBold9pt7b);
-
 
         //      // initial animation: slide-out-down
         //      static uint8_t animation = 2;
@@ -2481,8 +2513,9 @@ void process_runningled_page()
         static int second_old = 0;
         sec = bufNow[5];
         // static unsigned long currMillis;
-        static unsigned int count = 0;
-        if (sec != second_old) {
+        static uint16_t count = 0;
+        if (sec != second_old)
+        {
           second_old = sec;
           // currMillis = millis();
           count = 0;
@@ -2495,8 +2528,8 @@ void process_runningled_page()
         static boolean animateHourDigit1;
         static boolean animateHourDigit2;
 
-
-        if (count == 1000 / _ledMatrixSettings.scrollspeed - 25) {
+        if (count == 1000 / _ledMatrixSettings.scrollspeed - 25)
+        {
           //break time element
           time_t t_future = local_time() + 1;
           tmElements_t tmSet_future;
@@ -2505,18 +2538,22 @@ void process_runningled_page()
           //format (add leading '0' if less than 10) and store in the array
           sprintf(bufTimeFuture, "%02d%02d%02d", tmSet_future.Hour, tmSet_future.Minute, tmSet_future.Second);
 
-
           //animateSecDigit2 = true;
 
-          if (bufNow[5] == '9') {
+          if (bufNow[5] == '9')
+          {
             //animateSecDigit1 = true;
-            if (bufNow[4] == '5') {
+            if (bufNow[4] == '5')
+            {
               animateMinDigit2 = true;
-              if (bufNow[3] == '9') {
+              if (bufNow[3] == '9')
+              {
                 animateMinDigit1 = true;
-                if (bufNow[2] == '5') {
+                if (bufNow[2] == '5')
+                {
                   animateHourDigit2 = true;
-                  if (bufNow[1] == '3' || bufNow[1] == '9') {
+                  if (bufNow[1] == '3' || bufNow[1] == '9')
+                  {
                     animateHourDigit1 = true;
                   }
                 }
@@ -2525,19 +2562,21 @@ void process_runningled_page()
           }
         }
 
-        if (count == 1000 / _ledMatrixSettings.scrollspeed - 15) {
+        if (count == 1000 / _ledMatrixSettings.scrollspeed - 15)
+        {
 
           animateSecDigit2 = true;
 
-          if (bufNow[5] == '9') {
+          if (bufNow[5] == '9')
+          {
             animateSecDigit1 = true;
           }
         }
 
         count++;
 
-
-        if (animateSecDigit2) {
+        if (animateSecDigit2)
+        {
           static int animation = 0;
 
           //slide-out-down
@@ -2564,7 +2603,8 @@ void process_runningled_page()
           }
         }
 
-        if (animateSecDigit1) {
+        if (animateSecDigit1)
+        {
           static int animation = 0;
 
           //slide-out-down
@@ -2591,7 +2631,8 @@ void process_runningled_page()
           }
         }
 
-        if (animateMinDigit2) {
+        if (animateMinDigit2)
+        {
           static int animation = 0;
 
           //slide-out-down
@@ -2618,7 +2659,8 @@ void process_runningled_page()
           }
         }
 
-        if (animateMinDigit1) {
+        if (animateMinDigit1)
+        {
           static int animation = 0;
 
           //slide-out-down
@@ -2645,7 +2687,8 @@ void process_runningled_page()
           }
         }
 
-        if (animateHourDigit2) {
+        if (animateHourDigit2)
+        {
           static int animation = 0;
 
           //slide-out-down
@@ -2672,7 +2715,8 @@ void process_runningled_page()
           }
         }
 
-        if (animateHourDigit1) {
+        if (animateHourDigit1)
+        {
           static int animation = 0;
 
           //slide-out-down
@@ -2713,7 +2757,6 @@ void process_runningled_page()
         int row0 = 6;
         int row1 = 14;
         byte startCol = 1;
-
 
         c = DISP_REFF + startCol;
 
@@ -2776,28 +2819,30 @@ void process_runningled_page()
         matrix.setCursor(c, row1);
         matrix.print(bufNow[4]);
 
-        if (font == &FreeSerifBold9pt7b) {
+        if (font == &FreeSerifBold9pt7b)
+        {
           matrix.setCursor(c + 13, row1);
         }
-        if (font == &bold_led_board_7_regular4pt7b) {
+        if (font == &bold_led_board_7_regular4pt7b)
+        {
           matrix.setCursor(c + 8, row1);
         }
         matrix.print(bufNow[5]);
 
         // print AM/PM
         matrix.setCursor(c, row0);
-        if (isAM(local_time())) {
+        if (isAM(local_time()))
+        {
           //matrix.print("AM");
         }
-        else if (isPM(local_time())) {
+        else if (isPM(local_time()))
+        {
           //matrix.print("PM");
         }
-
 
         //revert font again
         font = &FreeSerifBoldNumberOnly11pt7b;
         matrix.setFont(font);
-
 
         //array for 1 second ahead
         static char bufTimeFuture[6];
@@ -2807,8 +2852,9 @@ void process_runningled_page()
         static int second_old = 0;
         sec = bufNow[5];
         // static unsigned long currMillis;
-        static unsigned int count = 0;
-        if (sec != second_old) {
+        static uint16_t count = 0;
+        if (sec != second_old)
+        {
           second_old = sec;
           // currMillis = millis();
           count = 0;
@@ -2821,8 +2867,8 @@ void process_runningled_page()
         static boolean animateHourDigit1;
         static boolean animateHourDigit2;
 
-
-        if (count == 1000 / _ledMatrixSettings.scrollspeed - 31) {
+        if (count == 1000 / _ledMatrixSettings.scrollspeed - 31)
+        {
           //break time element
           time_t t_future = local_time() + 1;
           tmElements_t tmSet_future;
@@ -2831,18 +2877,22 @@ void process_runningled_page()
           //format (add leading '0' if less than 10) and store in the array
           sprintf(bufTimeFuture, "%02d%02d%02d", tmSet_future.Hour, tmSet_future.Minute, tmSet_future.Second);
 
-
           //animateSecDigit2 = true;
 
-          if (bufNow[5] == '9') {
+          if (bufNow[5] == '9')
+          {
             //animateSecDigit1 = true;
-            if (bufNow[4] == '5') {
+            if (bufNow[4] == '5')
+            {
               animateMinDigit2 = true;
-              if (bufNow[3] == '9') {
+              if (bufNow[3] == '9')
+              {
                 animateMinDigit1 = true;
-                if (bufNow[2] == '5') {
+                if (bufNow[2] == '5')
+                {
                   animateHourDigit2 = true;
-                  if (bufNow[1] == '3' || bufNow[1] == '9') {
+                  if (bufNow[1] == '3' || bufNow[1] == '9')
+                  {
                     animateHourDigit1 = true;
                   }
                 }
@@ -2851,19 +2901,21 @@ void process_runningled_page()
           }
         }
 
-        if (count == 1000 / _ledMatrixSettings.scrollspeed - 15) {
+        if (count == 1000 / _ledMatrixSettings.scrollspeed - 15)
+        {
 
           animateSecDigit2 = true;
 
-          if (bufNow[5] == '9') {
+          if (bufNow[5] == '9')
+          {
             animateSecDigit1 = true;
           }
         }
 
         count++;
 
-
-        if (animateSecDigit2) {
+        if (animateSecDigit2)
+        {
           static int animation = 0;
 
           //slide-out-down
@@ -2890,7 +2942,8 @@ void process_runningled_page()
           }
         }
 
-        if (animateSecDigit1) {
+        if (animateSecDigit1)
+        {
           static int animation = 0;
 
           //slide-out-down
@@ -2917,7 +2970,8 @@ void process_runningled_page()
           }
         }
 
-        if (animateMinDigit2) {
+        if (animateMinDigit2)
+        {
           static int animation = 0;
 
           //slide-out-down
@@ -2944,7 +2998,8 @@ void process_runningled_page()
           }
         }
 
-        if (animateMinDigit1) {
+        if (animateMinDigit1)
+        {
           static int animation = 0;
 
           //slide-out-down
@@ -2971,7 +3026,8 @@ void process_runningled_page()
           }
         }
 
-        if (animateHourDigit2) {
+        if (animateHourDigit2)
+        {
           static int animation = 0;
 
           //slide-out-down
@@ -2998,7 +3054,8 @@ void process_runningled_page()
           }
         }
 
-        if (animateHourDigit1) {
+        if (animateHourDigit1)
+        {
           static int animation = 0;
 
           //slide-out-down
@@ -4280,13 +4337,12 @@ void process_runningled_page()
         //format (add leading '0' if  less than 10) and store in the array
         sprintf(bufNow, "%02d%02d%02d", hourFormat12(t), tmSet.Minute, tmSet.Second);
 
-
         int16_t x0;
         int16_t y0;
 
-
         // set starting row row based on font type
-        if (font == &UbuntuMono_B10pt8b) {
+        if (font == &UbuntuMono_B10pt8b)
+        {
           y0 = 13;
         }
 
@@ -4296,22 +4352,25 @@ void process_runningled_page()
         byte timeFormat = 1;
 
         // determine starting column
-        if (bufNow[0] != '0') {
-          if (timeFormat == 0) {
+        if (bufNow[0] != '0')
+        {
+          if (timeFormat == 0)
+          {
             x0 = 0;
           }
-          else if (timeFormat == 1) {
+          else if (timeFormat == 1)
+          {
             x0 = -1;
           }
-
         }
-        else if (bufNow[0] == '0') {
+        else if (bufNow[0] == '0')
+        {
           x0 = 4;
         }
 
-
         // print hour digit 1
-        if (bufNow[0] != '0') {
+        if (bufNow[0] != '0')
+        {
           matrix.setCursor(x0, y0);
           matrix.print(bufNow[0]);
           x0 = x0 + wTemp + 1;
@@ -4328,14 +4387,12 @@ void process_runningled_page()
         matrix.fillRect(x0, y0 - 8, 4, 2, 1);
         matrix.fillRect(x0 + 1, y0 - 9, 2, 4, 1);
 
-
         //print minute digit 1
         x0 = x0 + 4;
         matrix.setCursor(x0, y0);
         matrix.print(bufNow[2]);
         //matrix.print(":");
         x0 = x0 + wTemp + 1;
-
 
         // print minute digit 2
         matrix.setCursor(x0, y0);
@@ -4390,13 +4447,12 @@ void process_runningled_page()
         //format (add leading '0' if  less than 10) and store in the array
         sprintf(bufNow, "%02d%02d%02d", hourFormat12(t), tmSet.Minute, tmSet.Second);
 
-
         int16_t x0;
         int16_t y0;
 
-
         // set starting row row based on font type
-        if (font == &UbuntuMono_B10pt8b) {
+        if (font == &UbuntuMono_B10pt8b)
+        {
           y0 = 13;
         }
 
@@ -4406,24 +4462,27 @@ void process_runningled_page()
         byte timeFormat = 1;
 
         // determine starting column
-        if (bufNow[0] != '0') {
-          if (timeFormat == 0) {
+        if (bufNow[0] != '0')
+        {
+          if (timeFormat == 0)
+          {
             x0 = 0;
           }
-          else if (timeFormat == 1) {
+          else if (timeFormat == 1)
+          {
             x0 = -1;
           }
-
         }
-        else if (bufNow[0] == '0') {
+        else if (bufNow[0] == '0')
+        {
           x0 = 4;
         }
 
         int x0_hour_digit_1 = x0;
 
-
         // print hour digit 1
-        if (bufNow[0] != '0') {
+        if (bufNow[0] != '0')
+        {
           matrix.setCursor(x0, y0);
           matrix.print(bufNow[0]);
           x0 = x0 + wTemp + 1;
@@ -4442,7 +4501,6 @@ void process_runningled_page()
         matrix.fillRect(x0, y0 - 8, 4, 2, 1);
         matrix.fillRect(x0 + 1, y0 - 9, 2, 4, 1);
 
-
         //print minute digit 1
         x0 = x0 + 4;
         int x0_minute_digit_1 = x0;
@@ -4451,7 +4509,6 @@ void process_runningled_page()
         //matrix.print(":");
         x0 = x0 + wTemp + 1;
         int x0_minute_digit_2 = x0;
-
 
         // print minute digit 2
         matrix.setCursor(x0, y0);
@@ -4484,8 +4541,9 @@ void process_runningled_page()
         static int second_old = 0;
         sec = bufNow[5];
         // static unsigned long currMillis;
-        static unsigned int count = 0;
-        if (sec != second_old) {
+        static uint16_t count = 0;
+        if (sec != second_old)
+        {
           second_old = sec;
           // currMillis = millis();
           count = 0;
@@ -4498,8 +4556,8 @@ void process_runningled_page()
         static boolean animateHourDigit1;
         static boolean animateHourDigit2;
 
-
-        if (count == 1000 / _ledMatrixSettings.scrollspeed - 25) {
+        if (count == 1000 / _ledMatrixSettings.scrollspeed - 25)
+        {
           //break time element
           time_t t_future = local_time() + 1;
           tmElements_t tmSet_future;
@@ -4508,18 +4566,22 @@ void process_runningled_page()
           //format (add leading '0' if less than 10) and store in the array
           sprintf(bufTimeFuture, "%02d%02d%02d", tmSet_future.Hour, tmSet_future.Minute, tmSet_future.Second);
 
-
           //animateSecDigit2 = true;
 
-          if (bufNow[5] == '9') {
+          if (bufNow[5] == '9')
+          {
             //animateSecDigit1 = true;
-            if (bufNow[4] == '5') {
+            if (bufNow[4] == '5')
+            {
               animateMinDigit2 = true;
-              if (bufNow[3] == '9') {
+              if (bufNow[3] == '9')
+              {
                 animateMinDigit1 = true;
-                if (bufNow[2] == '5') {
+                if (bufNow[2] == '5')
+                {
                   animateHourDigit2 = true;
-                  if (bufNow[1] == '3' || bufNow[1] == '9') {
+                  if (bufNow[1] == '3' || bufNow[1] == '9')
+                  {
                     animateHourDigit1 = true;
                   }
                 }
@@ -4528,11 +4590,13 @@ void process_runningled_page()
           }
         }
 
-        if (count == 1000 / _ledMatrixSettings.scrollspeed - 25) {
+        if (count == 1000 / _ledMatrixSettings.scrollspeed - 25)
+        {
 
           animateSecDigit2 = true;
 
-          if (bufNow[5] == '9') {
+          if (bufNow[5] == '9')
+          {
             animateSecDigit1 = true;
           }
         }
@@ -4542,8 +4606,8 @@ void process_runningled_page()
         uint16_t w = 9;
         uint16_t h = 12;
 
-
-        if (animateSecDigit2) {
+        if (animateSecDigit2)
+        {
           static int animation = 0;
 
           //slide-out-down
@@ -4570,7 +4634,8 @@ void process_runningled_page()
           }
         }
 
-        if (animateSecDigit1) {
+        if (animateSecDigit1)
+        {
           static int animation = 0;
 
           //slide-out-down
@@ -4597,7 +4662,8 @@ void process_runningled_page()
           }
         }
 
-        if (animateMinDigit2) {
+        if (animateMinDigit2)
+        {
           static int animation = 0;
 
           //slide-out-down
@@ -4624,7 +4690,8 @@ void process_runningled_page()
           }
         }
 
-        if (animateMinDigit1) {
+        if (animateMinDigit1)
+        {
           static int animation = 0;
 
           //slide-out-down
@@ -4651,7 +4718,8 @@ void process_runningled_page()
           }
         }
 
-        if (animateHourDigit2) {
+        if (animateHourDigit2)
+        {
           static int animation = 0;
 
           //slide-out-down
@@ -4678,7 +4746,8 @@ void process_runningled_page()
           }
         }
 
-        if (animateHourDigit1) {
+        if (animateHourDigit1)
+        {
           static int animation = 0;
 
           //slide-out-down
@@ -4760,9 +4829,493 @@ void process_runningled_page()
         c = 0;
       }
     }
+
+    // -------------------------------------------------------------------
+    // MODE 0, PAGE 11, IQAMAH TIME
+    // -------------------------------------------------------------------
+    else if (currentPageMode0 == 11)
+    {
+      //calculate time to iqamah
+      time_t adzanEndTime = currentSholatTime + (60 * _ledMatrixSettings.adzanwaittime);
+      time_t iqamahTime = adzanEndTime + (60 * _ledMatrixSettings.iqamahwaittime);
+
+      // time_t iqamahTime = currentSholatTime + (60 * 7);
+
+      time_t timeToIqamah = iqamahTime - localTime;
+
+      // uint16_t days;
+      uint8_t hours;
+      uint8_t minutes;
+      uint8_t seconds;
+
+      // days = elapsedDays(iqamahTime);
+      hours = numberOfHours(timeToIqamah);
+      minutes = numberOfMinutes(timeToIqamah);
+      seconds = numberOfSeconds(timeToIqamah);
+
+      matrix.setTextWrap(0);
+
+      matrix.clearDisplay();
+
+      matrix.setTextSize(1);
+
+      const GFXfont *font;
+      //font = &FiveBySeven5pt7b;
+      font = &UbuntuMono_B10pt8b;
+      //font = &F14LED7pt8b;
+      matrix.setFont(font);
+
+      int16_t xTemp, yTemp;
+      uint16_t wTemp, hTemp;
+
+      char contents[2] = "8";
+
+      matrix.getTextBounds(contents, 0, 0, &xTemp, &yTemp, &wTemp, &hTemp);
+
+      //prepare array for time left sholat
+      char bufTimeToIqamah[7];
+
+      //format (add leading '0' if  less than 10) and store in the array
+      sprintf(bufTimeToIqamah, "%02d%02d%02d", hours, minutes, seconds);
+
+      int16_t x0 = 2;
+      int16_t y0 = 13;
+
+      if (bufTimeToIqamah[1] != '0')
+      {
+        x0 = 2;
+      }
+      else if (bufTimeToIqamah[1] == '0' && bufTimeToIqamah[2] != '0')
+      {
+        x0 = 8;
+      }
+      else if (bufTimeToIqamah[1] == '0' && bufTimeToIqamah[2] == '0')
+      {
+        x0 = 13;
+      }
+
+      // print dash sign
+      int dashLength = 7;
+      if (state500ms)
+      {
+        matrix.fillRect(x0, 7, dashLength, 2, 1);
+      }
+
+      x0 = x0 + dashLength + 1;
+
+      // print hour digit2
+      if (bufTimeToIqamah[1] != '0')
+      {
+        matrix.setCursor(x0, y0);
+        matrix.print(bufTimeToIqamah[1]);
+
+        //print Colon
+        x0 = x0 + wTemp + 2;
+        matrix.fillRect(x0, y0 - 3, 2, 2, 1);
+        matrix.fillRect(x0, y0 - 9, 2, 2, 1);
+        x0 = x0 + 2;
+      }
+
+      //print minute digit 1
+      if (bufTimeToIqamah[2] != '0' || (bufTimeToIqamah[2] == '0' && bufTimeToIqamah[1] != '0'))
+      {
+        matrix.setCursor(x0, y0);
+        matrix.print(bufTimeToIqamah[2]);
+        x0 = x0 + wTemp + 1;
+      }
+
+      // print minute digit 2
+      matrix.setCursor(x0, y0);
+      matrix.print(bufTimeToIqamah[3]);
+
+      //print Colon
+      x0 = x0 + wTemp + 2;
+      matrix.fillRect(x0, y0 - 3, 2, 2, 1);
+      matrix.fillRect(x0, y0 - 9, 2, 2, 1);
+
+      // print second digit 1
+      x0 = x0 + 2;
+      matrix.setCursor(x0, y0);
+      matrix.print(bufTimeToIqamah[4]);
+
+      // print second digit 2
+      x0 = x0 + wTemp + 1;
+      matrix.setCursor(x0, y0);
+      matrix.print(bufTimeToIqamah[5]);
+    }
+
+    // -------------------------------------------------------------------
+    // MODE 0, PAGE 12, JAM DAN TANGGAL TYPE 2
+    // -------------------------------------------------------------------
+    else if (currentPageMode0 == 12)
+    {
+
+      matrix.clearDisplay();
+
+      matrix.setTextWrap(0);
+
+      int c;
+      int row0 = 6;
+      // int row1 = 15;
+      int startCol = 1;
+      int x0 = X;
+      // int x1 = X;
+
+      if (_ledMatrixSettings.scrollrow_0 == false)
+      {
+        x0 = 0;
+      }
+
+      if (_ledMatrixSettings.scrollrow_1 == false)
+      {
+        // x1 = 0;
+      }
+
+      // -------------------------------------------------------------------
+      // ROW 0
+      // -------------------------------------------------------------------
+
+      startCol = 15; //override start colum for Row0
+
+      const GFXfont *fontRow0 = &Wide11x8;
+      matrix.setFont(fontRow0);
+
+      if (fontRow0 == &Wide11x8)
+      {
+        startCol = 9;
+        row0 = 7;
+      }
+      else if (fontRow0 == &bold_led_board_7_regular4pt7b)
+      {
+        startCol = 15;
+        row0 = 6;
+      }
+
+      //hour
+      c = DISP_REFF + startCol + x0;
+      matrix.setCursor(c, row0);
+      
+      char buf[2];
+      sprintf(buf, "%02d", hour(localTime));
+      matrix.print(buf);
+
+      //colon
+      c = matrix.getCursorX() + 1;
+
+      if (second() < 30)
+      {
+        matrix.fillRect(c, row0 - 1, 2, 2, 1);
+
+        // if (blinkColon) {
+        if (state1000ms)
+        {
+          matrix.fillRect(c, row0 - 4, 2, 2, 1);
+        }
+        // }
+      }
+      else
+      {
+        matrix.fillRect(c, row0 - 4, 2, 2, 1);
+
+        // if (blinkColon) {
+        if (state1000ms)
+        {
+          matrix.fillRect(c, row0 - 1, 2, 2, 1);
+        }
+        // }
+      }
+
+      //minute
+      c = matrix.getCursorX() + 5;
+      matrix.setCursor(c, row0);
+
+      sprintf(buf, "%02d", minute(localTime));
+      matrix.print(buf);
+
+      // -------------------------------------------------------------------
+      // ROW 1
+      // -------------------------------------------------------------------
+      matrix.setTextWrap(0);
+
+      // int16_t x1Temp, y1Temp;
+      // uint16_t wTemp, hTemp;
+
+      // int c;
+      // int row0 = 6;
+      // int row1 = 14;
+      startCol = 1;
+
+      if (_ledMatrixSettings.scrollrow_0 == false)
+      {
+        c = DISP_REFF + startCol;
+      }
+
+      if (_ledMatrixSettings.scrollrow_1 == false)
+      {
+        c = DISP_REFF + startCol;
+      }
+
+      c = DISP_REFF + startCol + X;
+
+      // matrix.clearDisplay();
+
+      matrix.setTextSize(1);
+
+      const GFXfont *font = &FiveBySeven5pt7b;
+      matrix.setFont(font);
+
+      if (font == &TomThumb)
+      {
+        matrix.setCursor(c, 14);
+      }
+      else if (font == &bold_led_board_7_regular4pt7b)
+      {
+        matrix.setCursor(c, 12);
+      }
+      else if (font == &ChessType9pt7b)
+      {
+        matrix.setCursor(c, 12);
+      }
+      else if (font == &RepetitionScrolling5pt8b)
+      {
+        matrix.setCursor(c, 14);
+      }
+      else if (font == &FiveBySeven5pt7b)
+      {
+        matrix.setCursor(c, 15);
+      }
+      else if (font == &F14LED7pt8b)
+      {
+        matrix.setCursor(c, 12);
+      }
+
+      load_running_text_2();
+
+      // -------------------------------------------------------------------
+      // Animation
+      // -------------------------------------------------------------------
+      boolean effect0 = 0;
+      // boolean effect1 = 0;
+
+      if (effect0 == 1)
+      {
+        static uint16_t scan = 0;
+        //uint16_t scanMax = _ledMatrixSettings.scrollspeed / 7;
+        uint16_t scanMax = _ledMatrixSettings.scrollspeed;
+        if (scan < scanMax)
+        {
+          scan++;
+        }
+        else if (scan >= scanMax)
+        {
+          scan = 0;
+        }
+
+        //    int16_t x0 = 2;
+        //    int16_t y0 = 3;
+        //    int16_t x1 = 2;
+        //    int16_t y1 = 3;
+        //    uint16_t w = 14;
+        //    uint16_t h = 10;
+      }
+
+      if (effect0 == 1)
+      {
+        int16_t x0 = 0;
+        int16_t y0 = 0;
+        int16_t x1 = 0;
+        int16_t y1 = 0;
+        uint16_t w = 64;
+        uint16_t h = 16;
+
+        static int16_t offset;
+        static uint16_t offsetMax;
+
+        static uint8_t animation = 6;
+
+        uint16_t index;
+        uint16_t buf[1024];
+
+        matrix.copyBuffer(x0, y0, w, h, buf);
+        matrix.fillRect(x0, y0, w, h, 0);
+
+        for (uint16_t yTemp = 0; yTemp < h; yTemp++)
+        {
+          for (uint16_t xTemp = 0; xTemp < w; xTemp++)
+          {
+
+            //slide-out-up
+            if (animation == 0)
+            {
+              offsetMax = h;
+              if (yTemp >= offset)
+              {
+                matrix.drawPixel(x1 + xTemp, y1 + yTemp - offset, buf[index]);
+              }
+              else
+              {
+                matrix.drawPixel(x1 + xTemp, y1 + yTemp - offset, 0);
+              }
+            }
+
+            //slide-out-down
+            else if (animation == 1)
+            {
+              offsetMax = h;
+              if (yTemp < h - offset)
+              {
+                matrix.drawPixel(x1 + xTemp, y1 + yTemp + offset, buf[index]);
+              }
+              else
+              {
+                matrix.drawPixel(x1 + xTemp, y1 + yTemp + offset, 0);
+              }
+            }
+
+            //slide-out-right
+            else if (animation == 2)
+            {
+              offsetMax = w;
+              if (xTemp < w - offset)
+              {
+                matrix.drawPixel(x1 + xTemp + offset, y1 + yTemp, buf[index]);
+              }
+              else
+              {
+                matrix.drawPixel(x1 + xTemp + offset, y1 + yTemp, 0);
+              }
+            }
+
+            //slide-out-to-left
+            else if (animation == 3)
+            {
+              offsetMax = w;
+              if (xTemp >= offset)
+              {
+                matrix.drawPixel(x1 + xTemp - offset, y1 + yTemp, buf[index]);
+              }
+              else
+              {
+                matrix.drawPixel(x1 + xTemp - offset, y1 + yTemp, 0);
+              }
+            }
+
+            //slide-in-right
+            else if (animation == 4)
+            {
+              offsetMax = w;
+              if (xTemp >= w - offset)
+              {
+                matrix.drawPixel(x1 + xTemp - w + offset, y1 + yTemp, buf[index]);
+              }
+              else
+              {
+                matrix.drawPixel(x1 + xTemp - w + offset, y1 + yTemp, 0);
+              }
+            }
+
+            //slide-in-up
+            else if (animation == 5)
+            {
+              offsetMax = h;
+              if (yTemp < offset)
+              {
+                matrix.drawPixel(x1 + xTemp, y1 + yTemp + h - offset, buf[index]);
+              }
+              else
+              {
+                matrix.drawPixel(x1 + xTemp, y1 + yTemp + h - offset, 0);
+              }
+            }
+
+            //slide-in-down
+            else if (animation == 6)
+            {
+              offsetMax = h;
+              if (yTemp >= h - offset)
+              {
+                matrix.drawPixel(x1 + xTemp, y1 + yTemp - h + offset, buf[index]);
+              }
+              else
+              {
+                matrix.drawPixel(x1 + xTemp, y1 + yTemp - h + offset, 0);
+              }
+            }
+
+            //slide-in-left
+            else if (animation == 7)
+            {
+              offsetMax = w;
+              if (xTemp < offset)
+              {
+                matrix.drawPixel(x1 + xTemp + w - offset, y1 + yTemp, buf[index]);
+              }
+              else
+              {
+                matrix.drawPixel(x1 + xTemp + w - offset, y1 + yTemp, 0);
+              }
+            }
+
+            index++;
+          }
+        }
+
+        offset++;
+
+        //reset offset and change animation
+        if (offset > offsetMax)
+        {
+          offset = 0;
+          if (animation == 6)
+          {
+            animation = 3;
+          }
+          else if (animation == 3)
+          {
+            animation = 4;
+          }
+          else if (animation == 4)
+          {
+            animation = 1;
+          }
+          else if (animation == 1)
+          {
+            animation = 5;
+          }
+          else if (animation == 5)
+          {
+            animation = 2;
+          }
+          else if (animation == 2)
+          {
+            animation = 7;
+          }
+          else if (animation == 7)
+          {
+            animation = 0;
+          }
+          else if (animation == 0)
+          {
+            animation = 6;
+          }
+        }
+      }
+    }
   }
+
+  // ------------
+  // MODE 1
+  // ------------
   else if (MODE == 1)
   {
+    if (MODE != MODE_old)
+    {
+      MODE_old = MODE;
+      digitalClockDisplay();
+      Serial.print(F("> "));
+      Serial.println(F("MODE 1 [Config Mode]"));
+    }
+
     // static bool refresh;
     if (currentPageMode1_old != currentPageMode1)
     {
@@ -5436,7 +5989,8 @@ void process_runningled_page()
       // Last boot time at row 1
       // ------------------------
 
-      strlcpy(str, getDateTimeString(local_time(_lastBoot)), sizeof(str));
+      // strlcpy(str, getDateTimeString(local_time(_lastBoot)), sizeof(str));
+      strlcpy(str, getLastBootStr(), sizeof(str));
 
       matrix.setFont(&TomThumb);
 
@@ -5511,98 +6065,1007 @@ void process_runningled_page()
   }
 
   // -------------------------------------------------------------------
-  // MODE 2, PAGE 0
-  //
+  // MODE 2
   // -------------------------------------------------------------------
 
   else if (MODE == 2)
   {
-    static bool refresh;
-    if (currentPageMode2_old != currentPageMode2)
-    {
-      currentPageMode2_old = currentPageMode2;
-      digitalClockDisplay();
-      Serial.print(F("> EDIT MODE, PAGE "));
-      Serial.println(currentPageMode2);
+    static bool stateEdit = false;
+    static uint32_t startMillis = 0;
+    static bool stateSwitch_old = false;
+    static int16_t count = 0;
+    static int16_t pos = -1;
+    static int16_t encoder0Pos_old = encoder0Pos;
 
-      refresh = true;
-      matrix.clearDisplay();
+    if (MODE != MODE_old)
+    {
+      MODE_old = MODE;
+      digitalClockDisplay();
+      Serial.print(F("> "));
+      Serial.println(F("MODE 2 [Edit Mode]"));
+
+      // reset static variables
+      stateEdit = false;
+      startMillis = millis();
+      stateSwitch_old = false;
+      count = 0;
+      pos = -1;
+      encoder0Pos_old = encoder0Pos;
     }
 
-    uint16_t w = 7;
-    uint16_t h = 5;
-    // uint16_t buf[w * h];
+    // static uint32_t timerSwitch;
 
-    if (currentPageMode2 == 0)
+    if (stateSwitch != stateSwitch_old)
     {
 
-      static boolean stateEdit;
+      stateSwitch_old = stateSwitch;
 
-      static byte hr = hour();
-      if (refresh == true)
+      if (stateSwitch == HIGH)
       {
-        hr = hour();
-        refresh = false;
+        // startMillis = millis();
+
+        // stateEdit = !stateEdit;
+
+        // timerSwitch = millis();
+        // alarmState = HIGH;
+        // tone0 = HIGH;
+
+        // if (stateEdit == false)
+        // {
+        //   _config.timezone = tempTimezone;
+        //   save_config();
+        // }
+      }
+      else if (stateSwitch == LOW)
+      {
+        // stateEdit = false;
+      }
+    }
+
+    bool encoder0PosIncreasing = false;
+    bool encoder0PosDecreasing = false;
+
+    if (encoder0Pos > encoder0Pos_old)
+    {
+      encoder0PosIncreasing = true;
+      encoder0Pos_old = encoder0Pos;
+    }
+    else if (encoder0Pos < encoder0Pos_old)
+    {
+      encoder0PosDecreasing = true;
+      encoder0Pos_old = encoder0Pos;
+    }
+
+    if (encoder0PosIncreasing && stateEdit == false)
+    {
+      currentPageMode2++;
+      if (currentPageMode2 >= PageTitleMode2Count)
+      {
+        currentPageMode2 = 0;
+      }
+    }
+    else if (encoder0PosDecreasing && stateEdit == false)
+    {
+      currentPageMode2--;
+      if (currentPageMode2 <= 0 || currentPageMode2 >= PageTitleMode2Count)
+      {
+        currentPageMode2 = PageTitleMode2Count - 1;
+      }
+    }
+
+    // -------------------------------------------------------------------
+    // MODE 2, PAGE 0
+    // SETTING TIMEZONE
+    // -------------------------------------------------------------------
+    if (currentPageMode2 == 0)
+    {
+      // static int8_t tempTimezone = 0;
+
+      if (currentPageMode2_old != currentPageMode2)
+      {
+        currentPageMode2_old = currentPageMode2;
+        digitalClockDisplay();
+        Serial.print(F("> EDIT MODE, PAGE "));
+        Serial.println(currentPageMode2);
+
+        // reset static variables used in this page
+        stateEdit = false;
+        stateSwitch_old = false;
+        count = 0;
+        // tempTimezone = _config.timezone;
       }
 
-      if (stateSwitch != stateEdit)
+      //clear Screen
+      matrix.clearDisplay();
+
+      // -------
+      // Row 0
+      // -------
+
+      char str[16];
+      const char *ptr = PSTR("Set Timezone");
+      strcpy_P(str, ptr);
+
+      int16_t x0, y0;
+      uint16_t w, h;
+      matrix.setFont(&TomThumb);
+      matrix.getTextBounds(str, 0, 0, &x0, &y0, &w, &h);
+      uint16_t x1 = (matrix.width() - (w - 4)) / 2;
+      uint16_t y1 = (matrix.height() / 2 - h) / 2 + h - 0;
+      //update x1 and y1 value
+      matrix.getTextBounds(str, x1, y1, &x0, &y0, &w, &h);
+
+      //Print to led matrix
+      matrix.setCursor(x1, y1);
+      matrix.print(str);
+
+      // -------
+      // Row 1
+      // -------
+
+      // matrix.setFont(&TomThumb);
+      // matrix.setFont(&bold_led_board_7_regular4pt7b);
+      // matrix.setFont(&RepetitionScrolling5pt8b);
+      matrix.setFont(&FiveBySeven5pt7b);
+      // matrix.setFont(&Org_01);
+
+      if (stateEdit)
       {
-        stateEdit = stateSwitch;
-        if (stateSwitch == HIGH)
+        if (encoder0PosIncreasing)
         {
-          hr++;
-          if (hr > 23)
+          count++;
+          if (count == timezoneCount)
           {
-            hr = 0;
+            count = 0;
           }
-          matrix.fillRect(20, 9, w, h, 0);
-          //Print to led matrix
-          matrix.setCursor(20, 14);
-          if (hr < 10)
-          {
-            matrix.print('0');
-          }
-          matrix.print(hr);
-          Serial.println(hr);
         }
-      }
+        else if (encoder0PosDecreasing)
+        {
+          count--;
+          if (count < 0)
+          {
+            count = timezoneCount - 1;
+          }
+        }
 
-      // drawLine(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16_t color);
-      //matrix.drawLine(20, 14, 25, 14, 1);
+        if (count == WIB)
+        {
+          ptr = PSTR("WIB (+7)");
+          // tempTimezone = 70;
+        }
+        if (count == WITA)
+        {
+          ptr = PSTR("WITA (+8)");
+          // tempTimezone = 80;
+        }
+        if (count == WIT)
+        {
+          ptr = PSTR("WIT (+9)");
+          // tempTimezone = 90;
+        }
 
-      //          uint16_t buf[w * h];
-      //
-      //    matrix.copyBuffer(x0, y0, w, h, buf);
+        strcpy_P(str, ptr);
 
-      int16_t x0 = 20;
-      int16_t y0 = 15;
+        matrix.getTextBounds(str, 0, 0, &x0, &y0, &w, &h);
+        x1 = (matrix.width() - (w - 4)) / 2;
+        y1 = (matrix.height() / 2 - h) / 2 + h - 1;
 
-      //      static int count = 0;
-      //
-      //      buf[w * h];
-      //
-      //      if (count == 0) {
-      //        matrix.copyBuffer(20, 9, w, h, buf);
-      //        count = 1;
-      //      }
-
-      if (state500ms)
-      {
-        matrix.fillRect(x0, y0, w, h, 0);
-
-        // matrix.fillRect(20, 15, 7, 1, 0);
+        if (state500ms)
+        {
+          // matrix.fillRect(x1, y1, w - 5, h, 0);
+          ptr = PSTR("");
+        }
       }
       else
       {
-        //        uint16_t index = 0;
-        //        for (uint16_t yTemp = 0; yTemp < h; yTemp++) {
-        //          for (uint16_t xTemp = 0; xTemp < w; xTemp++) {
-        //            matrix.drawPixel(20 + xTemp, 9 + yTemp, buf[index]);
-        //            index++;
-        //          }
-        //        }
+        if (_configLocation.timezone == 70)
+        {
+          ptr = PSTR("WIB (+7)");
+          count = 0;
+        }
+        else if (_configLocation.timezone == 80)
+        {
+          ptr = PSTR("WITA (+8)");
+          count = 1;
+        }
+        else if (_configLocation.timezone == 90)
+        {
+          ptr = PSTR("WIT (+9)");
+          count = 2;
+        }
+        else
+        {
+          ptr = PSTR("Unknown");
+        }
+      }
 
-        matrix.drawLine(20, 15, 26, 15, 1);
+      strcpy_P(str, ptr);
+
+      matrix.getTextBounds(str, 0, 0, &x0, &y0, &w, &h);
+      x1 = (matrix.width() - (w - 4)) / 2;
+      y1 = (matrix.height() / 2 - h) / 2 + h - 1;
+      //update x1 and y1 value
+      // matrix.getTextBounds(str, x1, y1, &x0, &y0, &w, &h);
+
+      matrix.setCursor(x1, y1 + 8);
+      matrix.print(str);
+    }
+
+    // -------------------------------------------------------------------
+    // MODE 2, PAGE 1
+    // SETTING LOCATION
+    // -------------------------------------------------------------------
+    else if (currentPageMode2 == 1)
+    {
+      //clear Screen
+      matrix.clearDisplay();
+
+      matrix.setFont(&bold_led_board_7_regular4pt7b);
+      matrix.setFont(&FiveBySeven5pt7b);
+      matrix.setFont(&F14LED7pt8b);
+      matrix.setFont(&RepetitionScrolling5pt8b);
+      matrix.setFont(&TomThumb);
+
+      // uint16_t x0 = 1;
+      // uint16_t y0 = 6;
+    }
+
+    // -------------------------------------------------------------------
+    // MODE 2, PAGE 2
+    // SETTING DATE
+    // -------------------------------------------------------------------
+    if (currentPageMode2 == 2)
+    {
+      //clear Screen
+      matrix.clearDisplay();
+
+      static bool yesNo = false;
+
+      static uint16_t yr = year(localTime);
+      static int8_t mo = month(localTime);
+      static int8_t d = day(localTime);
+
+      static int16_t xYr = 0;
+      static int16_t xMo = 0;
+      static int16_t xD = 0;
+      static int16_t xYesNo = 0;
+
+      if (currentPageMode2_old != currentPageMode2)
+      {
+        currentPageMode2_old = currentPageMode2;
+        digitalClockDisplay();
+        Serial.print(F("> EDIT MODE, PAGE "));
+        Serial.println(currentPageMode2);
+
+        // store current page
+        _ledMatrixSettings.pagemode2 = currentPageMode2;
+
+        // reset static variables
+        stateEdit = false;
+        stateSwitch_old = false;
+        yesNo = false;
+        pos = -1;
+        yr = year(localTime);
+        mo = month(localTime);
+        d = day(localTime);
+        // hr = hour(localTime);
+        // min = minute(localTime);
+        // sec = second(localTime);
+
+        xYr = 0;
+        xMo = 0;
+        xD = 0;
+        xYesNo = 0;
+      }
+
+      static bool stateSwitch_old = false;
+      if (stateSwitch != stateSwitch_old)
+      {
+        stateSwitch_old = stateSwitch;
+
+        if (stateSwitch == true)
+        {
+          startMillis = millis();
+        }
+        else if (stateSwitch == false)
+        {
+          if (enterEditModeFromShortcut)
+          {
+            enterEditModeFromShortcut = false;
+          }
+          else if (millis() <= startMillis + 500)
+          {
+            stateEdit = true;
+            pos++;
+            if (pos > 3)
+            {
+              // reset
+              pos = -1;
+              stateEdit = false;
+
+              if (yesNo)
+              {
+                // calculate utcTime
+                uint16_t _yr = yr;
+                uint8_t _mo = mo;
+                uint8_t _d = d;
+                uint8_t _hr = hour(localTime);
+                uint8_t _min = minute(localTime);
+                uint8_t _sec = second(localTime);
+                RtcDateTime dt(_yr, _mo, _d, _hr, _min, _sec);
+
+                time_t utcTimestamp = dt.Epoch32Time() - ((_configLocation.timezone / 10.0) * 3600);
+                PRINT("%lu\r\n", utcTimestamp);
+
+                // add 1 second correction
+                // to compensate delay etc.
+                utcTimestamp = utcTimestamp + 1;
+
+                // RtcDateTime timeToSetToRTC;
+                dt.InitWithEpoch32Time(utcTimestamp);
+
+                // sync to RTC
+                Rtc.SetDateTime(dt);
+                lastSyncRTC = utcTimestamp;
+
+                // sync system time (UTC)
+                setTime(utcTimestamp);
+                _lastSyncd = utcTimestamp;
+
+                // reset to no
+                yesNo = false;
+
+                tone1 = HIGH;
+              }
+            }
+          }
+        }
+      }
+
+      if (stateSwitch == false && millis() <= startMillis + 500)
+      {
+      }
+
+      if (stateEdit)
+      {
+        if (pos == 0)
+        {
+          if (encoder0PosIncreasing)
+          {
+            yr++;
+            if (yr > 2100)
+            {
+              yr = 1970;
+            }
+          }
+          else if (encoder0PosDecreasing)
+          {
+            yr--;
+            if (yr < 1970)
+            {
+              yr = 2100;
+            }
+          }
+        }
+        else if (pos == 1)
+        {
+          if (encoder0PosIncreasing)
+          {
+            mo++;
+            if (mo > 12)
+            {
+              mo = 1;
+            }
+          }
+          else if (encoder0PosDecreasing)
+          {
+            mo--;
+            if (mo < 1)
+            {
+              mo = 12;
+            }
+          }
+        }
+        else if (pos == 2)
+        {
+          // 1. January - 31 days
+          // 2. February - 28 days in a common year and 29 days in leap years
+          // 3. March - 31 days
+          // 4. April - 30 days
+          // 5. May - 31 days
+          // 6. June - 30 days
+          // 7. July - 31 days
+          // 8. August - 31 days
+          // 9. September - 30 days
+          // 10. October - 31 days
+          // 11. November - 30 days
+          // 12. December - 31 days
+
+          int8_t maxDay = 31;
+
+          if (mo == 1 || mo == 3 || mo == 5 || mo == 7 || mo == 8 || mo == 10 || mo == 12)
+          {
+            maxDay = 31;
+          }
+          else if (mo == 4 || mo == 6 || mo == 9 || mo == 11)
+          {
+            maxDay = 30;
+          }
+          else if (mo == 2)
+          {
+            if (yr % 4 == 0)
+            {
+              maxDay = 29;
+            }
+            else
+            {
+              maxDay = 28;
+            }
+          }
+
+          if (encoder0PosIncreasing)
+          {
+            d++;
+            if (d > maxDay)
+            {
+              d = 1;
+            }
+          }
+          else if (encoder0PosDecreasing)
+          {
+            d--;
+            if (d < 1)
+            {
+              d = maxDay;
+            }
+          }
+        }
+        else if (pos == 3)
+        {
+          if (encoder0PosIncreasing || encoder0PosDecreasing)
+          {
+            yesNo = !yesNo;
+          }
+        }
+      }
+
+      char str[16];
+      const GFXfont *font;
+      int16_t x, y;
+      uint16_t w, h;
+
+      // -------
+      // Row 0
+      // -------
+      bool ROW_0 = true;
+
+      if (ROW_0)
+      {
+        if (stateEdit == false)
+        {
+          const char *ptr = PSTR("TANGGAL");
+          strcpy_P(str, ptr);
+
+          font = &TomThumb;
+          matrix.setFont(font);
+
+          matrix.getTextBounds(str, 0, 0, &x, &y, &w, &h);
+
+          // set starting row row based on font type
+          if (font == &TomThumb)
+          {
+            x = (matrix.width() - w) / 2 + 4;
+            y = (matrix.height() / 2 - h) / 2 + h;
+          }
+          else
+          {
+            x = (matrix.width() - w) / 2;
+            y = (matrix.height() / 2 - h) / 2 + h;
+          }
+
+          //Print to led matrix
+          matrix.setCursor(x, y);
+          matrix.print(str);
+        }
+        else if (stateEdit)
+        {
+          const char *ptr = PSTR("Simpan: ");
+          strcpy_P(str, ptr);
+
+          font = &Org_01;
+          matrix.setFont(font);
+
+          x = 1;
+          y = 5;
+
+          // Print to led matrix
+          matrix.setCursor(x, y);
+          matrix.print(str);
+
+          // Print yesNo
+          xYesNo = matrix.getCursorX();
+
+          if (yesNo)
+          {
+            ptr = PSTR("Yes");
+          }
+          else
+          {
+            ptr = PSTR("No");
+          }
+          strcpy_P(str, ptr);
+          matrix.print(str);
+        }
+      }
+
+      // -------
+      // Row 1
+      // -------
+      bool ROW_1 = true;
+
+      if (ROW_1)
+      {
+        // matrix.setFont(&TomThumb);
+        // matrix.setFont(&bold_led_board_7_regular4pt7b);
+        // matrix.setFont(&RepetitionScrolling5pt8b);
+        matrix.setFont(&FiveBySeven5pt7b);
+        // matrix.setFont(&Org_01);
+
+        int16_t x = 0;
+        int16_t y = 14;
+
+        if (stateEdit == false)
+        {
+          //Print Year
+          yr = year(localTime);
+          sprintf(str, "%02d", yr);
+          xYr = x;
+          matrix.setCursor(xYr, y);
+          matrix.print(str);
+
+          // //Print separator
+          // x0 = x0 + 22;
+          // matrix.setCursor(x0, y);
+          // matrix.print(" ");
+
+          //Print month
+          mo = month(localTime);
+          sprintf(str, "%s", monthShortStr(mo));
+          x = x + 27;
+          xMo = x;
+          matrix.setCursor(xMo, y);
+          matrix.print(str);
+
+          // //Print separator
+          // x0 = x0 + 11;
+          // matrix.setCursor(x0, y);
+          // matrix.print(FPSTR(" "));
+
+          //Print day
+          d = day(localTime);
+          sprintf(str, "%02d", d);
+          x = x + 21;
+          xD = x;
+          matrix.setCursor(xD, y);
+          matrix.print(str);
+        }
+        else if (stateEdit)
+        {
+          //Print hour
+          sprintf(str, "%02d", yr);
+          matrix.setCursor(xYr, y);
+          matrix.print(str);
+
+          // //Print separator
+          // matrix.setCursor(xYr + 11, y);
+          // matrix.print("-");
+
+          //Print min
+          sprintf(str, "%s", monthShortStr(mo));
+          matrix.setCursor(xMo, y);
+          matrix.print(str);
+
+          // //Print separator
+          // matrix.setCursor(xMo + 11, y);
+          // matrix.print(FPSTR("-"));
+
+          //Print sec
+          sprintf(str, "%02d", d);
+          matrix.setCursor(xD, y);
+          matrix.print(str);
+        }
+      }
+
+      // blink
+      if (state250ms && stateEdit)
+      {
+        int16_t x = 0;
+        int16_t y = 0;
+        uint16_t w = 0;
+        uint16_t h = 0;
+
+        if (pos == 0) // year
+        {
+          x = xYr;
+          y = 8;
+          w = 24;
+          h = 7;
+        }
+        else if (pos == 1) // month
+        {
+          x = xMo;
+          y = 8;
+          w = 18;
+          h = 7;
+        }
+        else if (pos == 2) // day
+        {
+          x = xD;
+          y = 8;
+          w = 12;
+          h = 7;
+        }
+        if (pos == 3)
+        {
+          x = xYesNo;
+          y = 1;
+          w = 17;
+          h = 5;
+        }
+        matrix.fillRect(x, y, w, h, false);
+        // matrix.drawRect(x, y-1, w+1, h+2, 1);
+      }
+    }
+
+    // -------------------------------------------------------------------
+    // MODE 2, PAGE 3
+    // SETTING TIME
+    // -------------------------------------------------------------------
+    if (currentPageMode2 == 3)
+    {
+      //clear Screen
+      matrix.clearDisplay();
+
+      static bool yesNo = false;
+      static int8_t hr = hour(localTime);
+      static int8_t min = minute(localTime);
+      static int8_t sec = second(localTime);
+      static int16_t xHr = 0;
+      static int16_t xMin = 0;
+      static int16_t xSec = 0;
+      static int16_t xYesNo = 0;
+
+      if (currentPageMode2_old != currentPageMode2)
+      {
+        currentPageMode2_old = currentPageMode2;
+        digitalClockDisplay();
+        Serial.print(F("> EDIT MODE, PAGE "));
+        Serial.println(currentPageMode2);
+
+        // store current page
+        _ledMatrixSettings.pagemode2 = currentPageMode2;
+
+        // reset static variables
+        stateEdit = false;
+        stateSwitch_old = false;
+        yesNo = false;
+        pos = -1;
+        hr = hour(localTime);
+        min = minute(localTime);
+        sec = second(localTime);
+        // d = day(localTime);
+        // mo = month(localTime);
+        // yr = year(localTime);
+
+        xHr = 0;
+        xMin = 0;
+        xSec = 0;
+        xYesNo = 0;
+      }
+
+      static bool stateSwitch_old = false;
+      if (stateSwitch != stateSwitch_old)
+      {
+        stateSwitch_old = stateSwitch;
+        if (stateSwitch == true)
+        {
+          startMillis = millis();
+        }
+        else if (stateSwitch == false)
+        {
+          if (enterEditModeFromShortcut)
+          {
+            enterEditModeFromShortcut = false;
+          }
+          else if (millis() <= startMillis + 500)
+          {
+            stateEdit = true;
+            pos++;
+            if (pos > 3)
+            {
+              // reset
+              pos = -1;
+              stateEdit = false;
+
+              if (yesNo)
+              {
+                // calculate utcTime
+                uint16_t y = year(localTime);
+                uint8_t mo = month(localTime);
+                uint8_t d = day(localTime);
+                uint8_t h = hr;
+                uint8_t mi = min;
+                uint8_t s = sec;
+                RtcDateTime dt(y, mo, d, h, mi, s);
+
+                time_t utcTimestamp = dt.Epoch32Time() - ((_configLocation.timezone / 10.0) * 3600);
+                PRINT("%lu\r\n", utcTimestamp);
+
+                // RtcDateTime timeToSetToRTC;
+                dt.InitWithEpoch32Time(utcTimestamp);
+
+                // sync to RTC
+                Rtc.SetDateTime(dt);
+                lastSyncRTC = utcTimestamp;
+
+                // sync system time (UTC)
+                setTime(utcTimestamp);
+                _lastSyncd = utcTimestamp;
+
+                tone1 = HIGH;
+              }
+              else if (yesNo == false)
+              {
+                // reset to yes
+                yesNo = false;
+              }
+            }
+          }
+        }
+      }
+
+      if (stateEdit)
+      {
+        if (pos == 0)
+        {
+          if (encoder0PosIncreasing)
+          {
+            hr++;
+            if (hr > 23)
+            {
+              hr = 0;
+            }
+          }
+          else if (encoder0PosDecreasing)
+          {
+            hr--;
+            if (hr < 0)
+            {
+              hr = 23;
+            }
+          }
+        }
+        else if (pos == 1)
+        {
+          if (encoder0PosIncreasing)
+          {
+            min++;
+            if (min > 59)
+            {
+              min = 0;
+            }
+          }
+          else if (encoder0PosDecreasing)
+          {
+            min--;
+            if (min < 0)
+            {
+              min = 59;
+            }
+          }
+        }
+        else if (pos == 2)
+        {
+          if (encoder0PosIncreasing)
+          {
+            sec++;
+            if (sec > 59)
+            {
+              sec = 0;
+            }
+          }
+          else if (encoder0PosDecreasing)
+          {
+            sec--;
+            if (sec < 0)
+            {
+              sec = 59;
+            }
+          }
+        }
+        else if (pos == 3)
+        {
+          if (encoder0PosIncreasing || encoder0PosDecreasing)
+          {
+            yesNo = !yesNo;
+          }
+        }
+      }
+
+      // -------
+      // Row 0
+      // -------
+
+      char str[16];
+
+      if (stateEdit == false)
+      {
+        const char *ptr = PSTR("TIME");
+        strcpy_P(str, ptr);
+
+        int16_t x0, y0;
+        uint16_t w, h;
+        matrix.setFont(&TomThumb);
+        matrix.getTextBounds(str, 0, 0, &x0, &y0, &w, &h);
+        uint16_t x1 = (matrix.width() - (w - 4)) / 2;
+        uint16_t y1 = (matrix.height() / 2 - h) / 2 + h - 0;
+        //update x1 and y1 value
+        matrix.getTextBounds(str, x1, y1, &x0, &y0, &w, &h);
+
+        //Print to led matrix
+        matrix.setCursor(1, y1);
+        matrix.print(str);
+      }
+      else if (stateEdit)
+      {
+        const char *ptr = PSTR("SAVE: ");
+        strcpy_P(str, ptr);
+
+        matrix.setFont(&TomThumb);
+
+        // Print to led matrix
+        matrix.setCursor(1, 6);
+        matrix.print(str);
+
+        // Print yesNo
+        xYesNo = matrix.getCursorX();
+
+        if (yesNo)
+        {
+          ptr = PSTR("YES");
+          strcpy_P(str, ptr);
+          matrix.print(str);
+        }
+        else
+        {
+          ptr = PSTR("NO");
+          strcpy_P(str, ptr);
+          matrix.print(str);
+        }
+      }
+
+      // -------
+      // Row 1
+      // -------
+
+      // matrix.setFont(&TomThumb);
+      // matrix.setFont(&bold_led_board_7_regular4pt7b);
+      matrix.setFont(&RepetitionScrolling5pt8b);
+      // matrix.setFont(&FiveBySeven5pt7b);
+      // matrix.setFont(&Org_01);
+
+      if (stateEdit == false)
+      {
+        int16_t x0 = 1;
+        int16_t y0 = 6;
+
+        // //Print day
+        // sprintf(str, "%02d", d);
+        // matrix.setCursor(x0, y0);
+        // matrix.print(str);
+
+        // //Print month
+        // x0 = x0 + 9;
+        // sprintf(str, "%s", monthShortStr(mo));
+        // matrix.setCursor(x0, y0);
+        // matrix.print(str);
+
+        // //Print year
+        // x0 = x0 + 13;
+        // sprintf(str, "%04d", yr);
+        // matrix.setCursor(x0, y0);
+        // matrix.print(str);
+
+        //Print hour
+        hr = hour(localTime);
+        sprintf(str, "%02d", hr);
+        x0 = 1;
+        matrix.setCursor(x0, y0 + 8);
+        matrix.print(str);
+        xHr = x0;
+
+        //Print ":"
+        x0 = x0 + 11;
+        matrix.setCursor(x0, y0 + 8);
+        matrix.print(":");
+
+        //Print min
+        min = minute(localTime);
+        sprintf(str, "%02d", min);
+        x0 = x0 + 6;
+        matrix.setCursor(x0, y0 + 8);
+        matrix.print(str);
+        xMin = x0;
+
+        //Print ":"
+        x0 = x0 + 11;
+        matrix.setCursor(x0, y0 + 8);
+        matrix.print(FPSTR(":"));
+
+        //Print sec
+        sec = 0;
+        sprintf(str, "%02d", second(localTime));
+        x0 = x0 + 6;
+        matrix.setCursor(x0, y0 + 8);
+        matrix.print(str);
+        xSec = x0;
+      }
+      else if (stateEdit)
+      {
+        int16_t y = 14;
+
+        //Print hour
+        sprintf(str, "%02d", hr);
+        matrix.setCursor(xHr, y);
+        matrix.print(str);
+
+        //Print ":"
+        matrix.setCursor(xHr + 11, y);
+        matrix.print(":");
+
+        //Print min
+        sprintf(str, "%02d", min);
+        matrix.setCursor(xMin, y);
+        matrix.print(str);
+
+        //Print ":"
+        matrix.setCursor(xMin + 11, y);
+        matrix.print(FPSTR(":"));
+
+        //Print sec
+        sprintf(str, "%02d", sec);
+        matrix.setCursor(xSec, y);
+        matrix.print(str);
+      }
+
+      // blink
+      if (state250ms && stateEdit)
+      {
+        int16_t x = 0;
+        int16_t y = 8;
+        uint16_t w = 11;
+        uint16_t h = 7;
+
+        if (pos == 0)
+        {
+          x = xHr;
+        }
+        else if (pos == 1)
+        {
+          x = xMin;
+        }
+        else if (pos == 2)
+        {
+          x = xSec;
+        }
+        if (pos == 3)
+        {
+          x = xYesNo;
+          y = 1;
+          w = 11;
+          h = 5;
+        }
+        matrix.fillRect(x, y, w, h, 0);
       }
     }
   }
@@ -6354,8 +7817,6 @@ boolean slide_out_down_hour_digit_2(char chr, const GFXfont *font, int16_t x0, i
 
 void PreparePage(char *contents, const GFXfont *font, int16_t *x1, int16_t *y1)
 {
-  DEBUGLOG(__PRETTY_FUNCTION__);
-  DEBUGLOG("\r\n");
   matrix.setFont(font);
 
   //char *str;
@@ -6372,8 +7833,7 @@ void PreparePage(char *contents, const GFXfont *font, int16_t *x1, int16_t *y1)
 
 void TMP102_loop()
 {
-  DEBUGLOG(__PRETTY_FUNCTION__);
-  DEBUGLOG("\r\n");
+  DEBUGLOG("%s\r\n", __PRETTY_FUNCTION__);
   float temperature;
   // boolean alertPinState;
   // boolean alertRegisterState;
@@ -6401,22 +7861,21 @@ void TMP102_loop()
   {
     dtostrf(temperature, 1, 1, bufTempSensor);
     // Print temperature and alarm state
-    DEBUGLOG(getDateTimeString(localTime).c_str());
+    DEBUGLOG("%s\r\n", getDateTimeString(localTime));
     DEBUGLOG("> Room Temp: ");
-    DEBUGLOG(bufTempSensor);
+    DEBUGLOG("%s\r\n", bufTempSensor);
     DEBUGLOG("\xC2\xB0"); //Ãƒâ€šÃ‚Âº Ãƒâ€šÃ‚Â°
     DEBUGLOG("C");
     //DEBUGLOG("\tAlert Pin: ");
     //DEBUGLOG(alertPinState);
-    DEBUGLOG("\tAlert Register: ");
-    DEBUGLOG("%d\n\r", alertRegisterState);
+    // DEBUGLOG("\tAlert Register: ");
+    // DEBUGLOG("%d\r\n", alertRegisterState);
   }
 }
 
 void GET_RTC_TEMPERATURE()
 {
-  DEBUGLOG(__PRETTY_FUNCTION__);
-  DEBUGLOG("\r\n");
+  DEBUGLOG("%s\r\n", __PRETTY_FUNCTION__);
   static float RtcTemp_old;
 
   RtcTemperature temp = Rtc.GetTemperature();
@@ -6439,8 +7898,7 @@ void GET_RTC_TEMPERATURE()
 
 void AlarmTrigger()
 {
-  DEBUGLOG(__PRETTY_FUNCTION__);
-  DEBUGLOG("\r\n");
+  DEBUGLOG("%s\r\n", __PRETTY_FUNCTION__);
   static boolean callAlarmSholatType1 = LOW;
 
   if ((HOUR == 0 && MINUTE == 10) && SECOND == 0)
@@ -6507,8 +7965,9 @@ void AlarmTrigger()
 
 void PageAutomaticMode()
 {
-  DEBUGLOG(__PRETTY_FUNCTION__);
-  DEBUGLOG("\r\n");
+  DEBUGLOG("%s\r\n", __PRETTY_FUNCTION__);
+  time_t adzanEndTime = currentSholatTime + (60 * _ledMatrixSettings.adzanwaittime);
+  time_t iqamahTime = adzanEndTime + (60 * _ledMatrixSettings.iqamahwaittime);
   if (_ledMatrixSettings.pagemode == Automatic)
   {
     if (atof(bufWatt) >= 2400)
@@ -6520,6 +7979,16 @@ void PageAutomaticMode()
     {
       currentPageMode0 = 8;
       //PRINT("%s nextSholatTime= %lu localTime= %lu diff= %d\n", "Case A", nextSholatTime, localTime, nextSholatTime - localTime);
+    }
+
+    else if (localTime < adzanEndTime)
+    {
+      currentPageMode0 = 2;
+    }
+
+    else if (localTime <= iqamahTime)
+    {
+      currentPageMode0 = 11;
     }
 
     else if (localTime <= currentSholatTime + (60 * 30))
@@ -6548,8 +8017,7 @@ void PageAutomaticMode()
 
 void RtcStatusLoop()
 {
-  DEBUGLOG(__PRETTY_FUNCTION__);
-  DEBUGLOG("\r\n");
+  DEBUGLOG("%s\r\n", __PRETTY_FUNCTION__);
   static byte rtcStatus_old = RtcStatus();
   byte rtcStatus = RtcStatus();
   if (rtcStatus != rtcStatus_old)
@@ -6573,8 +8041,7 @@ void RtcStatusLoop()
 
 void ProcessSholatEverySecond()
 {
-  DEBUGLOG(__PRETTY_FUNCTION__);
-  DEBUGLOG("\r\n");
+  DEBUGLOG("%s\r\n", __PRETTY_FUNCTION__);
 
   static time_t t_nextMidnight = 0;
 
@@ -6599,11 +8066,10 @@ void ProcessSholatEverySecond()
 
 void CheckNewTimeSettingsReceived()
 {
-  DEBUGLOG(__PRETTY_FUNCTION__);
-  DEBUGLOG("\r\n");
-  static byte timezone_old = _config.timezone;
-  static bool dst_old = _config.dst;
-  static bool enableNtp_old = _config.enablentp;
+  DEBUGLOG("%s\r\n", __PRETTY_FUNCTION__);
+  static uint8_t timezone_old = _configLocation.timezone;
+  static bool dst_old = _configTime.dst;
+  static bool enableNtp_old = _configTime.enablentp;
 
   static char ntpserver_0_old[48];
   static char ntpserver_1_old[48];
@@ -6613,18 +8079,18 @@ void CheckNewTimeSettingsReceived()
   // static char* ntpserver_1_old = _config.ntpserver_1;
   // static char* ntpserver_2_old = _config.ntpserver_2;
 
-  static bool enableRtc_old = _config.enablertc;
-  static long syncinterval_old = _config.syncinterval;
+  static bool enableRtc_old = _configTime.enablertc;
+  static uint32_t syncinterval_old = _configTime.syncinterval;
 
   if (
-      _config.timezone != timezone_old ||
-      _config.dst != dst_old ||
-      _config.enablentp != enableNtp_old ||
-      strncmp(_config.ntpserver_0, ntpserver_0_old, sizeof(_config.ntpserver_0)) != 0 ||
-      strncmp(_config.ntpserver_1, ntpserver_1_old, sizeof(_config.ntpserver_1)) != 0 ||
-      strncmp(_config.ntpserver_2, ntpserver_2_old, sizeof(_config.ntpserver_2)) != 0 ||
-      _config.enablertc != enableRtc_old ||
-      _config.syncinterval != syncinterval_old
+      _configLocation.timezone != timezone_old ||
+      _configTime.dst != dst_old ||
+      _configTime.enablentp != enableNtp_old ||
+      strncmp(_configTime.ntpserver_0, ntpserver_0_old, sizeof(_configTime.ntpserver_0)) != 0 ||
+      strncmp(_configTime.ntpserver_1, ntpserver_1_old, sizeof(_configTime.ntpserver_1)) != 0 ||
+      strncmp(_configTime.ntpserver_2, ntpserver_2_old, sizeof(_configTime.ntpserver_2)) != 0 ||
+      _configTime.enablertc != enableRtc_old ||
+      _configTime.syncinterval != syncinterval_old
 
   )
   {
@@ -6637,34 +8103,34 @@ void CheckNewTimeSettingsReceived()
     digitalClockDisplay();
     Serial.println(F(">"));
 
-    if (_config.timezone != timezone_old)
+    if (_configLocation.timezone != timezone_old)
     {
       digitalClockDisplay();
       Serial.print(F("> "));
       Serial.print(F("Timezone updated to: "));
-      Serial.println(_config.timezone);
+      Serial.println(_configLocation.timezone);
 
       process_sholat();
     }
 
-    if (_config.dst != dst_old)
+    if (_configTime.dst != dst_old)
     {
       digitalClockDisplay();
       Serial.print(F("> "));
       Serial.print(F("DST settings updated to: "));
-      Serial.println(_config.dst);
+      Serial.println(_configTime.dst);
 
       process_sholat();
     }
 
-    if (_config.enablentp != enableNtp_old)
+    if (_configTime.enablentp != enableNtp_old)
     {
       digitalClockDisplay();
       Serial.print(F("> "));
       Serial.print(F("NTP settings updated to: "));
-      Serial.println(_config.enablentp);
+      Serial.println(_configTime.enablentp);
 
-      if (_config.enablentp == true)
+      if (_configTime.enablentp == true)
       {
         digitalClockDisplay();
         Serial.print(F("> "));
@@ -6672,7 +8138,7 @@ void CheckNewTimeSettingsReceived()
 
         NTP_OK = true;
       }
-      else if (_config.enablentp == false)
+      else if (_configTime.enablentp == false)
       {
         digitalClockDisplay();
         Serial.print(F("> "));
@@ -6682,14 +8148,14 @@ void CheckNewTimeSettingsReceived()
       }
     }
 
-    if (_config.enablertc != enableRtc_old)
+    if (_configTime.enablertc != enableRtc_old)
     {
       digitalClockDisplay();
       Serial.print(F("> "));
       Serial.print(F("RTC settings updated to: "));
-      Serial.println(_config.enablertc);
+      Serial.println(_configTime.enablertc);
 
-      if (_config.enablertc == true)
+      if (_configTime.enablertc == true)
       {
         digitalClockDisplay();
         Serial.print(F("> "));
@@ -6697,7 +8163,7 @@ void CheckNewTimeSettingsReceived()
 
         RTC_OK = true;
       }
-      else if (_config.enablertc == false)
+      else if (_configTime.enablertc == false)
       {
         digitalClockDisplay();
         Serial.print(F("> "));
@@ -6707,36 +8173,36 @@ void CheckNewTimeSettingsReceived()
       }
     }
 
-    if (_config.syncinterval != syncinterval_old)
+    if (_configTime.syncinterval != syncinterval_old)
     {
       digitalClockDisplay();
       Serial.print(F("> "));
       Serial.print(F("LONG sync interval updated to: "));
-      Serial.println(_config.syncinterval);
+      Serial.println(_configTime.syncinterval);
 
-      setInterval(_config.syncinterval);
+      setInterval(_configTime.syncinterval);
     }
 
     // update SDK NTP server name
     if (
-        strncmp(_config.ntpserver_0, ntpserver_0_old, sizeof(_config.ntpserver_0)) != 0 ||
-        strncmp(_config.ntpserver_1, ntpserver_1_old, sizeof(_config.ntpserver_1)) != 0 ||
-        strncmp(_config.ntpserver_2, ntpserver_2_old, sizeof(_config.ntpserver_2)) != 0)
+        strncmp(_configTime.ntpserver_0, ntpserver_0_old, sizeof(_configTime.ntpserver_0)) != 0 ||
+        strncmp(_configTime.ntpserver_1, ntpserver_1_old, sizeof(_configTime.ntpserver_1)) != 0 ||
+        strncmp(_configTime.ntpserver_2, ntpserver_2_old, sizeof(_configTime.ntpserver_2)) != 0)
     {
       digitalClockDisplay();
       Serial.print(F("> "));
       Serial.print(F("SDK NTP Server-0 updated to: "));
-      Serial.print(_config.ntpserver_0);
+      Serial.print(_configTime.ntpserver_0);
       Serial.println(F(", reinitialize sntp"));
 
       sntp_stop();
-      sntp_setservername(0, _config.ntpserver_0);
+      sntp_setservername(0, _configTime.ntpserver_0);
 
       //char ntpserver_1[] = "1.id.pool.ntp.org";
-      sntp_setservername(1, _config.ntpserver_1); //  set server  1 by  domain  name
+      sntp_setservername(1, _configTime.ntpserver_1); //  set server  1 by  domain  name
 
       //char ntpserver_2[] = "192.168.10.1";
-      sntp_setservername(2, _config.ntpserver_2); //  set server  2 by  domain  name
+      sntp_setservername(2, _configTime.ntpserver_2); //  set server  2 by  domain  name
 
       sntp_init();
 
@@ -6744,14 +8210,14 @@ void CheckNewTimeSettingsReceived()
     }
 
     //update old values
-    timezone_old = _config.timezone;
-    dst_old = _config.dst;
-    enableNtp_old = _config.enablentp;
-    strlcpy(ntpserver_0_old, _config.ntpserver_0, sizeof(_config.ntpserver_0));
-    strlcpy(ntpserver_1_old, _config.ntpserver_1, sizeof(_config.ntpserver_1));
-    strlcpy(ntpserver_2_old, _config.ntpserver_2, sizeof(_config.ntpserver_2));
-    enableRtc_old = _config.enablertc;
-    syncinterval_old = _config.syncinterval;
+    timezone_old = _configLocation.timezone;
+    dst_old = _configTime.dst;
+    enableNtp_old = _configTime.enablentp;
+    strlcpy(ntpserver_0_old, _configTime.ntpserver_0, sizeof(ntpserver_0_old));
+    strlcpy(ntpserver_1_old, _configTime.ntpserver_1, sizeof(ntpserver_1_old));
+    strlcpy(ntpserver_2_old, _configTime.ntpserver_2, sizeof(ntpserver_2_old));
+    enableRtc_old = _configTime.enablertc;
+    syncinterval_old = _configTime.syncinterval;
   }
 }
 

@@ -11,15 +11,32 @@
 <form action="" method="post">
 	<table>
 		<tr>
-			<td>Timezone</td>
+			<td>Lokasi</td>
 			<td>
-				<select  id="timezone" name="timezone">
-          <option value="70">Waktu Indonesia Barat (WIB)</option>
-          <option value="80">Waktu Indonesia Tengah (WITA)</option>
-          <option value="90">Waktu Indonesia Timur (WIT)</option>
-				</select>
+				<span id="city"></span>
 			</td>
 		</tr>
+    <tr>
+    	<td>Timezone</td>
+    	<td>
+    		<span id="timezone"></span>
+    	</td>
+    </tr>
+    <tr>
+    	<td>Latitude</td>
+    	<td>
+    		<span id="latitude"></span>
+    	</td>
+    </tr>
+    <tr>
+    	<td>Longitude</td>
+    	<td>
+    		<span id="longitude"></span>
+    	</td>
+    </tr>
+  </table>
+  <hr>
+  <table>
 		<tr>
 			<td align="right">DST</td>
 			<td>
@@ -29,22 +46,24 @@
 			<td align="right">Enable NTP</td>
 			<td>
 			<input type="checkbox" id="enablentp" name="enablentp" onchange="something(this.value)"></td>
-		</tr>
-		<tr>
+    </tr>
+
+		<tr name="ntpserver_0" style="display:none">
 			<td align="right">NTP Server 0</td>
 			<td>
-			<input type="text" id="ntpserver_0" name="ntpserver_0" maxlength="172" value=""></td>
+			<input type="text" id="ntpserver_0" maxlength="172" value=""></td>
 		</tr>
-		<tr>
+		<tr name="ntpserver_1" style="display:none">
 			<td align="right">NTP Server 1</td>
 			<td>
-			<input type="text" id="ntpserver_1" name="ntpserver_1" maxlength="172" value=""></td>
+			<input type="text" id="ntpserver_1" maxlength="172" value=""></td>
 		</tr>
-		<tr>
+		<tr name="ntpserver_2" style="display:none">
 			<td align="right">NTP Server 2</td>
 			<td>
-			<input type="text" id="ntpserver_2" name="ntpserver_2" maxlength="172" value=""></td>
-		</tr>
+			<input type="text" id="ntpserver_2" maxlength="172" value=""></td>
+    </tr>
+
 		<tr>
 			<td align="right">Enable RTC</td>
 			<td>
@@ -55,22 +74,24 @@
 			<td>
 			<input type="number" id="syncinterval" name="syncinterval" size="3" min="20" max="31104000" maxlength="8" value=""> seconds</td>
 		</tr>
+	</table>
+	<hr>
+	<table>
 		<tr>
 			<td colspan="2" align="center">
 			<input type="button" class="button" value="Save Settings" id="btnSaveConfig" onclick="sendConfig()"></td>
 		</tr>
 	</table>
 </form>
-<!--<script src="microajax.js"></script>-->
+
 <script language="javascript" type="text/javascript">
 
 var ws = null;
-var json;
 
 window.onload = function () {
-  getConfigValues("/config.json");
+  getConfigValues("config/location");
+  getConfigValues("config/time");
   startSocket();
-  //startEvents();
 }
 function startSocket(){
   ws = new WebSocket('ws://'+document.location.host+'/ws',['arduino']);
@@ -97,13 +118,8 @@ function startSocket(){
     } else {
       msg = "TXT:"+e.data;
       console.log(msg);
-      if (isJSON(e.data)) {
-        var json = JSON.parse(e.data);
-        document.getElementById("date").textContent = json.date;
-        document.getElementById("time").textContent = json.time;
-        document.getElementById("uptime").textContent = json.uptime;
-        document.getElementById("lastsync").textContent = json.lastsync;
-        document.getElementById("nextsync").textContent = json.nextsync;
+      if (isJSON(e.data))
+      {
       }
     }
   };
@@ -117,19 +133,37 @@ function isJSON(str) {
   }
 }
 
-function getConfigValues(address) {
+function getConfigValues(url) {
   var req = new XMLHttpRequest();
   if (req) {
-    req.open("GET", address, true);
-    req.addEventListener("load", reqListener);
+    req.open("GET", url, true);
+    if (url === "config/location")
+    {
+      req.addEventListener("load", reqListenerLocation);
+    }
+    else if (url === "config/time")
+    {
+      req.addEventListener("load", reqListenerTime);
+    }
+    
     req.send();
   }
 }
-function reqListener () {
+
+function reqListenerLocation () {
   //console.log(this.responseText);
-  json = JSON.parse(this.responseText);
+  let json = JSON.parse(this.responseText);
   console.log(json);
-  document.getElementById("timezone").value = json.timezone;
+  document.getElementById("city").textContent = json.city;
+  document.getElementById("timezone").textContent = json.timezone;
+  document.getElementById("latitude").textContent = json.latitude;
+  document.getElementById("longitude").textContent = json.longitude;
+}
+
+function reqListenerTime () {
+  //console.log(this.responseText);
+  let json = JSON.parse(this.responseText);
+  console.log(json);
   document.getElementById("dst").checked = json.dst;
   document.getElementById("enablentp").checked = json.enablentp;
   document.getElementById("ntpserver_0").value = json.ntpserver_0;
@@ -142,19 +176,28 @@ function reqListener () {
 function something(element) {
   var ntpVal = document.getElementById("enablentp").checked;
   console.log(ntpVal);
+  document.getElementsByName('ntpserver_0')[0].style.display = "none";
+  document.getElementsByName('ntpserver_1')[0].style.display = "none";
+  document.getElementsByName('ntpserver_2')[0].style.display = "none";
   if (ntpVal) {
-    document.getElementById("ntpserver_0").disabled = false;
-    document.getElementById("ntpserver_1").disabled = false;
-    document.getElementById("ntpserver_2").disabled = false;
+    document.getElementsByName('ntpserver_0')[0].style.display = "table-row";
+    document.getElementsByName('ntpserver_1')[0].style.display = "table-row";
+    document.getElementsByName('ntpserver_2')[0].style.display = "table-row";
+    // document.getElementById("ntpserver_0").disabled = false;
+    // document.getElementById("ntpserver_1").disabled = false;
+    // document.getElementById("ntpserver_2").disabled = false;
   } else {
-    document.getElementById("ntpserver_0").disabled = true;
-    document.getElementById("ntpserver_1").disabled = true;
-    document.getElementById("ntpserver_2").disabled = true;
+    document.getElementsByName('ntpserver_0')[0].style.display = "none";
+    document.getElementsByName('ntpserver_1')[0].style.display = "none";
+    document.getElementsByName('ntpserver_2')[0].style.display = "none";
+    // document.getElementById("ntpserver_0").disabled = true;
+    // document.getElementById("ntpserver_1").disabled = true;
+    // document.getElementById("ntpserver_2").disabled = true;
   }
 }
 function sendConfig(element) {
+  let json = new Object();
   json.saveconfig = window.location.pathname;
-  json.timezone = parseInt(document.getElementById("timezone").value);
   json.dst = document.getElementById("dst").checked;
   json.enablentp = document.getElementById("enablentp").checked;
   json.ntpserver_0 = document.getElementById("ntpserver_0").value;
@@ -164,7 +207,8 @@ function sendConfig(element) {
   json.syncinterval = parseInt(document.getElementById("syncinterval").value);
   var myJSON = JSON.stringify(json);
   ws.send(myJSON);
-  console.log("Data sent: ",myJSON);
+  console.log("Data sent: ", myJSON);
 }
+
 </script>
 </body>

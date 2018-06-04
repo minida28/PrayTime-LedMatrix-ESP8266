@@ -38,9 +38,10 @@
 #include <ESP8266NetBIOS.h>
 #include <ESPAsyncTCP.h>
 #include <ESP8266SSDP.h>
-extern "C" {
-#include "sntp.h"
-}
+#include <time.h>
+// extern "C" {
+// #include "sntp.h"
+// }
 #elif defined ESP32
 #include <WiFi.h>
 #include <ESPmDNS.h>
@@ -67,6 +68,9 @@ extern "C" {
 
 
 #include "progmemmatrix.h"
+
+// "PingAlive.h" Test library for https://github.com/esp8266/Arduino/issues/2330
+#include "PingAlive.h"
 
 
 /* Test for ESP platform */
@@ -123,8 +127,7 @@ using namespace placeholders;
 
 
 //#define SET_ANALOG_FREQUENCY
-#define CONFIG_FILE_MQTT "/configMqtt.json"
-#define CONFIG_FILE_MQTT_PUBSUB "/configMqttPubSub.json"
+
 #define DESCRIPTION_XML_FILE "/description.xml"
 
 // Comment/uncomment the board you want to flash onto.
@@ -275,6 +278,7 @@ extern boolean stateSwitch;
 extern boolean FORCE_UPDATE_TIME;
 extern boolean tick500ms;
 extern boolean tick1000ms;
+extern boolean state250ms;
 extern boolean state500ms;
 extern boolean state1000ms;
 
@@ -361,28 +365,62 @@ typedef enum enumConfigID
   CONFIGSCOUNT
 } CONFIGID;
 
+
+
 typedef struct {
-  char hostname[32];
+  char hostname[32] = "ESP_XXXX";
   char ssid[32];
   char password[32];
-  bool dhcp;
-  char static_ip[16];
-  char netmask[16];
-  char gateway[16];
-  char dns0[16];
-  char dns1[16];
-
-  long timezone;
-  bool dst;
-  bool enablertc;
-  long syncinterval;
-  bool enablentp;
-  char ntpserver_0[48];
-  char ntpserver_1[48];
-  char ntpserver_2[48];  
+  bool dhcp = true;
+  char static_ip[16] = "192.168.10.15";
+  char netmask[16] = "255.255.255.0";
+  char gateway[16] = "192.168.10.1";
+  char dns0[16] = "192.168.10.1";
+  char dns1[16] = "8.8.8.8";
 } strConfig;
 
 extern strConfig _config; // General and WiFi configuration
+
+typedef struct
+{
+  const char* ssid = _config.hostname; // ChipID is appended to this name
+  char password[10] = ""; // NULL means no password
+  bool APenable = false; // AP disabled by default
+} strApConfig;
+
+extern strApConfig _configAP; // Static AP config settings
+
+typedef struct {
+  char city[48] = "KOTA BEKASI";
+  int8_t timezone = 70;
+  double latitude = -6.263718;
+  double longitude = 106.981958;
+} strConfigLocation;
+
+extern strConfigLocation _configLocation;
+
+typedef struct {
+  // int8_t timezone = _configLocation.timezone;
+  bool dst = false;
+  bool enablertc = true;
+  uint32_t syncinterval = 600;
+  bool enablentp = true;
+  char ntpserver_0[48] = "0.id.pool.ntp.org";
+  char ntpserver_1[48] = "0.asia.pool.ntp.org";
+  char ntpserver_2[48] = "192.168.10.1";  
+} strConfigTime;
+
+extern strConfigTime _configTime;
+
+typedef enum _enumTimezone
+{
+  WIB,
+  WITA,
+  WIT,
+
+  timezoneCount
+} enumTimezone;
+
 
 typedef struct {
   bool auth;
@@ -392,30 +430,28 @@ typedef struct {
 
 extern strHTTPAuth _httpAuth;
 
-
-
-
 // Sholat settings
 typedef struct {
-  char location[48];
-  float latitude;
-  float longitude;
-  int timezone;
-  CalculationMethod calcMethod;
-  JuristicMethod asrJuristic;
-  AdjustingMethod highLatsAdjustMethod;
-  int fajrAngle;
-  int maghribAngle;
-  int ishaAngle;
+  // char location[48];
+  // const char* location = "KOTA BEKASI";
+  // int8_t timezone = _configLocation.timezone;
+  // double latitude = _configLocation.latitude;
+  // double longitude = _configLocation.longitude;  
+  CalculationMethod calcMethod = Custom;
+  JuristicMethod asrJuristic = Shafii;
+  AdjustingMethod highLatsAdjustMethod = None;
+  int8_t fajrAngle = 20;
+  int8_t maghribAngle = 1;
+  int8_t ishaAngle = 18;
 
-  double offsetImsak;
-  double offsetFajr;
-  double offsetSunrise;
-  double offsetDhuhr;
-  double offsetAsr;
-  double offsetSunset;
-  double offsetMaghrib;
-  double offsetIsha;
+  double offsetImsak = 0;
+  double offsetFajr = 0;
+  double offsetSunrise = 0;
+  double offsetDhuhr = 0;
+  double offsetAsr = 0;
+  double offsetSunset = 0;
+  double offsetMaghrib = 0;
+  double offsetIsha = 0;
 
 } sholatConfig;
 
@@ -443,15 +479,17 @@ typedef enum PageMode
 
 // Led Matrix settings
 typedef struct {
-  OperatingMode operatingmode;
-  PageMode pagemode;
-  byte pagemode0;
-  byte pagemode1;
-  byte pagemode2;
-  boolean scrollrow_0;
-  boolean scrollrow_1;
-  unsigned int scrollspeed;
-  unsigned int brightness;
+  OperatingMode operatingmode = Normal;
+  PageMode pagemode = Automatic;
+  uint8_t pagemode0 = 0;
+  uint8_t pagemode1 = 0;
+  uint8_t pagemode2 = 0;
+  bool scrollrow_0 = false;
+  bool scrollrow_1 = false;
+  uint16_t scrollspeed = 10;
+  uint16_t brightness = 50;
+  uint8_t adzanwaittime = 6;
+  uint8_t iqamahwaittime = 5;
 
 } ledMatrixSettings;
 
@@ -472,6 +510,8 @@ typedef enum PageTitleMode0
   waktu_sholat_saat_ini_type_1,
   jam_saja_type_1,
   sanbox_2,
+  iqamah_time,
+  jam_dan_tanggal_type_2,
 
   PageTitleMode0Count
 
@@ -499,7 +539,10 @@ typedef enum PageTitleMode1
 
 typedef enum PageTitleMode2
 {
-  unknown,
+  set_timezone,
+  set_coordinate,
+  set_date,
+  set_time,
   PageTitleMode2Count
 } PAGETITLE_MODE_2;
 

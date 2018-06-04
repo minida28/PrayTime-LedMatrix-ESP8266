@@ -1,11 +1,7 @@
 {
-  "location": "Rumah Galaxi",
-  "latitude": -6.26526,
-  "longitude": 106.97298,
-  "timezone": 70,
   "calcMethod": "Custom",
-  "asrJuristic": 0,
-  "highLatsAdjustMethod": 0,
+  "asrJuristic": "Shafii",
+  "highLatsAdjustMethod": "None",
   "fajrAngle": 20,
   "maghribAngle": 1,
   "ishaAngle": 18,

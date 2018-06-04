@@ -30,8 +30,10 @@
 	    <div class="siimple-grid-col siimple-grid-col--12">
         <div class="siimple-tabs siimple-tabs--boxed siimple-tab--small">
           <a href="/"><div class="siimple-tabs-tab">Menu</div></a>
-          <a href="/info.html"><div class="siimple-tabs-tab">Info</div></a>
-          <a href="/sholat.html"><div class="siimple-tabs-tab">Sholat Time</div></a>
+          <a href="/configlocation.html"><div class="siimple-tabs-tab">Location</div></a>
+          <a href="/configsholat.html"><div class="siimple-tabs-tab">Sholat</div></a>
+          <a href="/configledmatrix.html"><div class="siimple-tabs-tab">LedMatrix</div></a>
+          <a href="/statussystem.html"><div class="siimple-tabs-tab">System Status</div></a>
         </div>
 	    </div>
 	  </div>
@@ -46,10 +48,10 @@
 	  
     <div class="siimple-grid-row">
       <div class="siimple-grid-col siimple-grid-col--3 siimple-grid-col-sm--12">
-        <label class="siimple-label">Lokasi</label>
+        <label class="siimple-label">Kota/Kab</label>
       </div>
-      <div class="siimple-grid-col siimple-grid-col--9 siimple-grid-col-sm--12">
-        <select class="siimple-select" id="location" name="location" onchange="updateLatLon(this.value); something(this.value);"></select>
+      <div id="city" name="city" class="siimple-grid-col siimple-grid-col--9 siimple-grid-col-sm--12">
+        <!--<select class="siimple-select" onchange="updateLatLon(this.value); something(this.value);"></select>-->
       </div>
     </div>
     
@@ -57,8 +59,8 @@
       <div class="siimple-grid-col siimple-grid-col--3 siimple-grid-col-sm--12">
         <label class="siimple-label">Latitude</label>
       </div>
-      <div class="siimple-grid-col siimple-grid-col--9 siimple-grid-col-sm--12">
-        <input type="text" class="siimple-input" id="latitude" name="latitude" size="10" maxlength="10" value="">
+      <div id="latitude" name="latitude" class="siimple-grid-col siimple-grid-col--9 siimple-grid-col-sm--12">
+        <!--<input type="text" class="siimple-input" id="latitude" name="latitude" size="10" maxlength="10" value="">-->
       </div>
     </div>
     
@@ -66,8 +68,8 @@
       <div class="siimple-grid-col siimple-grid-col--3 siimple-grid-col-sm--12">
         <label class="siimple-label">Longitude</label>
       </div>
-      <div class="siimple-grid-col siimple-grid-col--9 siimple-grid-col-sm--12">
-        <input type="text" class="siimple-input" id="longitude" name="longitude" size="10" maxlength="10" value="">
+      <div id="longitude" name="longitude" class="siimple-grid-col siimple-grid-col--9 siimple-grid-col-sm--12">
+        <!--<input type="text" class="siimple-input" id="longitude" name="longitude" size="10" maxlength="10" value="">-->
       </div>
     </div>
     
@@ -75,44 +77,7 @@
       <div class="siimple-grid-col siimple-grid-col--3 siimple-grid-col-sm--12">
         <label class="siimple-label">Timezone</label>
       </div>
-      <div class="siimple-grid-col siimple-grid-col--9 siimple-grid-col-sm--12">
-				<select id="timeZone" name="timeZone" class="siimple-select" disabled>
-				  <option style="display:none" label=" "></option>
-					<option value="-120">GMT-12:00</option>
-					<option value="-110">GMT-11:00</option>
-					<option value="-100">GMT-10:00</option>
-					<option value="-90">GMT-09:00</option>
-					<option value="-80">GMT-08:00</option>
-					<option value="-70">GMT-07:00</option>
-					<option value="-60">GMT-06:00</option>
-					<option value="-50">GMT-05:00</option>
-					<option value="-40">GMT-04:00</option>
-					<option value="-35">GMT-03:30)</option>
-					<option value="-30">GMT-03:00</option>
-					<option value="-20">GMT-02:00</option>
-					<option value="-10">GMT-01:00</option>
-					<option value="0">GMT+00:00</option>
-					<option value="10">GMT+01:00</option>
-					<option value="20">GMT+02:00</option>
-					<option value="30">GMT+03:00</option>
-					<option value="35">GMT+03:30</option>
-					<option value="40">GMT+04:00</option>
-					<option value="45">GMT+04:30</option>
-					<option value="50">GMT+05:00</option>
-					<option value="55">GMT+05:30</option>
-					<option value="57">GMT+05:45</option>
-					<option value="60">GMT+06:00</option>
-					<option value="65">GMT+06:30</option>
-					<option value="70">GMT+07:00</option>
-					<option value="80">GMT+08:00</option>
-					<option value="90">GMT+09:00</option>
-					<option value="95">GMT+09:30</option>
-					<option value="100">GMT+10:00</option>
-					<option value="110">GMT+11:00</option>
-					<option value="120">GMT+12:00</option>
-					<option value="120">GMT+12:00</option>
-					<option value="130">GMT+13:00</option>
-				</select>
+      <div id="timezone" name="timezone" class="siimple-grid-col siimple-grid-col--9 siimple-grid-col-sm--12">
       </div>
     </div>
     
@@ -141,8 +106,8 @@
       <div class="siimple-grid-col siimple-grid-col--9 siimple-grid-col-sm--12">
 				<select class="siimple-select" id="asrJuristic" name="asrJuristic">
 				  <option style="display:none" label=" "></option>
-					<option value="0">Shafii</option>
-					<option value="1">Hanafi</option>
+					<option value="Shafii">Shafii</option>
+					<option value="Hanafi">Hanafi</option>
 				</select>
       </div>
     </div>
@@ -154,10 +119,10 @@
       <div class="siimple-grid-col siimple-grid-col--9 siimple-grid-col-sm--12">
 					<select class="siimple-select" id="highLatsAdjustMethod" name="highLatsAdjustMethod">
 					  <option style="display:none" label=" "></option>
-						<option value="0">None</option>
-						<option value="1">MidNight</option>
-						<option value="2">OneSeventh</option>
-						<option value="3">AngleBased</option>
+						<option value="None">None</option>
+						<option value="MidNight">MidNight</option>
+						<option value="OneSeventh">OneSeventh</option>
+						<option value="AngleBased">AngleBased</option>
 					</select>
       </div>
     </div>
@@ -281,22 +246,16 @@
   </div>  
 </div>
 
-<script id='papaparse' src="papaparse.min.js" type="text/javascript" charset="utf-8"></script>
+<!--<script id='papaparse' src="papaparse.min.js" type="text/javascript" charset="utf-8"></script>-->
 <script language="javascript" type="text/javascript">
 
 var ws = null;
 var json;
 
 window.onload = function () {
-  
-  
-  // setTimeout(something, 500);
-  
-  getConfigValues("/configsholat.json");
-  loadLocationDB();
+  getConfigValues("config/sholat");
   something();
   startSocket();
-  //startEvents();
 }
 function startSocket(){
   ws = new WebSocket('ws://'+document.location.host+'/ws',['arduino']);
@@ -323,13 +282,9 @@ function startSocket(){
     } else {
       msg = "TXT:"+e.data;
       console.log(msg);
-      if (isJSON(e.data)) {
+      if (isJSON(e.data))
+      {
         var json = JSON.parse(e.data);
-        document.getElementById("date").textContent = json.date;
-        document.getElementById("time").textContent = json.time;
-        document.getElementById("uptime").textContent = json.uptime;
-        document.getElementById("lastsync").textContent = json.lastsync;
-        document.getElementById("nextsync").textContent = json.nextsync;
       }
     }
   };
@@ -355,11 +310,12 @@ function reqListener () {
   if (isJSON(this.responseText)) {
     json = JSON.parse(this.responseText);
     console.log("Data received: ", json);
-    document.getElementById('confLocation').value = json.location;
-    document.getElementById('location').value = json.location;
-    document.getElementById('latitude').value = json.latitude;
-    document.getElementById('longitude').value = json.longitude;
-    document.getElementById('timeZone').value = json.timezone;
+    //document.getElementById('confLocation').value = json.location;
+    // document.getElementById('province').textContent = json.province;
+    document.getElementById('city').textContent = json.city;
+    document.getElementById('latitude').textContent = json.latitude;
+    document.getElementById('longitude').textContent = json.longitude;
+    document.getElementById('timezone').textContent = json.timezone;
     document.getElementById('calcMethod').value = json.calcMethod;
     document.getElementById('asrJuristic').value = json.asrJuristic;
     document.getElementById('highLatsAdjustMethod').value = json.highLatsAdjustMethod;
@@ -380,28 +336,17 @@ function reqListener () {
     console.log("Data received: ", json);
   }
 }
-// function something(element) {
-//   var ntpVal = document.getElementById("enablentp").checked;
-//   console.log(ntpVal);
-//   if (ntpVal) {
-//     document.getElementById("ntpserver_0").disabled = false;
-//     document.getElementById("ntpserver_1").disabled = false;
-//     document.getElementById("ntpserver_2").disabled = false;
-//   } else {
-//     document.getElementById("ntpserver_0").disabled = true;
-//     document.getElementById("ntpserver_1").disabled = true;
-//     document.getElementById("ntpserver_2").disabled = true;
-//   }
-// }
+
 function sendConfig(element) {
   json.saveconfig = window.location.pathname;
-  json.location = document.getElementById('location').value;
-  json.latitude = parseFloat(document.getElementById('latitude').value);
-  json.longitude = parseFloat(document.getElementById('longitude').value);
-  json.timezone = parseInt(document.getElementById('timeZone').value);
+  delete json.province;
+  delete json.city;
+  delete json.timezone;
+  delete json.latitude;
+  delete json.longitude;
   json.calcMethod = document.getElementById('calcMethod').value;
-  json.asrJuristic = parseInt(document.getElementById('asrJuristic').value);
-  json.highLatsAdjustMethod = parseInt(document.getElementById('highLatsAdjustMethod').value);
+  json.asrJuristic = document.getElementById('asrJuristic').value;
+  json.highLatsAdjustMethod = document.getElementById('highLatsAdjustMethod').value;
   json.fajrAngle = parseInt(document.getElementById('fajrAngle').value);
   json.maghribAngle = parseInt(document.getElementById('maghribAngle').value);
   json.ishaAngle = parseInt(document.getElementById('ishaAngle').value);
@@ -436,54 +381,7 @@ function sendConfig(element) {
     }
   }
   
-// 	function sendConfig(element) {
-//     console.log(element);
-//     var type;
-//     var nodeName; var nodeId; var value; var text;
-//     if (element != undefined) {
-//       type = element.type;
-//     }
 
-//     if (type == 'select-one') {
-//       nodeName = element.nodeName; nodeId = element.id; value = element.value; text = element.options[element.selectedIndex].text;
-//     }
-//     else if (type == 'checkbox') {
-//       nodeName = element.nodeName; nodeId = element.id; value = element.checked; text = null;
-//     }
-//     else if (type == 'range') {
-//       nodeName = element.nodeName; nodeId = element.id; value = element.value; text = null;
-//     }
-//     else if (type == 'textarea') {
-//       nodeName = element.nodeName; nodeId = element.id; value = element.value; text = null;
-//     }
-//     console.log("nodeName:" + nodeName,"type:" + type,"nodeId:" + nodeId,"value:" + value,"text:" + text);
-//     var obj = new Object();
-//     obj.type = "sholatConfig";
-//     obj.location = document.getElementById('location').value;
-//     obj.latitude = document.getElementById('latitude').value;
-//     obj.longitude = document.getElementById('longitude').value;
-//     obj.timeZone = document.getElementById('timeZone').value;
-//     obj.calcMethod = document.getElementById('calcMethod').value;
-//     obj.asrMethod = document.getElementById('asrMethod').value;
-//     obj.highLatsAdjustMethod = document.getElementById('highLatsAdjustMethod').value;
-//     obj.fajrAngle = document.getElementById('fajrAngle').value;
-//     obj.maghribAngle = document.getElementById('maghribAngle').value;
-//     obj.ishaAngle = document.getElementById('ishaAngle').value;
-//     obj.offsetImsak = document.getElementById('offsetImsak').value;
-//     obj.offsetFajr = document.getElementById('offsetFajr').value;
-//     obj.offsetSunrise = document.getElementById('offsetSunrise').value;
-//     obj.offsetDhuhr = document.getElementById('offsetDhuhr').value;
-//     obj.offsetAsr = document.getElementById('offsetAsr').value;
-//     obj.offsetSunset = document.getElementById('offsetSunset').value;
-//     obj.offsetMaghrib = document.getElementById('offsetMaghrib').value;
-//     obj.offsetIsha = document.getElementById('offsetIsha').value;
-//     // obj.value = value;
-//     // obj.text = text;
-//     var myJSON = JSON.stringify(obj);
-//     ws.send(myJSON);
-//     console.log("Send data: ",myJSON);
-//   }
-	
 	function something() {
     var calcMethod = document.getElementById('calcMethod').value;
     console.log("calcMethod:",calcMethod);
@@ -497,7 +395,7 @@ function sendConfig(element) {
       document.getElementById('ishaAngle').disabled = false;
     }
     
-    var location = document.getElementById('location').value;
+    var location = document.getElementById('city').value;
     if (location != "Custom" ) {
       document.getElementById('latitude').readOnly = true;
       document.getElementById('longitude').readOnly = true;
@@ -513,79 +411,7 @@ function sendConfig(element) {
   
   var allResults = [];
   
-  function loadLocationDB() {
-    console.log("Parsing location database..");
-    Papa.parse("LocationDB.txt", {
-      download: true,
-      header: true,
-      skipEmptyLines: true,
-      comments: true,
-      error: function(err, file, inputElem, reason) { /* handle*/ },
-      complete: function(results) {
-        console.log(results);
-        allResults.push(results.data);
-        console.log(allResults[0][0]);
-        console.log("Number of location:", results.data.length); //number of location in db
-        var locationIndex;
-        var currLocation = document.getElementById('confLocation').value;
-        for (var i = 0; i < results.data.length; i++) {
-          var inputSelect = document.getElementById("location");
-          if(currLocation.toUpperCase() === results.data[i].Location.toUpperCase()) {
-            inputSelect.options[inputSelect.options.length] = new Option(results.data[i].Location, results.data[i].Location, true, true);
-            console.log(results.data[i].Location);
-          } else {
-            inputSelect.options[inputSelect.options.length] = new Option(results.data[i].Location, results.data[i].Location);
-          }
-        }
-        locationIndex = document.getElementById('location').selectedIndex;
-        document.getElementById('lat').textContent = allResults[0][locationIndex].Lat;
-        document.getElementById('lon').textContent = allResults[0][locationIndex].Lon;
-        
-        //document.getElementById('latitude').value = allResults[0][locationIndex].Lat;
-        //document.getElementById('longitude').value = allResults[0][locationIndex].Lon;
-      }
-    });
-  }
-  
-	function updateLatLon() {
-    var locationIndex = document.getElementById('location').selectedIndex;
-    console.log("Selected location:",document.getElementById('location')[locationIndex].text, "i=",locationIndex, "Lat:",allResults[0][locationIndex].Lat, "Lon:",allResults[0][locationIndex].Lon);
 
-    document.getElementById('lat').textContent = allResults[0][locationIndex].Lat;
-    document.getElementById('lon').textContent = allResults[0][locationIndex].Lon;
-    document.getElementById('latitude').value = allResults[0][locationIndex].Lat;
-    document.getElementById('longitude').value = allResults[0][locationIndex].Lon;
-
-  }
-  
-  function startPolling() {
-    console.log(startPolling.name);
-		// setInterval(function() { wsWrite('A'); }, 1000);
-		sendPingVar = setInterval(function() { sendPing(); }, 60000);
-	}
-  function startConnectionTimer() {
-    //console.log(startPolling.name);
-		// setInterval(function() { wsWrite('A'); }, 1000);
-		document.getElementById("connTime").textContent = '0:00:00';
-		var date1 = new Date();
-		startSecond = date1.valueOf() / 1000;
-		connectionTimerVar = setInterval(function() { connectionTimer(); }, 1000);
-	}
-  
-  function sendPing() {
-    ws.send('ping'); console.log(sendPing.name);
-  }
-  function connectionTimer() {
-    var date2 = new Date();
-    var current = date2.valueOf() / 1000;
-    var timeDiff = current - startSecond;
-    hours = Math.floor(timeDiff  / 3600);
-    timeDiff %= 3600;
-    minutes = Math.floor(timeDiff / 60);
-    seconds = Math.floor(timeDiff % 60);
-    document.getElementById("connTime").textContent = hours +':'+ ('0'+minutes).slice(-2) +':'+ ('0'+seconds).slice(-2);
-    // console.log( hours +':'+ ('0'+minutes).slice(-2) +':'+ ('0'+seconds).slice(-2) );
-  }
 
 </script>
 </body>

@@ -1,7 +1,21 @@
 {
     "terminal.integrated.env.windows": {
-        "PATH": "C:\\Users\\iqbal\\.platformio\\penv\\Scripts;C:\\Users\\iqbal\\.platformio\\penv;C:\\Python27\\;C:\\Python27\\Scripts;C:\\ProgramData\\Oracle\\Java\\javapath;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\;C:\\Program Files\\LLVM\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\Git\\mingw64\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Users\\iqbal\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\iqbal\\AppData\\Local\\GitHubDesktop\\bin;C:\\Users\\iqbal\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Program Files\\Microsoft VS Code\\bin;C:\\Users\\iqbal\\AppData\\Local\\Programs\\Fiddler;C:\\Users\\iqbal\\AppData\\Local\\atom\\bin;C:\\Python27\\;C:\\Python27\\Scripts;C:\\ProgramData\\Oracle\\Java\\javapath;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\;C:\\Program Files\\LLVM\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\Git\\mingw64\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Users\\iqbal\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\iqbal\\AppData\\Local\\GitHubDesktop\\bin;C:\\Users\\iqbal\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Program Files\\Microsoft VS Code\\bin;C:\\Users\\iqbal\\AppData\\Local\\Programs\\Fiddler;C:\\Users\\iqbal\\AppData\\Local\\atom\\bin",
+        "PATH": "C:\\Users\\iqbal\\.platformio\\penv\\Scripts;C:\\Users\\iqbal\\.platformio\\penv;C:\\Python27\\;C:\\Python27\\Scripts;C:\\ProgramData\\Oracle\\Java\\javapath;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\;C:\\Program Files\\LLVM\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\Git\\mingw64\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\WINDOWS\\System32\\OpenSSH\\;C:\\Users\\iqbal\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\iqbal\\AppData\\Local\\GitHubDesktop\\bin;C:\\Program Files\\Microsoft VS Code\\bin;C:\\Users\\iqbal\\AppData\\Local\\Programs\\Fiddler;C:\\Users\\iqbal\\AppData\\Local\\atom\\bin;%USERPROFILE%\\AppData\\Local\\Microsoft\\WindowsApps;;C:\\Python27\\;C:\\Python27\\Scripts;C:\\ProgramData\\Oracle\\Java\\javapath;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\;C:\\Program Files\\LLVM\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\Git\\mingw64\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\WINDOWS\\System32\\OpenSSH\\;C:\\Users\\iqbal\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\iqbal\\AppData\\Local\\GitHubDesktop\\bin;C:\\Program Files\\Microsoft VS Code\\bin;C:\\Users\\iqbal\\AppData\\Local\\Programs\\Fiddler;C:\\Users\\iqbal\\AppData\\Local\\atom\\bin;%USERPROFILE%\\AppData\\Local\\Microsoft\\WindowsApps;",
         "PLATFORMIO_CALLER": "vscode"
     },
-    "C_Cpp.errorSquiggles": "Disabled"
+    "C_Cpp.errorSquiggles": "Disabled",
+    "files.associations": {
+        "functional": "cpp",
+        "type_traits": "cpp",
+        "typeinfo": "cpp",
+        "array": "cpp",
+        "initializer_list": "cpp",
+        "ostream": "cpp",
+        "deque": "cpp",
+        "unordered_map": "cpp",
+        "vector": "cpp",
+        "list": "cpp",
+        "cstdlib": "cpp",
+        "*.tcc": "cpp"
+    }
 }

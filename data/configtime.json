@@ -1,0 +1,9 @@
+{
+    "dst": false,
+    "enablentp": false,
+    "ntpserver_0": "0.id.pool.ntp.org",
+    "ntpserver_1": "0.asia.pool.ntp.org",
+    "ntpserver_2": "192.168.10.1",
+    "enablertc": true,
+    "syncinterval": 600
+  }

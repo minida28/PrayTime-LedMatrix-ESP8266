@@ -12,34 +12,46 @@
 </td>
 </tr>
 <tr>
-	<td align="right">Date :</td>
+	<td align="right">Date</td>
 	<td>
 		<span id="date"></span>
 	</td>
 </tr>
 <tr>
-  <td align="right">Time :</td>
+  <td align="right">Time</td>
   <td>
     <span id="time"></span>
   </td>
 </tr>
 <tr>
-  <td align="right">Uptime :</td>
+  <td align="right">Uptime</td>
   <td>
      <span id="uptime"></span>
   </td>
 </tr>
 <tr>
-  <td align="right">Last sync :</td>
+  <td align="right">Last sync</td>
   <td>
     <span id="lastsync"></span>
   </td>
 </tr>
 <tr>
-  <td align="right">Next sync :</td>
+  <td align="right">Next sync</td>
   <td>
     <span id="nextsync"></span>
   </td>
+</tr>
+<tr>
+	<td align="right">ping_seq_num_send</td>
+	<td>
+		<span id="ping_seq_num_send"></span>
+	</td>
+</tr>
+<tr>
+	<td align="right">ping_seq_num_recv</td>
+	<td>
+		<span id="ping_seq_num_recv"></span>
+	</td>
 </tr>
 <tr>
 	<td colspan="2" align="center">
@@ -73,23 +85,32 @@ function startSocket(){
   };
   ws.onmessage = function(e){
     var msg = "";
-    if(e.data instanceof ArrayBuffer){
+    if(e.data instanceof ArrayBuffer)
+    {
       msg = "BIN:";
       var bytes = new Uint8Array(e.data);
       for (var i = 0; i < bytes.length; i++) {
         msg += String.fromCharCode(bytes[i]);
       }
-    } else {
+    }
+    else
+    {
       msg = "TXT:"+e.data;
-    if (isJSON(e.data)) {
-      var json = JSON.parse(e.data);
-        document.getElementById("date").textContent = json.date;
-        document.getElementById("time").textContent = json.time;
-        document.getElementById("uptime").textContent = json.uptime;
-        document.getElementById("lastsync").textContent = json.lastsync;
-        document.getElementById("nextsync").textContent = json.nextsync;
+      if (isJSON(e.data)) {
+        var json = JSON.parse(e.data);
+        if (json.hasOwnProperty('date'))
+        {
+          document.getElementById("date").textContent = json.date;
+          document.getElementById("time").textContent = json.time;
+          document.getElementById("uptime").textContent = json.uptime;
+          document.getElementById("lastsync").textContent = json.lastsync;
+          document.getElementById("nextsync").textContent = json.nextsync;
+          document.getElementById("ping_seq_num_recv").textContent = json.ping_seq_num_recv;
+          document.getElementById("ping_seq_num_send").textContent = json.ping_seq_num_send;
+        }
       }
     }
+    console.log(msg);
   };
 }
 function startEvents(){

@@ -59,8 +59,12 @@
       <td align="right">Host name:</td>
       <td>
          <strong><span id="hostname"></span></strong>
+         <!--<strong><input type="text" id="hostname"></strong>-->
       </td>
     </tr>
+  </table>
+  <hr>
+  <table>
     <tr>
       <td align="right">Wifi SSID:</td>
       <td>
@@ -73,6 +77,9 @@
         <input type="password" id="password" name="password" value="">
       </td>
     </tr>
+  </table>
+  <hr>
+  <table>
     <tr>
       <td align="right">DHCP:</td>
       <td>
@@ -109,6 +116,9 @@
         <input type="text" id="dns1" name="dns1">
       </td>
     </tr>
+  </table>
+  <hr>
+  <table>
 		<tr>
 			<td colspan="2" align="center">
 				<button type="button" id="btnSaveConfig" class="button" onclick="sendConfig()">Save Config</button></td>
@@ -140,14 +150,12 @@
 </table>
 
 
-
-
 <script language="javascript" type="text/javascript">
+
 var ws = null;
-var json;
 
 window.onload = function () {
-  getConfigValues("/config.json");
+  getConfigValues("config/network");
   startSocket();
   //startEvents();
   // setTimeout(getNetwork, 1000);
@@ -179,11 +187,6 @@ function startSocket(){
       console.log(msg);
       if (isJSON(e.data)) {
         var json = JSON.parse(e.data);
-        document.getElementById("date").textContent = json.date;
-        document.getElementById("time").textContent = json.time;
-        document.getElementById("uptime").textContent = json.uptime;
-        document.getElementById("lastsync").textContent = json.lastsync;
-        document.getElementById("nextsync").textContent = json.nextsync;
       }
     }
   };
@@ -253,7 +256,7 @@ function getConfigValues(address) {
 
 function reqListener () {
   //console.log(this.responseText);
-  json = JSON.parse(this.responseText);
+  let json = JSON.parse(this.responseText);
   console.log(json);
   document.getElementById("hostname").textContent = json.hostname;
   document.getElementById("ssid").value = json.ssid;
@@ -290,8 +293,8 @@ function something() {
   }
 }
 function sendConfig(element) {
+  let json = new Object();
   json.saveconfig = window.location.pathname;
-  json.hostname = document.getElementById("hostname").textContent;
   json.ssid = document.getElementById("ssid").value;
   json.password = document.getElementById("password").value;
   json.dhcp = document.getElementById("dhcp").checked;
@@ -303,24 +306,6 @@ function sendConfig(element) {
   var myJSON = JSON.stringify(json);
   ws.send(myJSON);
   console.log("Data sent: ",myJSON);
-}
-function load(e, t, n) {
-  if ("js" == t) {
-    var a = document.createElement("script");
-    a.src = e,
-    a.type = "text/javascript",
-    a.async = !1,
-    a.onload = function () { n() },
-    document.getElementsByTagName("head")[0].appendChild(a)
-  } else if ("css" == t) {
-    var a = document.createElement("link");
-    a.href = e,
-    a.rel = "stylesheet",
-    a.type = "text/css",
-    a.async = !1,
-    a.onload = function () { n() },
-    document.getElementsByTagName("head")[0].appendChild(a)
-  }
 }
 </script>
 </body>

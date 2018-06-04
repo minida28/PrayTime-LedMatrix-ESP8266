@@ -120,17 +120,24 @@ const char pgm_type[] PROGMEM = "type";
 const char pgm_systeminfofile[] PROGMEM = "/systeminfo.json";
 const char pgm_statuspagesystem[] PROGMEM = "/statussystem.html";
 const char pgm_saveconfig[] PROGMEM = "saveconfig";
+const char pgm_configpagelocation[] PROGMEM = "/configlocation.html";
+const char pgm_configfilelocation[] PROGMEM = "/configlocation.json";
 const char pgm_configpagenetwork[] PROGMEM = "/confignetwork.html";
-const char pgm_configfilenetwork[] PROGMEM = "/config.json";
+const char pgm_configfilenetwork[] PROGMEM = "/confignetwork.json";
 const char pgm_statuspagenetwork[] PROGMEM = "/statusnetwork.html";
 const char pgm_configpagetime[] PROGMEM = "/configtime.html";
-const char pgm_configfiletime[] PROGMEM = "/config.json";
+const char pgm_configfiletime[] PROGMEM = "/configtime.json";
 const char pgm_statuspagetime[] PROGMEM = "/statustime.html";
-const char pgm_configpagerunningled[] PROGMEM = "/configrunningled.html";
-const char pgm_configfilerunningled[] PROGMEM = "/configrunningled.json";
+const char pgm_configpageledmatrix[] PROGMEM = "/configledmatrix.html";
+const char pgm_configfileledmatrix[] PROGMEM = "/configledmatrix.json";
 const char pgm_configpagesholat[] PROGMEM = "/configsholat.html";
 const char pgm_configfilesholat[] PROGMEM = "/configsholat.json";
 const char pgm_schedulepagesholat[] PROGMEM = "/sholat.html";
+const char pgm_configpagemqtt[] PROGMEM = "/configmqtt.html";
+const char pgm_configfilemqtt[] PROGMEM = "/configmqtt.json";
+const char pgm_statuspagemqtt[] PROGMEM = "/statusmqtt.html";
+const char pgm_configpagemqttpubsub[] PROGMEM = "configPubSub";
+const char pgm_configfilemqttpubsub[] PROGMEM = "/configmqttpubsub.json";
 
 const char pgm_matrixConfig[] PROGMEM = "matrixConfig";
 const char pgm_pagemode0[] PROGMEM = "pagemode0";
@@ -146,6 +153,8 @@ const char pgm_brightnessslider[] PROGMEM = "brightnessslider";
 const char pgm_brightnessvalue[] PROGMEM = "brightnessvalue";
 const char pgm_operatingmode[] PROGMEM = "operatingmode";
 const char pgm_pagemode[] PROGMEM = "pagemode";
+const char pgm_adzanwaittime[] PROGMEM = "adzanwaittime";
+const char pgm_iqamahwaittime[] PROGMEM = "iqamahwaittime";
 
 const char pgm_true[] PROGMEM = "true";
 const char pgm_longtext[] PROGMEM = "longtext";
@@ -170,8 +179,6 @@ const char pgm_curr[] PROGMEM = "curr";
 const char pgm_next[] PROGMEM = "next";
 const char pgm_sholatConfig[] PROGMEM = "sholatConfig";
 const char pgm_location[] PROGMEM = "location";
-const char pgm_latitude[] PROGMEM = "latitude";
-const char pgm_longitude[] PROGMEM = "longitude";
 const char pgm_calcMethod[] PROGMEM = "calcMethod";
 const char pgm_Jafari[] PROGMEM = "Jafari";
 const char pgm_Karachi[] PROGMEM = "Karachi";
@@ -180,8 +187,14 @@ const char pgm_MWL[] PROGMEM = "MWL";
 const char pgm_Makkah[] PROGMEM = "Makkah";
 const char pgm_Egypt[] PROGMEM = "Egypt";
 const char pgm_Custom[] PROGMEM = "Custom";
-const char pgm_asrMethod[] PROGMEM = "asrMethod";
+const char pgm_asrJuristic[] PROGMEM = "asrJuristic";
+const char pgm_Shafii[] PROGMEM = "Shafii";
+const char pgm_Hanafi[] PROGMEM = "Hanafi";
 const char pgm_highLatsAdjustMethod[] PROGMEM = "highLatsAdjustMethod";
+const char pgm_None[] PROGMEM = "None";
+const char pgm_MidNight[] PROGMEM = "MidNight";
+const char pgm_OneSeventh[] PROGMEM = "OneSeventh";
+const char pgm_AngleBased[] PROGMEM = "AngleBased";
 const char pgm_fajrAngle[] PROGMEM = "fajrAngle";
 const char pgm_maghribAngle[] PROGMEM = "maghribAngle";
 const char pgm_ishaAngle[] PROGMEM = "ishaAngle";
@@ -203,7 +216,12 @@ const char pgm_nextsync[] PROGMEM = "nextsync";
 const char pgm_uptime[] PROGMEM = "uptime";
 const char pgm_enablentp[] PROGMEM = "enablentp";
 const char pgm_enablertc[] PROGMEM = "enablertc";
+
+const char pgm_province[] PROGMEM = "province";
+const char pgm_city[] PROGMEM = "city";
 const char pgm_timezone[] PROGMEM = "timezone";
+const char pgm_latitude[] PROGMEM = "latitude";
+const char pgm_longitude[] PROGMEM = "longitude";
 const char pgm_dst[] PROGMEM = "dst";
 const char pgm_ntpserver_0[] PROGMEM = "ntpserver_0";
 const char pgm_ntpserver_1[] PROGMEM = "ntpserver_1";
@@ -225,46 +243,6 @@ const char pgm_rtctemp[] PROGMEM = "rtctemp";
 //SSDP
 const char pgm_descriptionxml[] PROGMEM = "description.xml";
 const char pgm_upnprootdevice[] PROGMEM = "upnp:rootdevice";
-
-//const char pgm_mode[] PROGMEM = "mode";
-//const char pgm_ssid[] PROGMEM = "ssid";
-//const char pgm_pass[] PROGMEM = "pass";
-//const char pgm_ip[] PROGMEM = "ip";
-//const char pgm_sta_ip[] PROGMEM = "sta_ip";
-//const char pgm_sta_mac[] PROGMEM = "sta_mac";
-//const char pgm_ap_ip[] PROGMEM = "ap_ip";
-//const char pgm_ap_mac[] PROGMEM = "ap_mac";
-//const char pgm_gateway[] PROGMEM = "gateway";
-//const char pgm_netmask[] PROGMEM = "netmask";
-//const char pgm_dns[] PROGMEM = "dns";
-//const char pgm_last_sync[] PROGMEM = "last_sync";
-//const char pgm_time[] PROGMEM = "time";
-//const char pgm_date[] PROGMEM = "date";
-//const char pgm_uptime[] PROGMEM = "uptime";
-//const char pgm_last_boot[] PROGMEM = "last_boot";
-//
-//const char pgm_WIFI_AP[] PROGMEM = "WIFI_AP";
-//const char pgm_WIFI_STA[] PROGMEM = "WIFI_STA";
-//const char pgm_WIFI_AP_STA[] PROGMEM = "WIFI_AP_STA";
-//const char pgm_WIFI_OFF[] PROGMEM = "WIFI_OFF";
-//const char pgm_NA[] PROGMEM = "N/A";
-//
-//const char pgm_ntp_server_1[] PROGMEM = "ntp_server_1";
-//const char pgm_ntp_server_2[] PROGMEM = "ntp_server_2";
-//const char pgm_ntp_server_3[] PROGMEM = "ntp_server_3";
-
-//const char pgm_timezone[] PROGMEM = "timezone";
-//const char pgm_dst[] PROGMEM = "dst";
-//const char pgm_checked[] PROGMEM = "checked";
-//const char pgm_blank[] PROGMEM = "";
-//
-//
-////const char pgm_devicename[] PROGMEM = "/rumah";
-//const char pgm_hostname[] PROGMEM = "hostname";
-//const char pgm_dhcp[] PROGMEM = "dhcp";
-//
-//const char pgm_auth[] PROGMEM = "auth";
-//const char pgm_user[] PROGMEM = "user";
 
 
 #endif

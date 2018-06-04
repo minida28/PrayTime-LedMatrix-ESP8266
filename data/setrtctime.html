@@ -277,7 +277,9 @@
   
   var locale_timestamp;
   
-  var timerBrowserTime = setInterval(function(){ BrowserTime() }, 1000);
+  var timerBrowserTime = setInterval(function(){ BrowserTime() }, 1);
+
+  var browserTime_old = 0;
   
   // DATE IN READABLE FORMAT
   //http://marcoscaceres.github.io/jsi18n/#advanced-langtags
@@ -371,7 +373,9 @@
     document.getElementById('dateTimeString').textContent = timeNow.toLocaleDateString("id", dateTimeOptions);
   }
   
-  function BrowserTime() {
+
+  function BrowserTime()
+  {
     timeNow = new Date();
     
     // DATE IN LOCALE & READABLE FORMAT
@@ -389,8 +393,36 @@
     var locale_timestamp = timeUTC_second - currentTimeZoneOffsetInSeconds;
     
     //corrected timestamp
-    document.getElementById('hapeLaptopTimestamp').value = timeUTC_second;
+    document.getElementById('hapeLaptopTimestamp').value = timeUTC_millisecond;
     document.getElementById('timezone_komputer_hape').textContent = currentTimeZoneOffsetInSeconds*-1/3600;
+    
+    //send UTC timestamp to ESP if ITC timestamp has been updated
+    // if (timeUTC_second != browserTime_old)
+    // {
+    //   browserTime_old = timeUTC_second;
+      
+    //   if (sync)
+    //   {
+    //     if (stateButtonSyncManual) {
+    //       ws.send("m " + document.getElementById('manualtimestamp').value);
+    //     }
+    //     else if (stateButtonSyncToInternet) {
+    //       ws.send("t " + document.getElementById('hapeLaptopTimestamp').value);
+    //     }
+    //   }
+    // }
+    if (timeUTC_millisecond % 1000 <=3)
+    {
+      if (sync)
+      {
+        if (stateButtonSyncManual) {
+          ws.send("m " + document.getElementById('manualtimestamp').value);
+        }
+        else if (stateButtonSyncToInternet) {
+          ws.send("t " + timeUTC_second.toString());
+        }
+      }
+    }
   }
   
   function TimeIs() {
@@ -462,13 +494,7 @@
     
 
     if (sync) {
-      if (stateButtonSyncManual) {
-        ws.send("m " + document.getElementById('manualtimestamp').value);
-      }
-      else if (stateButtonSyncToInternet) {
-        ws.send("i " + document.getElementById('hapeLaptopTimestamp').value);
-      }
-      else if (stateButtonSyncToTimeis) {
+      if (stateButtonSyncToTimeis) {
         ws.send("t " + document.getElementById('timeistimestamp').value);
       }
     }
@@ -541,6 +567,7 @@
   var stateButtonSyncManual = document.getElementById("sync_manual").checked;
   var stateButtonSyncToInternet = document.getElementById("sync_to_hapelaptop").checked;
   var stateButtonSyncToTimeis = document.getElementById("sync_to_timeis").checked;
+  
 	function something() {
     stateButtonSyncManual = document.getElementById("sync_manual").checked;
     stateButtonSyncToInternet = document.getElementById("sync_to_hapelaptop").checked;

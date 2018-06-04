@@ -32,18 +32,16 @@
 #define PRINTPORT Serial
 #define DEBUGPORT Serial
 
-#define RELEASE
+// #define RELEASE
 //#define RELEASEASYNCWS
 
 #define PROGMEM_T __attribute__((section(".irom.text.template")))
 
-/*
 #define PRINT(fmt, ...)                       \
   {                                           \
     static const char pfmt[] PROGMEM_T = fmt; \
     PRINTPORT.printf_P(pfmt, ##__VA_ARGS__);  \
   }
-  */
 
 #ifndef RELEASE
 #define DEBUGLOG(fmt, ...)                    \
@@ -70,32 +68,37 @@
 #define USER_CONFIG_FILE "/userconfig.json"
 #define GENERIC_CONFIG_FILE "/genericconfig.json"
 #define SECRET_FILE "/secret.json"
-#define RUNNING_TEXT_FILE "/runningtext.json"
+#define RUNNING_TEXT_FILE "/runningtext.txt"
+#define RUNNING_TEXT_FILE_2 "/runningtext_2.txt"
 //#define CONFIG_FILE_MQTT "/configMqtt.json"
-
-typedef struct
-{
-  char APssid[10] = "ESP"; // ChipID is appended to this name
-  char APpassword[10] = "12345678";
-  bool APenable = false; // AP disabled by default
-} strApConfig;
-
-strApConfig _apConfig; // Static AP config settings
 
 Ticker _secondTk;
 Ticker restartESP;
 
 //FS* _fs;
-long wifiDisconnectedSince = 0;
+unsigned long wifiDisconnectedSince = 0;
 String _browserMD5 = "";
 uint32_t _updateSize = 0;
 
-WiFiEventHandler onStationModeConnectedHandler, onStationModeGotIPHandler, onStationModeDisconnectedHandler;
+bool eventsourceTriggered = false;
+bool wsConnected = false;
+bool configNetworkUpdatedFlag = false;
 
-boolean eventsourceTriggered;
-boolean wsConnected;
+WiFiEventHandler onStationModeConnectedHandler, onStationModeGotIPHandler, onStationModeDisconnectedHandler;
+WiFiEventHandler stationConnectedHandler;
+WiFiEventHandler stationDisconnectedHandler;
+WiFiEventHandler probeRequestPrintHandler;
+WiFiEventHandler probeRequestBlinkHandler;
+
+bool wifiGotIpFlag = false;
+bool wifiDisconnectedFlag = false;
+bool stationConnectedFlag = false;
+bool stationDisconnectedFlag = false;
 
 // SKETCH BEGIN
+
+FSInfo fs_info;
+
 
 DNSServer dnsServer;
 
@@ -104,35 +107,40 @@ AsyncWebSocket ws("/ws");
 AsyncEventSource events("/events");
 
 uint32_t clientID;
-boolean clientVisitInfoPage;
-boolean clientVisitRunningLedConfigPage;
-boolean clientVisitSholatTimePage;
-boolean clientVisitNetworkStatusPage;
-boolean clientVisitTimeStatusPage;
-boolean clientVisitSystemStatusPage;
-boolean clientVisitConfigSholatPage;
+
+bool clientVisitConfigRunningLedPage = false;
+bool clientVisitConfigSholatPage = false;
+bool clientVisitConfigMqttPage = false;
+
+bool clientVisitStatusNetworkPage = false;
+bool clientVisitStatusTimePage = false;
+bool clientVisitStatusSystemPage = false;
+
+bool clientVisitInfoPage = false;
+bool clientVisitSholatTimePage = false;
 
 void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len)
 {
   if (type == WS_EVT_CONNECT)
   {
-    DEBUGASYNCWS("ws[%s][%u] connect\n", server->url(), client->id());
+    DEBUGASYNCWS("ws[%s][%u] connect\r\n", server->url(), client->id());
     client->printf("Hello Client %u :)", client->id());
     client->ping();
-    //wsConnected = true;
+    wsConnected = true;
     //wsSendTimeData();
     clientID = client->id();
 
     client->status();
 
     // reset state
+    clientVisitConfigRunningLedPage = false;
+    clientVisitConfigSholatPage = false;
+    clientVisitConfigMqttPage = false;
+    clientVisitStatusNetworkPage = false;
+    clientVisitStatusTimePage = false;
+    clientVisitStatusSystemPage = false;
     clientVisitInfoPage = false;
     clientVisitSholatTimePage = false;
-    clientVisitRunningLedConfigPage = false;
-    clientVisitNetworkStatusPage = false;
-    clientVisitTimeStatusPage = false;
-    clientVisitSystemStatusPage = false;
-    clientVisitConfigSholatPage = false;
 
     static uint32_t clientID_old = 0;
     if (clientID != clientID_old && clientID != 0)
@@ -175,19 +183,19 @@ void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventTyp
   }
   else if (type == WS_EVT_DISCONNECT)
   {
-    DEBUGASYNCWS("ws[%s][%u] disconnect: [%u\n", server->url(), client->id(), client->id());
+    DEBUGASYNCWS("ws[%s][%u] disconnect: [%u\r\n", server->url(), client->id(), client->id());
     //_secondTk.detach();
     //eventsourceTriggered = false;
-    //wsConnected = false;
+    wsConnected = false;
     //clientID = 0;
   }
   else if (type == WS_EVT_ERROR)
   {
-    DEBUGASYNCWS("ws[%s][%u] error(%u): %s\n", server->url(), client->id(), *((uint16_t *)arg), (char *)data);
+    DEBUGASYNCWS("ws[%s][%u] error(%u): %s\r\n", server->url(), client->id(), *((uint16_t *)arg), (char *)data);
   }
   else if (type == WS_EVT_PONG)
   {
-    DEBUGASYNCWS("ws[%s][%u] pong[%u]: %s\n", server->url(), client->id(), len, (len) ? (char *)data : "");
+    DEBUGASYNCWS("ws[%s][%u] pong[%u]: %s\r\n", server->url(), client->id(), len, (len) ? (char *)data : "");
   }
   else if (type == WS_EVT_DATA)
   {
@@ -219,7 +227,7 @@ void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventTyp
           {
             //DEBUGLOG("JSON received: ");
             root.printTo(PRINTPORT);
-            PRINT("\n");
+            PRINT("\r\n");
 
             // check if JSON has certain key/parameter 'type'
             if (root[FPSTR(pgm_url)].success())
@@ -230,7 +238,7 @@ void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventTyp
 
               if (strcmp_P(url, pgm_statuspagenetwork) == 0)
               {
-                clientVisitNetworkStatusPage = true;
+                clientVisitStatusNetworkPage = true;
 
                 //  WsSendInfoStatic(clientID);
                 //  WsSendInfoDynamic(clientID);
@@ -242,7 +250,7 @@ void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventTyp
               }
               else if (strcmp_P(url, pgm_statuspagetime) == 0)
               {
-                clientVisitTimeStatusPage = true;
+                clientVisitStatusTimePage = true;
 
                 //  WsSendInfoStatic(clientID);
                 //  WsSendInfoDynamic(clientID);
@@ -254,7 +262,7 @@ void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventTyp
               }
               else if (strcmp_P(url, pgm_statuspagesystem) == 0)
               {
-                clientVisitSystemStatusPage = true;
+                clientVisitStatusSystemPage = true;
 
                 //WsSendSystemStatus();
 
@@ -268,11 +276,21 @@ void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventTyp
               {
                 clientVisitConfigSholatPage = true;
 
-                WsSendConfigSholat();
+                // WsSendConfigSholat();
               }
-              else if (strcmp_P(url, pgm_configpagerunningled) == 0)
+              else if (strcmp_P(url, pgm_configpageledmatrix) == 0)
               {
-                clientVisitRunningLedConfigPage = true;
+                clientVisitConfigRunningLedPage = true;
+
+                //WsSendInfoStatic(clientID);
+                //WsSendInfoDynamic(clientID);
+                //WsSendSholatStatic(clientID);
+                //WsSendSholatDynamic(clientID);
+                //WsSendRunningLedConfig(clientID);
+              }
+              else if (strcmp_P(url, pgm_configpagemqtt) == 0)
+              {
+                clientVisitConfigMqttPage = true;
 
                 //WsSendInfoStatic(clientID);
                 //WsSendInfoDynamic(clientID);
@@ -292,6 +310,33 @@ void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventTyp
               }
             }
 
+            //***********************
+            // handle long text JSON
+            //***********************
+            if (root[FPSTR(pgm_longtext)].success())
+            {
+              const char *longtext = root[FPSTR(pgm_longtext)];
+
+              File file = SPIFFS.open(RUNNING_TEXT_FILE, "w");
+
+              if (!file)
+              {
+                DEBUGASYNCWS("Failed to open MQTT_PUBSUB config file\r\n");
+                file.close();
+                return;
+              }
+
+              for (uint16_t j = 0; j < strlen(longtext); j++)
+              {
+                file.write(longtext[j]);
+              }
+              file.close();
+              tone1 = HIGH;
+            }
+
+            //******************************
+            // handle SAVE CONFIG (not fast)
+            //******************************
             if (root[FPSTR(pgm_saveconfig)].success())
             {
 
@@ -301,13 +346,16 @@ void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventTyp
               //remove json key before saving
               root.remove(FPSTR(pgm_saveconfig));
 
-              if (strcmp_P(saveconfig, pgm_configpagenetwork) == 0)
+              //******************************
+              // save LOCATION config
+              //******************************
+              if (strcmp_P(saveconfig, pgm_configpagelocation) == 0)
               {
+                File file = SPIFFS.open(FPSTR(pgm_configfilelocation), "w");
 
-                File file = SPIFFS.open(FPSTR(pgm_configfilenetwork), "w");
                 if (!file)
                 {
-                  PRINT("Failed to open config file for writing\r\n");
+                  DEBUGASYNCWS("Failed to open LOCATION config file\r\n");
                   file.close();
                   return;
                 }
@@ -316,15 +364,46 @@ void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventTyp
                 file.flush();
                 file.close();
 
-                load_config();
-              }
-              else if (strcmp_P(saveconfig, pgm_configpagetime) == 0)
-              {
+                load_config_location();
+                process_sholat();
 
-                File file = SPIFFS.open(FPSTR(pgm_configfiletime), "w");
+                //beep
+                tone1 = HIGH;
+              }
+              //******************************
+              // save NETWORK config
+              //******************************
+              else if (strcmp_P(saveconfig, pgm_configpagenetwork) == 0)
+              {
+                File file = SPIFFS.open(FPSTR(pgm_configfilenetwork), "w");
+
                 if (!file)
                 {
-                  PRINT("Failed to open config file for writing\r\n");
+                  DEBUGASYNCWS("Failed to open NETWORK config file\r\n");
+                  file.close();
+                  return;
+                }
+
+                root.prettyPrintTo(file);
+                file.flush();
+                file.close();
+
+                load_config_network();
+                configNetworkUpdatedFlag = true;
+
+                //beep
+                tone1 = HIGH;
+              }
+              //******************************
+              // save TIME config
+              //******************************
+              else if (strcmp_P(saveconfig, pgm_configpagetime) == 0)
+              {
+                File file = SPIFFS.open(FPSTR(pgm_configfiletime), "w");
+
+                if (!file)
+                {
+                  DEBUGASYNCWS("Failed to open TIME config file\r\n");
                   file.close();
                   return;
                 }
@@ -334,14 +413,21 @@ void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventTyp
                 file.close();
 
                 load_config_time();
+                process_sholat();
+
+                //beep
+                tone1 = HIGH;
               }
+              //******************************
+              // save SHOLAT config
+              //******************************
               else if (strcmp_P(saveconfig, pgm_configpagesholat) == 0)
               {
-
                 File file = SPIFFS.open(FPSTR(pgm_configfilesholat), "w");
+
                 if (!file)
                 {
-                  PRINT("Failed to open config file for writing\r\n");
+                  DEBUGASYNCWS("Failed to open SHOLAT config file\r\n");
                   file.close();
                   return;
                 }
@@ -352,30 +438,83 @@ void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventTyp
 
                 load_config_sholat();
                 process_sholat();
-              }
-              else if (strcmp_P(saveconfig, pgm_configpagerunningled) == 0)
-              {
 
-                File configFile = SPIFFS.open(FPSTR(pgm_configfilerunningled), "w");
-                if (!configFile)
+                //beep
+                tone1 = HIGH;
+              }
+              //******************************
+              // save LED MATRIX config
+              //******************************
+              else if (strcmp_P(saveconfig, pgm_configpageledmatrix) == 0)
+              {
+                File file = SPIFFS.open(FPSTR(pgm_configfileledmatrix), "w");
+
+                if (!file)
                 {
-                  PRINT("Failed to open config file for writing\r\n");
-                  configFile.close();
+                  DEBUGASYNCWS("Failed to open LED MATRIX config file\r\n");
+                  file.close();
                   return;
                 }
 
-                root.prettyPrintTo(configFile);
-                configFile.flush();
-                configFile.close();
+                root.prettyPrintTo(file);
+                file.flush();
+                file.close();
 
-                load_config_runningled();
+                load_config_ledmatrix();
+
+                //beep
+                tone1 = HIGH;
+              }
+              //******************************
+              // save Mqtt config
+              //******************************
+              else if (strcmp_P(saveconfig, pgm_configpagemqtt) == 0)
+              {
+                File file = SPIFFS.open(FPSTR(pgm_configfilemqtt), "w");
+
+                if (!file)
+                {
+                  DEBUGASYNCWS("Failed to open MQTT config file\r\n");
+                  file.close();
+                  return;
+                }
+
+                root.prettyPrintTo(file);
+                file.flush();
+                file.close();
+
+                load_config_mqtt();
+
+                //beep
+                tone1 = HIGH;
               }
 
-              //beep
-              tone1 = HIGH;
+              //******************************
+              // save MqttPubSub config
+              //******************************
+              else if (strcmp_P(saveconfig, pgm_configpagemqttpubsub) == 0)
+              {
+                File file = SPIFFS.open(FPSTR(pgm_configfilemqttpubsub), "w");
+
+                if (!file)
+                {
+                  DEBUGASYNCWS("Failed to open MQTT_PUBSUB config file\r\n");
+                  file.close();
+                  return;
+                }
+
+                root.prettyPrintTo(file);
+                file.flush();
+                file.close();
+
+                //beep
+                tone1 = HIGH;
+              }
+
               return;
             }
 
+            //saveFastConfig; for led matrix settings page
             if (root[FPSTR(pgm_type)].success())
             {
 
@@ -467,7 +606,7 @@ void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventTyp
                 }
                 if (strcmp_P(param, pgm_longtext) == 0)
                 {
-                  File runningTextFile = SPIFFS.open(RUNNING_TEXT_FILE, "w+");
+                  File runningTextFile = SPIFFS.open(RUNNING_TEXT_FILE, "w");
                   for (uint16_t j = 0; j < strlen(value); j++)
                   {
                     runningTextFile.write(value[j]);
@@ -573,7 +712,7 @@ void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventTyp
         }
       }
       msg[len + 1] = '\0';
-      DEBUGASYNCWS("%s\n", msg);
+      DEBUGASYNCWS("%s\r\n", msg);
     }
     else
     {
@@ -581,8 +720,8 @@ void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventTyp
       if (info->index == 0)
       {
         if (info->num == 0)
-          DEBUGASYNCWS("ws[%s][%u] %s-message start\n", server->url(), client->id(), (info->message_opcode == WS_TEXT) ? "text" : "binary");
-        DEBUGASYNCWS("ws[%s][%u] frame[%u] start[%llu]\n", server->url(), client->id(), info->num, info->len);
+          DEBUGASYNCWS("ws[%s][%u] %s-message start\r\n", server->url(), client->id(), (info->message_opcode == WS_TEXT) ? "text" : "binary");
+        DEBUGASYNCWS("ws[%s][%u] frame[%u] start[%llu]\r\n", server->url(), client->id(), info->num, info->len);
       }
 
       DEBUGASYNCWS("ws[%s][%u] frame[%u] %s[%llu - %llu]: ", server->url(), client->id(), info->num, (info->message_opcode == WS_TEXT) ? "text" : "binary", info->index, info->index + len);
@@ -624,14 +763,14 @@ void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventTyp
         }
       }
       msg[len + 1] = '\0';
-      DEBUGASYNCWS("%s\n", msg);
+      DEBUGASYNCWS("%s\r\n", msg);
 
       if ((info->index + len) == info->len)
       {
-        DEBUGASYNCWS("ws[%s][%u] frame[%u] end[%llu]\n", server->url(), client->id(), info->num, info->len);
+        DEBUGASYNCWS("ws[%s][%u] frame[%u] end[%llu]\r\n", server->url(), client->id(), info->num, info->len);
         if (info->final)
         {
-          DEBUGASYNCWS("ws[%s][%u] %s-message end\n", server->url(), client->id(), (info->message_opcode == WS_TEXT) ? "text" : "binary");
+          DEBUGASYNCWS("ws[%s][%u] %s-message end\r\n", server->url(), client->id(), (info->message_opcode == WS_TEXT) ? "text" : "binary");
           if (info->message_opcode == WS_TEXT)
             client->text(pgm_txt_gotyourtextmessage);
           else
@@ -644,20 +783,31 @@ void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventTyp
 
 void AsyncWSBegin()
 {
-  DEBUGLOG("Async WebServer Init...\n");
+  DEBUGASYNCWS("Async WebServer Init...\r\n");
 
   int reading = analogRead(A0);
-  DEBUGLOG("Analog Read: %d\r\n", reading);
+  DEBUGASYNCWS("Analog Read: %d\r\n", reading);
   if (reading >= 768)
   {                            // analog read 3 volts or more
-    _apConfig.APenable = true; // Read AP button. If button is pressed, activate AP
-    DEBUGLOG("AP Enable = %d\n", _apConfig.APenable);
+    _configAP.APenable = true; // Read AP button. If button is pressed, activate AP
+    DEBUGASYNCWS("AP Enable = %d\r\n", _configAP.APenable);
   }
 
   //  if (!_fs) // If SPIFFS is not started
   //    _fs->begin();
 
+  // SPIFFS.format();
+
   SPIFFS.begin();
+
+  SPIFFS.info(fs_info);
+
+  PRINT("totalBytes: %u\r\n",fs_info.totalBytes);
+  PRINT("usedBytes: %u\r\n",fs_info.totalBytes);
+  PRINT("blockSize: %u\r\n",fs_info.totalBytes);
+  PRINT("pageSize: %u\r\n",fs_info.totalBytes);
+  PRINT("maxOpenFiles: %u\r\n",fs_info.totalBytes);
+  PRINT("maxPathLength: %u\r\n",fs_info.totalBytes);
 
 #ifndef RELEASE
   { // List files
@@ -668,31 +818,54 @@ void AsyncWSBegin()
       String fileName = dir.fileName();
       size_t fileSize = dir.fileSize();
 
-      PRINT("FS File: %s, size: %s\n", fileName.c_str(), formatBytes(fileSize).c_str());
+      PRINT("FS File: %s, size: %s\r\n", fileName.c_str(), formatBytes(fileSize));
     }
-    PRINT("\n");
+    PRINT("\r\n");
   }
 #endif // RELEASE
 
-  if (!load_config())
+  //save_config();
+
+  //Set the host name
+  char bufPrefix[] = "SHOLAT_";
+  char bufChipId[11];
+  itoa(ESP.getChipId(), bufChipId, 10);
+
+  //char bufHostName[32];
+  strlcpy(_config.hostname, bufPrefix, sizeof(_config.hostname));
+  strncat(_config.hostname, bufChipId, sizeof(bufChipId));
+
+  if (!load_config_network())
   { // Try to load configuration from file system
     //defaultConfig(); // Load defaults if any error
-    _apConfig.APenable = true;
+
+    save_config_network();
+
+    _configAP.APenable = true;
+  }
+
+  if (!load_config_location())
+  {
+    //create file if file not found
+    save_config_location();
   }
 
   if (!load_config_time())
   {
     //create file if file not found
+    save_config_time();
   }
 
   if (!load_config_sholat())
   {
     //create file if file not found
+    save_config_sholat();
   }
 
-  if (!load_config_runningled())
+  if (!load_config_ledmatrix())
   {
     //create file if file not found
+    save_config_ledmatrix();
   }
 
   if (!load_config_httpauth())
@@ -706,42 +879,53 @@ void AsyncWSBegin()
   onStationModeConnectedHandler = WiFi.onStationModeConnected([](WiFiEventStationModeConnected data) {
     onWiFiConnected(data);
   });
-  //  onStationModeGotIPHandler = WiFi.onStationModeGotIP ([](WiFiEventStationModeGotIP data) {
-  //    onWifiGotIP (data);
-  //  });
-  onStationModeGotIPHandler = WiFi.onStationModeGotIP(onWifiGotIP);
+  onStationModeGotIPHandler = WiFi.onStationModeGotIP([](WiFiEventStationModeGotIP data) {
+    onWifiGotIP(data);
+  });
+  // onStationModeGotIPHandler = WiFi.onStationModeGotIP(onWifiGotIP);
   onStationModeDisconnectedHandler = WiFi.onStationModeDisconnected([](WiFiEventStationModeDisconnected data) {
     onWiFiDisconnected(data);
   });
 
-  //Set the host name
-  char bufPrefix[] = "SHOLAT_";
-  char bufChipId[11];
-  itoa(ESP.getChipId(), bufChipId, 10);
+  // Register event handlers.
+  // Callback functions will be called as long as these handler objects exist.
+  // Call "onStationConnected" each time a station connects
+  stationConnectedHandler = WiFi.onSoftAPModeStationConnected(&onStationConnected);
+  // Call "onStationDisconnected" each time a station disconnects
+  stationDisconnectedHandler = WiFi.onSoftAPModeStationDisconnected(&onStationDisconnected);
+  // Call "onProbeRequestPrint" and "onProbeRequestBlink" each time
+  // a probe request is received.
+  // Former will print MAC address of the station and RSSI to Serial,
+  // latter will blink an LED.
+  probeRequestPrintHandler = WiFi.onSoftAPModeProbeRequestReceived(&onProbeRequestPrint);
+  probeRequestBlinkHandler = WiFi.onSoftAPModeProbeRequestReceived(&onProbeRequestBlink);
 
-  //char bufHostName[32];
-  strlcpy(_config.hostname, bufPrefix, sizeof(_config.hostname));
-  strncat(_config.hostname, bufChipId, sizeof(bufChipId));
+  // _configAP.APenable = true;
 
-  //_apConfig.APenable = true;
+  // WiFi.persistent(false);
+  // WiFi.mode(WIFI_OFF);
 
-  WiFi.persistent(true);
+  bool autoConnect = true;
+  WiFi.setAutoConnect(autoConnect);
 
-  if (_apConfig.APenable)
+  bool autoReconnect = true;
+  WiFi.setAutoReconnect(autoReconnect);
+
+  if (_configAP.APenable || strcmp(_config.ssid, "") == 0)
   {
-    PRINT("Starting wifi in WIFI_AP mode.\n");
+    PRINT("Starting wifi in WIFI_AP mode.\r\n");
     WiFi.mode(WIFI_OFF);
-    WiFi.mode(WIFI_AP);
-    WiFi.softAP(_config.hostname, NULL);
+    // WiFi.mode(WIFI_AP); // bikin error
+    WiFi.softAP(_configAP.ssid, _configAP.password);
     WiFi.softAPConfig(IPAddress(192, 168, 4, 1), IPAddress(192, 168, 4, 1), IPAddress(255, 255, 255, 0));
   }
-  if (!_apConfig.APenable)
+  else if (!_configAP.APenable)
   {
     if (!_config.dhcp)
     {
-      PRINT("DHCP disabled, starting wifi in WIFI_STA mode with static IP.\n");
+      PRINT("DHCP disabled, starting wifi in WIFI_STA mode with static IP.\r\n");
       WiFi.mode(WIFI_OFF);
-      WiFi.mode(WIFI_STA);
+      // WiFi.mode(WIFI_STA);
 
       IPAddress static_ip;
       IPAddress gateway;
@@ -760,18 +944,7 @@ void AsyncWSBegin()
       WiFi.begin(_config.ssid, _config.password);
       WiFi.waitForConnectResult();
     }
-    else
-    {
-      PRINT("DHCP enabled, starting wifi in WIFI_STA mode.\n");
-      WiFi.mode(WIFI_OFF);
-      WiFi.mode(WIFI_STA);
-      WiFi.hostname(_config.hostname);
-      WiFi.begin(_config.ssid, _config.password);
-      WiFi.waitForConnectResult();
-    }
   }
-
-  PRINT("Host name: %s\n", WiFi.hostname().c_str());
 
   dnsServer.start(53, "*", WiFi.softAPIP());
 
@@ -779,38 +952,6 @@ void AsyncWSBegin()
 
   ArduinoOTA.setHostname(_config.hostname);
   ArduinoOTA.begin();
-
-  /*
-    if (!MDNS.begin(hostName)) {
-      Serial.println(F("Error setting up MDNS responder!"));
-    }
-    Serial.println(F("mDNS responder started"));
-    //MDNS.addService("esp", "tcp", 8080); // Announce esp tcp service on port 8080
-    MDNS.addService("esp", "tcp", 80); // Announce esp tcp service on port 80
-
-    Serial.println(F("Sending mDNS query"));
-    int n = MDNS.queryService("esp", "tcp"); // Send out query for esp tcp services
-    Serial.println(F("mDNS query done"));
-    if (n == 0) {
-      Serial.println(F("no services found"));
-    }
-    else {
-      Serial.print(n);
-      Serial.println(F(" service(s) found"));
-      for (int i = 0; i < n; ++i) {
-        // Print details for each service found
-        Serial.print(i + 1);
-        Serial.print(F(": "));
-        Serial.print(MDNS.hostname(i));
-        Serial.print(" (");
-        Serial.print(MDNS.IP(i));
-        Serial.print(":");
-        Serial.print(MDNS.port(i));
-        Serial.println(F(")"));
-      }
-    }
-    Serial.println();
-  */
 
   NBNS.begin(_config.hostname);
 
@@ -831,7 +972,7 @@ void AsyncWSBegin()
     //client->send("hello!", NULL, millis(), 1000);
     if (client->lastId())
     {
-      DEBUGLOG("Client reconnected! Last message ID that it gat is: %u\n", client->lastId());
+      DEBUGLOG("Client reconnected! Last message ID that it gat is: %u\r\n", client->lastId());
     }
     //send event with message "hello!", id current millis
     // and set reconnect delay to 1 second
@@ -839,7 +980,7 @@ void AsyncWSBegin()
     client->send("hello!");
     //EVENTS_send_information_values_html(client);
 
-    if (clientVisitSystemStatusPage)
+    if (clientVisitStatusSystemPage)
     {
       //EventSendSystemStatus();
     }
@@ -861,7 +1002,6 @@ void AsyncWSBegin()
   server.addHandler(new SPIFFSEditor());
 
   server.on("/description.xml", HTTP_GET, [](AsyncWebServerRequest *request) {
-
     DEBUGASYNCWS("%s\r\n", __PRETTY_FUNCTION__);
 
     File configFile = SPIFFS.open(DESCRIPTION_XML_FILE, "r");
@@ -961,12 +1101,12 @@ void AsyncWSBegin()
     {
       DEBUGLOG("UNKNOWN");
     }
-    DEBUGLOG("http://%s%s\n", request->host().c_str(), request->url().c_str());
+    DEBUGLOG("http://%s%s\r\n", request->host().c_str(), request->url().c_str());
 
     if (request->contentLength())
     {
-      DEBUGLOG("_CONTENT_TYPE: %s\n", request->contentType().c_str());
-      DEBUGLOG("_CONTENT_LENGTH: %u\n", request->contentLength());
+      DEBUGLOG("_CONTENT_TYPE: %s\r\n", request->contentType().c_str());
+      DEBUGLOG("_CONTENT_LENGTH: %u\r\n", request->contentLength());
     }
 
     int headers = request->headers();
@@ -974,7 +1114,7 @@ void AsyncWSBegin()
     for (i = 0; i < headers; i++)
     {
       AsyncWebHeader *h = request->getHeader(i);
-      DEBUGASYNCWS("_HEADER[%s]: %s\n", h->name().c_str(), h->value().c_str());
+      DEBUGASYNCWS("_HEADER[%s]: %s\r\n", h->name().c_str(), h->value().c_str());
     }
 
     int params = request->params();
@@ -983,15 +1123,15 @@ void AsyncWSBegin()
       AsyncWebParameter *p = request->getParam(i);
       if (p->isFile())
       {
-        DEBUGLOG("_FILE[%s]: %s, size: %u\n", p->name().c_str(), p->value().c_str(), p->size());
+        DEBUGLOG("_FILE[%s]: %s, size: %u\r\n", p->name().c_str(), p->value().c_str(), p->size());
       }
       else if (p->isPost())
       {
-        DEBUGLOG("_POST[%s]: %s\n", p->name().c_str(), p->value().c_str());
+        DEBUGLOG("_POST[%s]: %s\r\n", p->name().c_str(), p->value().c_str());
       }
       else
       {
-        DEBUGLOG("_GET[%s]: %s\n", p->name().c_str(), p->value().c_str());
+        DEBUGLOG("_GET[%s]: %s\r\n", p->name().c_str(), p->value().c_str());
       }
     }
 
@@ -999,46 +1139,18 @@ void AsyncWSBegin()
   });
   server.onFileUpload([](AsyncWebServerRequest *request, const String &filename, size_t index, uint8_t *data, size_t len, bool final) {
     if (!index)
-      DEBUGLOG("UploadStart: %s\n", filename.c_str());
+      DEBUGLOG("UploadStart: %s\r\n", filename.c_str());
     DEBUGLOG("%s", (const char *)data);
     if (final)
-      DEBUGLOG("UploadEnd: %s (%u)\n", filename.c_str(), index + len);
+      DEBUGLOG("UploadEnd: %s (%u)\r\n", filename.c_str(), index + len);
   });
   server.onRequestBody([](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
     if (!index)
-      DEBUGLOG("BodyStart: %u\n", total);
+      DEBUGLOG("BodyStart: %u\r\n", total);
     DEBUGLOG("%s", (const char *)data);
     if (index + len == total)
-      DEBUGLOG("BodyEnd: %u\n", total);
+      DEBUGLOG("BodyEnd: %u\r\n", total);
   });
-
-  //  server.on("/scan", HTTP_GET, [](AsyncWebServerRequest * request) {
-  //    String json = "[";
-  //    int n = WiFi.scanComplete();
-  //    if (n == WIFI_SCAN_FAILED) {
-  //      WiFi.scanNetworks(true);
-  //    }
-  //    else if (n) {
-  //      for (int i = 0; i < n; ++i) {
-  //        if (i) json += ",";
-  //        json += "{";
-  //        json += "\"rssi\":" + String(WiFi.RSSI(i));
-  //        json += ",\"ssid\":\"" + WiFi.SSID(i) + "\"";
-  //        json += ",\"bssid\":\"" + WiFi.BSSIDstr(i) + "\"";
-  //        json += ",\"channel\":" + String(WiFi.channel(i));
-  //        json += ",\"secure\":" + String(WiFi.encryptionType(i));
-  //        json += ",\"hidden\":" + String(WiFi.isHidden(i) ? "true" : "false");
-  //        json += "}";
-  //      }
-  //      WiFi.scanDelete();
-  //      if (WiFi.scanComplete() == WIFI_SCAN_FAILED) {
-  //        WiFi.scanNetworks(true);
-  //      }
-  //    }
-  //    json += "]";
-  //    request->send(200, "text/json", json);
-  //    json = "";
-  //  });
 
   server.on("/scan", HTTP_GET, [](AsyncWebServerRequest *request) {
     DEBUGASYNCWS("%s\r\n", request->url().c_str());
@@ -1124,9 +1236,42 @@ void AsyncWSBegin()
     set_RTC_TIME_html(request);
   });
 
+  server.on("/config/network", [](AsyncWebServerRequest *request) {
+    DEBUGASYNCWS("%s\r\n", request->url().c_str());
+    send_config_network(request);
+  });
+
+  server.on("/config/location", [](AsyncWebServerRequest *request) {
+    DEBUGASYNCWS("%s\r\n", request->url().c_str());
+    send_config_location(request);
+  });
+
+  server.on("/config/time", [](AsyncWebServerRequest *request) {
+    DEBUGASYNCWS("%s\r\n", request->url().c_str());
+    send_config_time(request);
+  });
+
+  server.on("/config/sholat", [](AsyncWebServerRequest *request) {
+    DEBUGASYNCWS("%s\r\n", request->url().c_str());
+    send_config_sholat(request);
+  });
+
+  server.on("/config/ledmatrix", [](AsyncWebServerRequest *request) {
+    DEBUGASYNCWS("%s\r\n", request->url().c_str());
+    send_config_ledmatrix(request);
+  });
+
+  server.on("/config/mqtt", [](AsyncWebServerRequest *request) {
+    DEBUGASYNCWS("%s\r\n", request->url().c_str());
+    send_config_mqtt(request);
+  });
+
   server.begin();
 }
 
+// -------------------------------------------------
+// *** FUNCTIONS
+// -------------------------------------------------
 void onWiFiConnected(WiFiEventStationModeConnected data)
 {
   PRINT("\r\nWifi Connected\r\n");
@@ -1138,57 +1283,61 @@ void onWiFiConnected(WiFiEventStationModeConnected data)
 //void onWifiGotIP (WiFiEventStationModeGotIP ipInfo) {
 void onWifiGotIP(const WiFiEventStationModeGotIP &event)
 {
+  wifiGotIpFlag = true;
+
   //Serial.printf_P(PSTR("\r\nWifi Got IP: %s\r\n"), ipInfo.ip.toString().c_str ());
   PRINT("\r\nWifi Got IP\r\n");
-  PRINT("WiFi status: %s\r\n", WiFi.status() == WL_CONNECTED ? "WL_CONNECTED" : String(WiFi.status()).c_str());
   PRINT("IP Address:\t%s\r\n", WiFi.localIP().toString().c_str());
-  PRINT("Gateway:\t%s\r\n", WiFi.gatewayIP().toString().c_str());
-  PRINT("DNS:\t\t%s\r\n", WiFi.dnsIP().toString().c_str());
-
-  if (WiFi.status() == WL_CONNECTED)
-  {
-    wifiFirstConnected = true;
-    //connectToMqtt();
-  }
-  else
-  {
-    wifiFirstConnected = false;
-  }
-
-  /*
-    https://github.com/esp8266/Arduino/blob/4897e0006b5b0123a2fa31f67b14a3fff65ce561/libraries/ESP8266WiFi/src/include/wl_definitions.h
-
-    typedef enum {
-    WL_NO_SHIELD        = 255,   // for compatibility with WiFi Shield library
-    WL_IDLE_STATUS      = 0,
-    WL_NO_SSID_AVAIL    = 1,
-    WL_SCAN_COMPLETED   = 2,
-    WL_CONNECTED        = 3,
-    WL_CONNECT_FAILED   = 4,
-    WL_CONNECTION_LOST  = 5,
-    WL_DISCONNECTED     = 6
-    } wl_status_t;
-  */
 }
 
 void onWiFiDisconnected(WiFiEventStationModeDisconnected data)
 {
-  Serial.printf_P(PSTR("\r\nWifi Disconnected\r\n"));
-  if (wifiDisconnectedSince == 0)
-  {
-    wifiDisconnectedSince = millis();
-  }
-  Serial.printf_P(PSTR("Disconnected for %d seconds\r\n"), (int)((millis() - wifiDisconnectedSince) / 1000));
+  wifiDisconnectedFlag = true;
+  PRINT("\r\nWifi disconnected.\r\n");
+}
+
+void onStationConnected(const WiFiEventSoftAPModeStationConnected &evt)
+{
+  stationConnectedFlag = true;
+
+  PRINT("Station connected: %s\r\n", macToString(evt.mac));
+}
+
+void onStationDisconnected(const WiFiEventSoftAPModeStationDisconnected &evt)
+{
+  stationDisconnectedFlag = true;
+
+  PRINT("Station disconnected: %s\r\n", macToString(evt.mac));
+}
+
+void onProbeRequestPrint(const WiFiEventSoftAPModeProbeRequestReceived &evt)
+{
+  PRINT("Probe request from: %s, RSSI: %d\r\n", macToString(evt.mac), evt.rssi);
+}
+
+void onProbeRequestBlink(const WiFiEventSoftAPModeProbeRequestReceived &)
+{
+  // We can't use "delay" or other blocking functions in the event handler.
+  // Therefore we set a flag here and then check it inside "loop" function.
+  // blinkFlag = true;
+}
+
+char *macToString(const unsigned char *mac)
+{
+  static char buf[20];
+  snprintf(buf, sizeof(buf), "%02x:%02x:%02x:%02x:%02x:%02x",
+           mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+  return buf;
 }
 
 void send_network_configuration_values_html(AsyncWebServerRequest *request)
 {
-  DEBUGLOG("%s\n", __PRETTY_FUNCTION__);
+  DEBUGASYNCWS("%s\r\n", __PRETTY_FUNCTION__);
 
   File configFile = SPIFFS.open(FPSTR(pgm_configfilenetwork), "r");
   if (!configFile)
   {
-    DEBUGLOG("Failed to open config file");
+    DEBUGASYNCWS("Failed to open config file");
     return;
   }
 
@@ -1224,8 +1373,8 @@ void send_connection_state_values_html(AsyncWebServerRequest *request)
   WiFi.scanNetworks(true);
 
   String values = "";
-  values += "connectionstate|" + state + "|div\n";
-  //values += "networks|Scanning networks ...|div\n";
+  values += "connectionstate|" + state + "|div\r\n";
+  //values += "networks|Scanning networks ...|div\r\n";
   request->send(200, "text/plain", values);
   state = "";
   values = "";
@@ -1235,7 +1384,7 @@ void send_connection_state_values_html(AsyncWebServerRequest *request)
 
 void EventSendNetworkStatus()
 {
-  DEBUGLOG("%s\n", __PRETTY_FUNCTION__);
+  DEBUGLOG("%s\r\n", __PRETTY_FUNCTION__);
 
   DynamicJsonBuffer jsonBuffer;
   JsonObject &root = jsonBuffer.createObject();
@@ -1281,7 +1430,7 @@ void EventSendNetworkStatus()
 
 void WsSendNetworkStatus()
 {
-  DEBUGLOG("%s\n", __PRETTY_FUNCTION__);
+  DEBUGLOG("%s\r\n", __PRETTY_FUNCTION__);
 
   DynamicJsonBuffer jsonBuffer;
   JsonObject &root = jsonBuffer.createObject();
@@ -1327,7 +1476,7 @@ void WsSendNetworkStatus()
 
 void EventSendTimeStatus()
 {
-  DEBUGLOG("%s\n", __PRETTY_FUNCTION__);
+  DEBUGLOG("%s\r\n", __PRETTY_FUNCTION__);
 
   DynamicJsonBuffer jsonBuffer;
   JsonObject &root = jsonBuffer.createObject();
@@ -1354,7 +1503,7 @@ void EventSendTimeStatus()
 
 void WsSendTimeStatus()
 {
-  DEBUGLOG("%s\n", __PRETTY_FUNCTION__);
+  DEBUGLOG("%s\r\n", __PRETTY_FUNCTION__);
 
   DynamicJsonBuffer jsonBuffer;
   JsonObject &root = jsonBuffer.createObject();
@@ -1372,6 +1521,9 @@ void WsSendTimeStatus()
     root[FPSTR(pgm_lastsync)] = FPSTR(pgm_never);
     root[FPSTR(pgm_nextsync)] = getNextSyncStr();
   }
+
+  root["ping_seq_num_send"] = ping_seq_num_send;
+  root["ping_seq_num_recv"] = ping_seq_num_recv;
 
   size_t len = root.measureLength();
   char buf[len + 1];
@@ -1396,7 +1548,7 @@ int apgm_lastIndexOf(uint8_t c, const char *p)
 
 void EventSendSystemStatus()
 {
-  DEBUGLOG("%s\n", __PRETTY_FUNCTION__);
+  DEBUGLOG("%s\r\n", __PRETTY_FUNCTION__);
 
   uint32_t heap = ESP.getFreeHeap();
 
@@ -1452,7 +1604,7 @@ void EventSendSystemStatus()
 
 void WsSendSystemStatus()
 {
-  DEBUGLOG("%s\n", __PRETTY_FUNCTION__);
+  DEBUGLOG("%s\r\n", __PRETTY_FUNCTION__);
 
   uint32_t heap = ESP.getFreeHeap();
 
@@ -1508,7 +1660,7 @@ void WsSendSystemStatus()
 
 void EventSendHeap()
 {
-  DEBUGLOG("%s\n", __PRETTY_FUNCTION__);
+  DEBUGLOG("%s\r\n", __PRETTY_FUNCTION__);
 
   uint32_t heap = ESP.getFreeHeap();
 
@@ -1525,7 +1677,7 @@ void EventSendHeap()
 
 void WsSendHeap()
 {
-  DEBUGLOG("%s\n", __PRETTY_FUNCTION__);
+  DEBUGASYNCWS("%s\r\n", __PRETTY_FUNCTION__);
 
   uint32_t heap = ESP.getFreeHeap();
 
@@ -1540,24 +1692,27 @@ void WsSendHeap()
   ws.text(clientID, buf);
 }
 
-void send_NTP_configuration_values_html(AsyncWebServerRequest *request)
+void WsSendFsInfo()
 {
-  DEBUGLOG("%s\n", __PRETTY_FUNCTION__);
+  DEBUGASYNCWS("%s\r\n", __PRETTY_FUNCTION__);
 
-  AsyncResponseStream *response = request->beginResponseStream("text/json");
   DynamicJsonBuffer jsonBuffer;
   JsonObject &root = jsonBuffer.createObject();
-  root[FPSTR(pgm_enablentp)] = _config.enablentp;
-  root[FPSTR(pgm_enablertc)] = _config.enablertc;
-  root[FPSTR(pgm_timezone)] = _config.timezone;
-  root[FPSTR(pgm_dst)] = _config.dst;
-  root[FPSTR(pgm_ntpserver_0)] = _config.ntpserver_0;
-  root[FPSTR(pgm_ntpserver_1)] = _config.ntpserver_1;
-  root[FPSTR(pgm_ntpserver_2)] = _config.ntpserver_2;
-  root[FPSTR(pgm_syncinterval)] = _config.syncinterval;
 
-  root.printTo(*response);
-  request->send(response);
+  SPIFFS.info(fs_info);
+
+  // root[FPSTR(pgm_heap)] = heap;
+  root["totalBytes"] = fs_info.totalBytes;
+  root["usedBytes"] = fs_info.usedBytes;
+  root["blockSize"] = fs_info.blockSize;
+  root["pageSize"] = fs_info.pageSize;
+  root["maxOpenFiles"] = fs_info.maxOpenFiles;
+  root["maxPathLength"] = fs_info.maxPathLength;
+
+  size_t len = root.measureLength();
+  char buf[len + 1];
+  root.printTo(buf, len + 1);
+  ws.text(clientID, buf);
 }
 
 void restart_esp(AsyncWebServerRequest *request)
@@ -1609,7 +1764,7 @@ void reset_1()
 
 void send_wwwauth_configuration_values_html(AsyncWebServerRequest *request)
 {
-  DEBUGASYNCWS("%s\n", __PRETTY_FUNCTION__);
+  DEBUGASYNCWS("%s\r\n", __PRETTY_FUNCTION__);
 
   AsyncResponseStream *response = request->beginResponseStream("text/plain");
   DynamicJsonBuffer jsonBuffer;
@@ -1631,7 +1786,7 @@ void send_wwwauth_configuration_values_html(AsyncWebServerRequest *request)
 
 void send_wwwauth_configuration_html(AsyncWebServerRequest *request)
 {
-  DEBUGASYNCWS("%s %d\n", __FUNCTION__, request->args());
+  DEBUGASYNCWS("%s %d\r\n", __FUNCTION__, request->args());
 
   //List all parameters
   int params = request->params();
@@ -1642,11 +1797,11 @@ void send_wwwauth_configuration_html(AsyncWebServerRequest *request)
       AsyncWebParameter *p = request->getParam(i);
       if (p->isFile())
       { //p->isPost() is also true
-        DEBUGASYNCWS("FILE[%s]: %s, size: %u\n", p->name().c_str(), p->value().c_str(), p->size());
+        DEBUGASYNCWS("FILE[%s]: %s, size: %u\r\n", p->name().c_str(), p->value().c_str(), p->size());
       }
       else if (p->isPost())
       {
-        DEBUGASYNCWS("POST[%s]: %s\n", p->name().c_str(), p->value().c_str());
+        DEBUGASYNCWS("POST[%s]: %s\r\n", p->name().c_str(), p->value().c_str());
         //      if (p->name() == "wwwauth") {
         //        _httpAuth.auth = p->value();
         //      }
@@ -1668,7 +1823,7 @@ void send_wwwauth_configuration_html(AsyncWebServerRequest *request)
       }
       else
       {
-        DEBUGASYNCWS("GET[%s]: %s\n", p->name().c_str(), p->value().c_str());
+        DEBUGASYNCWS("GET[%s]: %s\r\n", p->name().c_str(), p->value().c_str());
       }
     }
   }
@@ -1697,7 +1852,7 @@ void send_wwwauth_configuration_html(AsyncWebServerRequest *request)
 
 bool saveHTTPAuth()
 {
-  DEBUGASYNCWS("%s\n", __PRETTY_FUNCTION__);
+  DEBUGASYNCWS("%s\r\n", __PRETTY_FUNCTION__);
   DEBUGASYNCWS("Save secret\r\n");
   DynamicJsonBuffer jsonBuffer;
   JsonObject &json = jsonBuffer.createObject();
@@ -1733,18 +1888,18 @@ void send_update_firmware_values_html(AsyncWebServerRequest *request)
   bool updateOK = maxSketchSpace < ESP.getFreeSketchSpace();
   StreamString result;
   Update.printError(result);
-  DEBUGLOG("--MaxSketchSpace: %d\n", maxSketchSpace);
-  DEBUGLOG("--Update error = %s\n", result.c_str());
-  values += "remupd|" + (String)((updateOK) ? "OK" : "ERROR") + "|div\n";
+  DEBUGLOG("--MaxSketchSpace: %d\r\n", maxSketchSpace);
+  DEBUGLOG("--Update error = %s\r\n", result.c_str());
+  values += "remupd|" + (String)((updateOK) ? "OK" : "ERROR") + "|div\r\n";
 
   if (Update.hasError())
   {
     result.trim();
-    values += "remupdResult|" + result + "|div\n";
+    values += "remupdResult|" + result + "|div\r\n";
   }
   else
   {
-    values += "remupdResult||div\n";
+    values += "remupdResult||div\r\n";
   }
 
   request->send(200, "text/plain", values);
@@ -1786,14 +1941,14 @@ void updateFirmware(AsyncWebServerRequest *request, String filename, size_t inde
   { //UPLOAD_FILE_START
     SPIFFS.end();
     Update.runAsync(true);
-    DEBUGASYNCWS("Update start: %s\n", filename.c_str());
+    DEBUGASYNCWS("Update start: %s\r\n", filename.c_str());
     uint32_t maxSketchSpace = ESP.getSketchSize();
-    DEBUGASYNCWS("Max free scketch space: %u\n", maxSketchSpace);
-    DEBUGASYNCWS("New scketch size: %u\n", _updateSize);
+    DEBUGASYNCWS("Max free scketch space: %u\r\n", maxSketchSpace);
+    DEBUGASYNCWS("New scketch size: %u\r\n", _updateSize);
     if (_browserMD5 != NULL && _browserMD5 != "")
     {
       Update.setMD5(_browserMD5.c_str());
-      DEBUGASYNCWS("Hash from client: %s\n", _browserMD5.c_str());
+      DEBUGASYNCWS("Hash from client: %s\r\n", _browserMD5.c_str());
     }
     if (!Update.begin(_updateSize))
     { //start with max available size
@@ -1818,13 +1973,13 @@ void updateFirmware(AsyncWebServerRequest *request, String filename, size_t inde
     if (Update.end(true))
     { //true to set the size to the current progress
       updateHash = Update.md5String();
-      DEBUGASYNCWS("Upload finished. Calculated MD5: %s\n", updateHash.c_str());
-      DEBUGASYNCWS("Update Success: %u\nRebooting...\n", request->contentLength());
+      DEBUGASYNCWS("Upload finished. Calculated MD5: %s\r\n", updateHash.c_str());
+      DEBUGASYNCWS("Update Success: %u\r\nRebooting...\r\n", request->contentLength());
     }
     else
     {
       updateHash = Update.md5String();
-      DEBUGASYNCWS("Upload failed. Calculated MD5: %s\n", updateHash.c_str());
+      DEBUGASYNCWS("Upload failed. Calculated MD5: %s\r\n", updateHash.c_str());
       Update.printError(PRINTPORT);
     }
   }
@@ -1834,7 +1989,7 @@ void updateFirmware(AsyncWebServerRequest *request, String filename, size_t inde
 
 void send_sholat_values_html(AsyncWebServerRequest *request)
 {
-  DEBUGLOG("%s\n", __PRETTY_FUNCTION__);
+  DEBUGASYNCWS("%s\r\n", __PRETTY_FUNCTION__);
 
   AsyncResponseStream *response = request->beginResponseStream("application/json");
   DynamicJsonBuffer jsonBuffer;
@@ -1857,9 +2012,217 @@ void send_sholat_values_html(AsyncWebServerRequest *request)
   request->send(response);
 }
 
+void send_config_network(AsyncWebServerRequest *request)
+{
+  DEBUGASYNCWS("%s\r\n", __PRETTY_FUNCTION__);
+
+  AsyncResponseStream *response = request->beginResponseStream("application/json");
+  DynamicJsonBuffer jsonBuffer;
+  JsonObject &root = jsonBuffer.createObject();
+
+  root[FPSTR(pgm_hostname)] = _config.hostname;
+  root[FPSTR(pgm_ssid)] = _config.ssid;
+  root[FPSTR(pgm_password)] = _config.password;
+  root[FPSTR(pgm_dhcp)] = _config.dhcp;
+  root[FPSTR(pgm_static_ip)] = _config.static_ip;
+  root[FPSTR(pgm_netmask)] = _config.netmask;
+  root[FPSTR(pgm_gateway)] = _config.gateway;
+  root[FPSTR(pgm_dns0)] = _config.dns0;
+  root[FPSTR(pgm_dns1)] = _config.dns1;
+
+  root.prettyPrintTo(*response);
+  request->send(response);
+}
+
+void send_config_location(AsyncWebServerRequest *request)
+{
+  DEBUGASYNCWS("%s\r\n", __PRETTY_FUNCTION__);
+
+  AsyncResponseStream *response = request->beginResponseStream("application/json");
+  DynamicJsonBuffer jsonBuffer;
+  JsonObject &root = jsonBuffer.createObject();
+
+  root[FPSTR(pgm_city)] = _configLocation.city;
+  root[FPSTR(pgm_timezone)] = _configLocation.timezone;
+  root[FPSTR(pgm_latitude)] = _configLocation.latitude;
+  root[FPSTR(pgm_longitude)] = _configLocation.longitude;
+
+  root.prettyPrintTo(*response);
+  request->send(response);
+}
+
+void send_config_time(AsyncWebServerRequest *request)
+{
+  DEBUGASYNCWS("%s\r\n", __PRETTY_FUNCTION__);
+
+  AsyncResponseStream *response = request->beginResponseStream("application/json");
+  DynamicJsonBuffer jsonBuffer;
+  JsonObject &root = jsonBuffer.createObject();
+
+  root[FPSTR(pgm_dst)] = _configTime.dst;
+  root[FPSTR(pgm_enablertc)] = _configTime.enablertc;
+  root[FPSTR(pgm_enablentp)] = _configTime.enablentp;
+  root[FPSTR(pgm_ntpserver_0)] = _configTime.ntpserver_0;
+  root[FPSTR(pgm_ntpserver_1)] = _configTime.ntpserver_1;
+  root[FPSTR(pgm_ntpserver_2)] = _configTime.ntpserver_2;
+  root[FPSTR(pgm_syncinterval)] = _configTime.syncinterval;
+
+  root.prettyPrintTo(*response);
+  request->send(response);
+}
+
+void send_config_sholat(AsyncWebServerRequest *request)
+{
+  DEBUGASYNCWS("%s\r\n", __PRETTY_FUNCTION__);
+
+  AsyncResponseStream *response = request->beginResponseStream("application/json");
+  DynamicJsonBuffer jsonBuffer;
+  JsonObject &root = jsonBuffer.createObject();
+
+  // root[FPSTR(pgm_province)] = _config.province;
+  root[FPSTR(pgm_city)] = _configLocation.city;
+  root[FPSTR(pgm_timezone)] = _configLocation.timezone;
+  root[FPSTR(pgm_latitude)] = _configLocation.latitude;
+  root[FPSTR(pgm_longitude)] = _configLocation.longitude;
+
+  // calcMethod
+  if (_sholatConfig.calcMethod == Jafari)
+  {
+    root[FPSTR(pgm_calcMethod)] = FPSTR(pgm_Jafari);
+  }
+  else if (_sholatConfig.calcMethod == Karachi)
+  {
+    root[FPSTR(pgm_calcMethod)] = FPSTR(pgm_Karachi);
+  }
+  else if (_sholatConfig.calcMethod == ISNA)
+  {
+    root[FPSTR(pgm_calcMethod)] = FPSTR(pgm_ISNA);
+  }
+  else if (_sholatConfig.calcMethod == MWL)
+  {
+    root[FPSTR(pgm_calcMethod)] = FPSTR(pgm_MWL);
+  }
+  else if (_sholatConfig.calcMethod == Makkah)
+  {
+    root[FPSTR(pgm_calcMethod)] = FPSTR(pgm_Makkah);
+  }
+  else if (_sholatConfig.calcMethod == Egypt)
+  {
+    root[FPSTR(pgm_calcMethod)] = FPSTR(pgm_Egypt);
+  }
+  else if (_sholatConfig.calcMethod == Custom)
+  {
+    root[FPSTR(pgm_calcMethod)] = FPSTR(pgm_Custom);
+  }
+
+  //asrMethod
+  if (_sholatConfig.asrJuristic == Shafii)
+  {
+    root[FPSTR(pgm_asrJuristic)] = FPSTR(pgm_Shafii);
+  }
+  else if (_sholatConfig.asrJuristic == Hanafi)
+  {
+    root[FPSTR(pgm_asrJuristic)] = FPSTR(pgm_Hanafi);
+  }
+
+  // highLatsAdjustMethod
+  //uint8_t highLatsAdjustMethod = root[FPSTR(pgm_highLatsAdjustMethod)];
+  if (_sholatConfig.highLatsAdjustMethod == None)
+  {
+    root[FPSTR(pgm_highLatsAdjustMethod)] = FPSTR(pgm_None);
+  }
+  else if (_sholatConfig.highLatsAdjustMethod == MidNight)
+  {
+    root[FPSTR(pgm_highLatsAdjustMethod)] = FPSTR(pgm_MidNight);
+  }
+  else if (_sholatConfig.highLatsAdjustMethod == OneSeventh)
+  {
+    root[FPSTR(pgm_highLatsAdjustMethod)] = FPSTR(pgm_OneSeventh);
+  }
+  else if (_sholatConfig.highLatsAdjustMethod == AngleBased)
+  {
+    root[FPSTR(pgm_highLatsAdjustMethod)] = FPSTR(pgm_AngleBased);
+  }
+
+  root[FPSTR(pgm_fajrAngle)] = _sholatConfig.fajrAngle;
+  root[FPSTR(pgm_maghribAngle)] = _sholatConfig.maghribAngle;
+  root[FPSTR(pgm_ishaAngle)] = _sholatConfig.ishaAngle;
+  root[FPSTR(pgm_offsetImsak)] = _sholatConfig.offsetImsak;
+  root[FPSTR(pgm_offsetFajr)] = _sholatConfig.offsetFajr;
+  root[FPSTR(pgm_offsetSunrise)] = _sholatConfig.offsetSunrise;
+  root[FPSTR(pgm_offsetDhuhr)] = _sholatConfig.offsetDhuhr;
+  root[FPSTR(pgm_offsetAsr)] = _sholatConfig.offsetAsr;
+  root[FPSTR(pgm_offsetSunset)] = _sholatConfig.offsetSunset;
+  root[FPSTR(pgm_offsetMaghrib)] = _sholatConfig.offsetMaghrib;
+  root[FPSTR(pgm_offsetIsha)] = _sholatConfig.offsetIsha;
+
+  root.prettyPrintTo(*response);
+  request->send(response);
+}
+
+void send_config_ledmatrix(AsyncWebServerRequest *request)
+{
+  DEBUGASYNCWS("%s\r\n", __PRETTY_FUNCTION__);
+
+  AsyncResponseStream *response = request->beginResponseStream("application/json");
+  DynamicJsonBuffer jsonBuffer;
+  JsonObject &root = jsonBuffer.createObject();
+
+  // root[FPSTR(pgm_type)] = FPSTR(pgm_matrixconfig);
+  root[FPSTR(pgm_pagemode0)] = _ledMatrixSettings.pagemode0;
+  root[FPSTR(pgm_pagemode1)] = _ledMatrixSettings.pagemode1;
+  root[FPSTR(pgm_pagemode2)] = _ledMatrixSettings.pagemode2;
+  root[FPSTR(pgm_scrollrow_0)] = _ledMatrixSettings.scrollrow_0;
+  root[FPSTR(pgm_scrollrow_1)] = _ledMatrixSettings.scrollrow_1;
+  root[FPSTR(pgm_scrollspeed)] = _ledMatrixSettings.scrollspeed;
+  root[FPSTR(pgm_brightness)] = _ledMatrixSettings.brightness;
+
+  char temp[4];
+  root[FPSTR(pgm_operatingmode)] = itoa(_ledMatrixSettings.operatingmode, temp, 10);
+  if (_ledMatrixSettings.pagemode == Automatic)
+  {
+    root[FPSTR(pgm_pagemode)] = FPSTR(pgm_automatic);
+  }
+  else if (_ledMatrixSettings.pagemode == Manual)
+  {
+    root[FPSTR(pgm_pagemode)] = FPSTR(pgm_manual);
+  }
+
+  root[FPSTR(pgm_adzanwaittime)] = _ledMatrixSettings.adzanwaittime;
+  root[FPSTR(pgm_iqamahwaittime)] = _ledMatrixSettings.iqamahwaittime;
+
+  root.prettyPrintTo(*response);
+  request->send(response);
+}
+
+void send_config_mqtt(AsyncWebServerRequest *request)
+{
+  DEBUGASYNCWS("%s\r\n", __PRETTY_FUNCTION__);
+
+  AsyncResponseStream *response = request->beginResponseStream("application/json");
+  DynamicJsonBuffer jsonBuffer;
+  JsonObject &root = jsonBuffer.createObject();
+
+  root[FPSTR(pgm_mqtt_enabled)] = configMqtt.enabled;
+  root[FPSTR(pgm_mqtt_server)] = configMqtt.server;
+  root[FPSTR(pgm_mqtt_port)] = configMqtt.port;
+  root[FPSTR(pgm_mqtt_user)] = configMqtt.user;
+  root[FPSTR(pgm_mqtt_pass)] = configMqtt.pass;
+  root[FPSTR(pgm_mqtt_clientid)] = _config.hostname;
+  root[FPSTR(pgm_mqtt_keepalive)] = configMqtt.keepalive;
+  root[FPSTR(pgm_mqtt_cleansession)] = configMqtt.cleansession;
+  root[FPSTR(pgm_mqtt_lwttopicprefix)] = configMqtt.lwttopicprefix;
+  root[FPSTR(pgm_mqtt_lwtqos)] = configMqtt.lwtqos;
+  root[FPSTR(pgm_mqtt_lwtretain)] = configMqtt.lwtretain;
+  root[FPSTR(pgm_mqtt_lwtpayload)] = configMqtt.lwtpayload;
+
+  root.prettyPrintTo(*response);
+  request->send(response);
+}
+
 void WsSendConfigSholat()
 {
-  //  DEBUGASYNCWS("%s\n", __PRETTY_FUNCTION__);
+  //  DEBUGASYNCWS("%s\r\n", __PRETTY_FUNCTION__);
   //
   //  DynamicJsonBuffer jsonBuffer;
   //  JsonObject &root = jsonBuffer.createObject();
@@ -1944,15 +2307,15 @@ void set_RTC_TIME_html(AsyncWebServerRequest *request)
     AsyncWebParameter *p = request->getParam(i);
     if (p->isFile())
     { //p->isPost() is also true
-      Serial.printf("FILE[%s]: %s, size: %u\n", p->name().c_str(), p->value().c_str(), p->size());
+      Serial.printf("FILE[%s]: %s, size: %u\r\n", p->name().c_str(), p->value().c_str(), p->size());
     }
     else if (p->isPost())
     {
-      Serial.printf("POST[%s]: %s\n", p->name().c_str(), p->value().c_str());
+      Serial.printf("POST[%s]: %s\r\n", p->name().c_str(), p->value().c_str());
     }
     else
     {
-      Serial.printf("GET[%s]: %s\n", p->name().c_str(), p->value().c_str());
+      Serial.printf("GET[%s]: %s\r\n", p->name().c_str(), p->value().c_str());
     }
   }
 
@@ -1972,14 +2335,15 @@ void set_RTC_TIME_html(AsyncWebServerRequest *request)
   request->send(SPIFFS, request->url());
 }
 
-bool load_config()
+bool load_config_location()
 {
   DEBUGASYNCWS("%s\r\n", __PRETTY_FUNCTION__);
 
-  File file = SPIFFS.open(FPSTR(pgm_configfilenetwork), "r");
+  File file = SPIFFS.open(FPSTR(pgm_configfilelocation), "r");
   if (!file)
   {
-    DEBUGASYNCWS("Failed to open config file\n");
+    DEBUGASYNCWS("Failed to open config LOCATION file\n");
+    file.close();
     return false;
   }
 
@@ -2003,7 +2367,7 @@ bool load_config()
 
   if (!root.success())
   {
-    DEBUGASYNCWS("Failed to parse config file\r\n");
+    DEBUGASYNCWS("Failed to parse config LOCATION file\r\n");
     return false;
   }
 
@@ -2011,19 +2375,80 @@ bool load_config()
   root.prettyPrintTo(DEBUGPORT);
 #endif
 
+  strlcpy(_configLocation.city, root[FPSTR(pgm_city)], sizeof(_configLocation.city));
+  _configLocation.timezone = root[FPSTR(pgm_timezone)];
+  _configLocation.latitude = root[FPSTR(pgm_latitude)];
+  _configLocation.longitude = root[FPSTR(pgm_longitude)];
+
+  DEBUGASYNCWS("\r\nConfig LOCATION loaded successfully.\r\n");
+  DEBUGASYNCWS("city: %s\r\n", _configLocation.city);
+  DEBUGASYNCWS("timezone: %d\r\n", _configLocation.timezone);
+  DEBUGASYNCWS("latitude: %f\r\n", _configLocation.latitude);
+  DEBUGASYNCWS("longitude: %f\r\n", _configLocation.longitude);
+
+  return true;
+}
+
+bool load_config_network()
+{
+  DEBUGASYNCWS("%s\r\n", __PRETTY_FUNCTION__);
+
+  File file = SPIFFS.open(FPSTR(pgm_configfilenetwork), "r");
+  if (!file)
+  {
+    DEBUGASYNCWS("Failed to open config file\r\n");
+    file.close();
+    return false;
+  }
+
+  size_t size = file.size();
+  DEBUGASYNCWS("JSON file size: %d bytes\r\n", size);
+
+  // Allocate a buffer to store contents of the file
+  char buf[size];
+
+  //copy file to buffer
+  file.readBytes(buf, size);
+
+  //add termination character at the end
+  buf[size] = '\0';
+
+  //close the file, save your memory, keep healthy :-)
+  file.close();
+
+  DynamicJsonBuffer jsonBuffer;
+  JsonObject &root = jsonBuffer.parseObject(buf);
+
+  if (!root.success())
+  {
+    DEBUGASYNCWS("Failed to parse config NETWORK file\r\n");
+    return false;
+  }
+
+#ifndef RELEASEASYNCWS
+  root.prettyPrintTo(DEBUGPORT);
+#endif
+
+  // strlcpy(_config.hostname, root[FPSTR(pgm_hostname)], sizeof(_config.hostname));
   strlcpy(_config.ssid, root[FPSTR(pgm_ssid)], sizeof(_config.ssid));
   strlcpy(_config.password, root[FPSTR(pgm_password)], sizeof(_config.password));
+  _config.dhcp = root[FPSTR(pgm_dhcp)];
   strlcpy(_config.static_ip, root[FPSTR(pgm_static_ip)], sizeof(_config.static_ip));
   strlcpy(_config.netmask, root[FPSTR(pgm_netmask)], sizeof(_config.netmask));
   strlcpy(_config.gateway, root[FPSTR(pgm_gateway)], sizeof(_config.gateway));
   strlcpy(_config.dns0, root[FPSTR(pgm_dns0)], sizeof(_config.dns0));
   strlcpy(_config.dns1, root[FPSTR(pgm_dns1)], sizeof(_config.dns1));
-  _config.dhcp = root[FPSTR(pgm_dhcp)];
 
-  DEBUGASYNCWS("\r\nConfig loaded successfully.\r\n");
-  DEBUGASYNCWS("SSID: %s ", _config.ssid);
-  DEBUGASYNCWS("PASS: %s\r\n", _config.password);
-  DEBUGASYNCWS("NTP Server: %s\r\n", _config.ntpserver_0);
+  DEBUGASYNCWS("\r\nNetwork settings loaded successfully.\r\n");
+  DEBUGASYNCWS("hostname: %s\r\n", _config.hostname);
+  DEBUGASYNCWS("ssid: %s\r\n", _config.ssid);
+  DEBUGASYNCWS("pass: %s\r\n", _config.password);
+  DEBUGASYNCWS("dhcp: %d\r\n", _config.dhcp);
+  DEBUGASYNCWS("static_ip: %s\r\n", _config.static_ip);
+  DEBUGASYNCWS("netmask: %s\r\n", _config.netmask);
+  DEBUGASYNCWS("gateway: %s\r\n", _config.gateway);
+  DEBUGASYNCWS("dns0: %s\r\n", _config.dns0);
+  DEBUGASYNCWS("dns1: %s\r\n", _config.dns1);
 
   return true;
 }
@@ -2035,12 +2460,13 @@ bool load_config_time()
   File file = SPIFFS.open(FPSTR(pgm_configfiletime), "r");
   if (!file)
   {
-    DEBUGASYNCWS("Failed to open config file\n");
+    DEBUGASYNCWS("Failed to open config TIME file\r\n");
+    file.close();
     return false;
   }
 
   size_t size = file.size();
-  DEBUGASYNCWS("JSON file size: %d bytes\r\n", size);
+  DEBUGASYNCWS("config TIME file size: %d bytes\r\n", size);
 
   // Allocate a buffer to store contents of the file
   char buf[size];
@@ -2059,47 +2485,49 @@ bool load_config_time()
 
   if (!root.success())
   {
-    DEBUGASYNCWS("Failed to parse config file\r\n");
+    DEBUGASYNCWS("Failed to parse config TIME file\r\n");
     return false;
   }
 
 #ifndef RELEASEASYNCWS
   root.prettyPrintTo(DEBUGPORT);
-  DEBUGASYNCWS("\n");
+  DEBUGASYNCWS("\r\n");
 
 #endif
 
-  _config.timezone = root[FPSTR(pgm_timezone)];
-  _config.dst = root[FPSTR(pgm_dst)];
-  _config.enablertc = root[FPSTR(pgm_enablertc)];
-  _config.enablentp = root[FPSTR(pgm_enablentp)];
-  strlcpy(_config.ntpserver_0, root[FPSTR(pgm_ntpserver_0)], sizeof(_config.ntpserver_0));
-  strlcpy(_config.ntpserver_1, root[FPSTR(pgm_ntpserver_1)], sizeof(_config.ntpserver_1));
-  strlcpy(_config.ntpserver_2, root[FPSTR(pgm_ntpserver_2)], sizeof(_config.ntpserver_2));
-  _config.syncinterval = root[FPSTR(pgm_syncinterval)];
+  _configTime.dst = root[FPSTR(pgm_dst)];
+  _configTime.enablertc = root[FPSTR(pgm_enablertc)];
+  _configTime.enablentp = root[FPSTR(pgm_enablentp)];
+  strlcpy(_configTime.ntpserver_0, root[FPSTR(pgm_ntpserver_0)], sizeof(_configTime.ntpserver_0));
+  strlcpy(_configTime.ntpserver_1, root[FPSTR(pgm_ntpserver_1)], sizeof(_configTime.ntpserver_1));
+  strlcpy(_configTime.ntpserver_2, root[FPSTR(pgm_ntpserver_2)], sizeof(_configTime.ntpserver_2));
+  _configTime.syncinterval = root[FPSTR(pgm_syncinterval)];
 
   //check
   DEBUGASYNCWS("Time settings loaded successfully.\r\n");
-  DEBUGASYNCWS("timezone: %ld\r\n", _config.timezone);
-  DEBUGASYNCWS("dst: %d\r\n", _config.dst);
-  DEBUGASYNCWS("syncinterval: %lu\r\n", _config.syncinterval);
-  DEBUGASYNCWS("enablertc: %d\r\n", _config.enablertc);
-  DEBUGASYNCWS("enablentp: %d\r\n", _config.enablentp);
-  DEBUGASYNCWS("ntpserver_0: %s\r\n", _config.ntpserver_0);
-  DEBUGASYNCWS("ntpserver_1: %s\r\n", _config.ntpserver_1);
-  DEBUGASYNCWS("ntpserver_2: %s\r\n", _config.ntpserver_2);
+  DEBUGASYNCWS("dst: %d\r\n", _configTime.dst);
+  DEBUGASYNCWS("syncinterval: %d\r\n", _configTime.syncinterval);
+  DEBUGASYNCWS("enablertc: %d\r\n", _configTime.enablertc);
+  DEBUGASYNCWS("enablentp: %d\r\n", _configTime.enablentp);
+  DEBUGASYNCWS("ntpserver_0: %s\r\n", _configTime.ntpserver_0);
+  DEBUGASYNCWS("ntpserver_1: %s\r\n", _configTime.ntpserver_1);
+  DEBUGASYNCWS("ntpserver_2: %s\r\n", _configTime.ntpserver_2);
 
   return true;
 }
 
+//*************************
+// LOAD SHOLAT CONFIG
+//*************************
 bool load_config_sholat()
 {
-  DEBUGASYNCWS("\n%s\r\n", __PRETTY_FUNCTION__);
+  DEBUGASYNCWS("\r\n%s\r\n", __PRETTY_FUNCTION__);
 
   File file = SPIFFS.open(FPSTR(pgm_configfilesholat), "r");
   if (!file)
   {
-    DEBUGASYNCWS("Failed to open config file\n");
+    DEBUGASYNCWS("Failed to open config file\r\n");
+    file.close();
     return false;
   }
 
@@ -2129,17 +2557,21 @@ bool load_config_sholat()
 
 #ifndef RELEASEASYNCWS
   root.prettyPrintTo(DEBUGPORT);
-  DEBUGASYNCWS("\n");
+  DEBUGASYNCWS("\r\n");
 
 #endif
 
-  strlcpy(_sholatConfig.location, root[FPSTR(pgm_location)], sizeof(_sholatConfig.location));
-  _sholatConfig.latitude = root[FPSTR(pgm_latitude)];
-  _sholatConfig.longitude = root[FPSTR(pgm_longitude)];
-  _sholatConfig.timezone = root[FPSTR(pgm_timezone)];
+  //strlcpy(_sholatConfig.location, _config.city, sizeof(_sholatConfig.location));
+  //const char *city = _config.city;
+  //_sholatConfig.city = city;
+  // _sholatConfig.timezone = _configLocation.timezone;
+  // _sholatConfig.latitude = _configLocation.latitude;
+  // _sholatConfig.longitude = _configLocation.longitude;
+
+  uint8_t len;
 
   const char *calcMethod = root[FPSTR(pgm_calcMethod)];
-  int len = strlen(calcMethod);
+  len = strlen(calcMethod);
   if (strncmp_P(calcMethod, pgm_Jafari, len) == 0)
   {
     _sholatConfig.calcMethod = Jafari;
@@ -2170,31 +2602,33 @@ bool load_config_sholat()
   }
 
   //asrMethod
-  uint8_t asrMethod = root[FPSTR(pgm_asrMethod)];
-  if (asrMethod == 0)
+  const char *asrJuristic = root[FPSTR(pgm_asrJuristic)];
+  len = strlen(asrJuristic);
+  if (strncmp_P(asrJuristic, pgm_Shafii, len) == 0)
   {
     _sholatConfig.asrJuristic = Shafii;
   }
-  else if (asrMethod == 1)
+  else if (strncmp_P(asrJuristic, pgm_Hanafi, len) == 0)
   {
     _sholatConfig.asrJuristic = Hanafi;
   }
 
   // highLatsAdjustMethod
-  uint8_t highLatsAdjustMethod = root[FPSTR(pgm_highLatsAdjustMethod)];
-  if (highLatsAdjustMethod == 0)
+  const char *highLatsAdjustMethod = root[FPSTR(pgm_highLatsAdjustMethod)];
+  len = strlen(highLatsAdjustMethod);
+  if (strncmp_P(highLatsAdjustMethod, pgm_None, len) == 0)
   {
     _sholatConfig.highLatsAdjustMethod = None;
   }
-  else if (highLatsAdjustMethod == 1)
+  else if (strncmp_P(highLatsAdjustMethod, pgm_MidNight, len) == 0)
   {
     _sholatConfig.highLatsAdjustMethod = MidNight;
   }
-  else if (highLatsAdjustMethod == 2)
+  else if (strncmp_P(highLatsAdjustMethod, pgm_OneSeventh, len) == 0)
   {
     _sholatConfig.highLatsAdjustMethod = OneSeventh;
   }
-  else if (highLatsAdjustMethod == 3)
+  else if (strncmp_P(highLatsAdjustMethod, pgm_AngleBased, len) == 0)
   {
     _sholatConfig.highLatsAdjustMethod = AngleBased;
   }
@@ -2212,11 +2646,11 @@ bool load_config_sholat()
   _sholatConfig.offsetIsha = root[FPSTR(pgm_offsetIsha)].as<float>();
 
   //check
-  DEBUGASYNCWS("\nSholat settings loaded successfully.\r\n");
-  DEBUGASYNCWS("location: %s\r\n", _sholatConfig.location);
-  DEBUGASYNCWS("latitude: %f\r\n", _sholatConfig.latitude);
-  DEBUGASYNCWS("longitude: %f\r\n", _sholatConfig.longitude);
-  DEBUGASYNCWS("timezone: %d\r\n", _sholatConfig.timezone);
+  DEBUGASYNCWS("\r\nSholat settings loaded successfully.\r\n");
+  //DEBUGASYNCWS("location: %s\r\n", _sholatConfig.location);
+  DEBUGASYNCWS("timezone: %d\r\n", _configLocation.timezone);
+  DEBUGASYNCWS("latitude: %f\r\n", _configLocation.latitude);
+  DEBUGASYNCWS("longitude: %f\r\n", _configLocation.longitude);
   DEBUGASYNCWS("calcMethod: %d\r\n", _sholatConfig.calcMethod);
   DEBUGASYNCWS("asrJuristic: %d\r\n", _sholatConfig.asrJuristic);
   DEBUGASYNCWS("highLatsAdjustMethod: %d\r\n", _sholatConfig.highLatsAdjustMethod);
@@ -2235,14 +2669,18 @@ bool load_config_sholat()
   return true;
 }
 
-bool load_config_runningled()
+//*************************
+// LOAD CONFIG LEDMATRIX
+//*************************
+bool load_config_ledmatrix()
 {
-  DEBUGASYNCWS("\n%s\r\n", __PRETTY_FUNCTION__);
+  DEBUGASYNCWS("\r\n%s\r\n", __PRETTY_FUNCTION__);
 
-  File file = SPIFFS.open(FPSTR(pgm_configfilerunningled), "r");
+  File file = SPIFFS.open(FPSTR(pgm_configfileledmatrix), "r");
   if (!file)
   {
-    DEBUGASYNCWS("Failed to open config file\n");
+    DEBUGASYNCWS("Failed to open config LEDMATRIX file\r\n");
+    file.close();
     return false;
   }
 
@@ -2266,13 +2704,13 @@ bool load_config_runningled()
 
   if (!root.success())
   {
-    DEBUGASYNCWS("Failed to parse config file\r\n");
+    DEBUGASYNCWS("Failed to parse config LEDMATRIX file\r\n");
     return false;
   }
 
 #ifndef RELEASEASYNCWS
   root.prettyPrintTo(DEBUGPORT);
-  DEBUGASYNCWS("\n");
+  DEBUGASYNCWS("\r\n");
 
 #endif
 
@@ -2309,6 +2747,8 @@ bool load_config_runningled()
   _ledMatrixSettings.scrollrow_1 = root[FPSTR(pgm_scrollrow_1)];
   _ledMatrixSettings.scrollspeed = root[FPSTR(pgm_scrollspeed)];
   _ledMatrixSettings.brightness = root[FPSTR(pgm_brightness)];
+  _ledMatrixSettings.adzanwaittime = root[FPSTR(pgm_adzanwaittime)];
+  _ledMatrixSettings.iqamahwaittime = root[FPSTR(pgm_iqamahwaittime)];
 
   MODE = op;
   currentPageMode0 = _ledMatrixSettings.pagemode0;
@@ -2316,7 +2756,7 @@ bool load_config_runningled()
   currentPageMode2 = _ledMatrixSettings.pagemode2;
 
   //check
-  DEBUGASYNCWS("\nLed-Matrix settings loaded successfully.\r\n");
+  DEBUGASYNCWS("\r\nLEDMATRIX settings loaded successfully.\r\n");
   DEBUGASYNCWS("operatingmode: %d\r\n", _ledMatrixSettings.operatingmode);
   DEBUGASYNCWS("pagemode: %d\r\n", _ledMatrixSettings.pagemode);
   DEBUGASYNCWS("pagemode0: %d\r\n", _ledMatrixSettings.pagemode0);
@@ -2330,14 +2770,18 @@ bool load_config_runningled()
   return true;
 }
 
+//*************************
+// LOAD HTTPAUTH CONFIG
+//*************************
 bool load_config_httpauth()
 {
-  DEBUGASYNCWS("\n%s\r\n", __PRETTY_FUNCTION__);
+  DEBUGASYNCWS("\r\n%s\r\n", __PRETTY_FUNCTION__);
 
   File file = SPIFFS.open("/secret.json", "r");
   if (!file)
   {
-    DEBUGASYNCWS("Failed to open file\n");
+    DEBUGASYNCWS("Failed to open HTTPAUTH file\r\n");
+    file.close();
     return false;
   }
 
@@ -2367,7 +2811,7 @@ bool load_config_httpauth()
 
 #ifndef RELEASEASYNCWS
   root.prettyPrintTo(DEBUGPORT);
-  DEBUGASYNCWS("\n");
+  DEBUGASYNCWS("\r\n");
 #endif
 
   if (
@@ -2393,48 +2837,246 @@ bool load_config_httpauth()
   return true;
 }
 
-bool save_config()
+//*************************
+// SAVE NETWORK CONFIG
+//*************************
+bool save_config_network()
 {
   DEBUGASYNCWS("%s\r\n", __PRETTY_FUNCTION__);
 
   DynamicJsonBuffer jsonBuffer;
   JsonObject &json = jsonBuffer.createObject();
+  // json[FPSTR(pgm_hostname)] = _config.hostname;
   json[FPSTR(pgm_ssid)] = _config.ssid;
   json[FPSTR(pgm_password)] = _config.password;
-
+  json[FPSTR(pgm_dhcp)] = _config.dhcp;
   json[FPSTR(pgm_static_ip)] = _config.static_ip;
   json[FPSTR(pgm_netmask)] = _config.netmask;
   json[FPSTR(pgm_gateway)] = _config.gateway;
   json[FPSTR(pgm_dns0)] = _config.dns0;
   json[FPSTR(pgm_dns1)] = _config.dns1;
 
-  json[FPSTR(pgm_dhcp)] = _config.dhcp;
-  json[FPSTR(pgm_ntpserver_0)] = _config.ntpserver_0;
-  json[FPSTR(pgm_ntpserver_1)] = _config.ntpserver_1;
-  json[FPSTR(pgm_ntpserver_2)] = _config.ntpserver_2;
-  json[FPSTR(pgm_syncinterval)] = _config.syncinterval;
-  json[FPSTR(pgm_timezone)] = _config.timezone;
-  json[FPSTR(pgm_dst)] = _config.dst;
-  json[FPSTR(pgm_hostname)] = _config.hostname;
+  //TODO add AP data to html
+  File configFile = SPIFFS.open(FPSTR(pgm_configfilenetwork), "w");
+
+#ifndef RELEASEASYNCWS
+  json.prettyPrintTo(DEBUGPORT);
+#endif
+
+  json.prettyPrintTo(configFile);
+  configFile.flush();
+  configFile.close();
+  return true;
+}
+
+//*************************
+// SAVE CONFIG LOCATION
+//*************************
+bool save_config_location()
+{
+  DEBUGASYNCWS("%s\r\n", __PRETTY_FUNCTION__);
+
+  DynamicJsonBuffer jsonBuffer;
+  JsonObject &json = jsonBuffer.createObject();
+
+  json[FPSTR(pgm_city)] = _configLocation.city;
+  json[FPSTR(pgm_timezone)] = _configLocation.timezone;
+  json[FPSTR(pgm_latitude)] = _configLocation.latitude;
+  json[FPSTR(pgm_longitude)] = _configLocation.longitude;
+
+  File configFile = SPIFFS.open(FPSTR(pgm_configfilelocation), "w");
+
+#ifndef RELEASEASYNCWS
+  json.prettyPrintTo(DEBUGPORT);
+#endif
+
+  json.prettyPrintTo(configFile);
+  configFile.flush();
+  configFile.close();
+  return true;
+}
+
+//*************************
+// SAVE CONFIG TIME
+//*************************
+bool save_config_time()
+{
+  DEBUGASYNCWS("%s\r\n", __PRETTY_FUNCTION__);
+
+  DynamicJsonBuffer jsonBuffer;
+  JsonObject &json = jsonBuffer.createObject();
+
+  json[FPSTR(pgm_dst)] = _configTime.dst;
+  json[FPSTR(pgm_enablertc)] = _configTime.enablertc;
+  json[FPSTR(pgm_syncinterval)] = _configTime.syncinterval;
+  json[FPSTR(pgm_enablentp)] = _configTime.enablentp;
+  json[FPSTR(pgm_ntpserver_0)] = _configTime.ntpserver_0;
+  json[FPSTR(pgm_ntpserver_1)] = _configTime.ntpserver_1;
+  json[FPSTR(pgm_ntpserver_2)] = _configTime.ntpserver_2;
 
   //json["led"] = config.connectionLed;
 
   //TODO add AP data to html
-  File configFile = SPIFFS.open(FPSTR(pgm_configfilenetwork), "w");
-  if (!configFile)
-  {
-    PRINT("Failed to open config file for writing\r\n");
-    configFile.close();
-    return false;
-  }
+  File configFile = SPIFFS.open(FPSTR(pgm_configfiletime), "w");
 
-#ifndef RELEASE
-  String temp;
-  json.prettyPrintTo(temp);
-  Serial.println(temp);
+#ifndef RELEASEASYNCWS
+  json.prettyPrintTo(DEBUGPORT);
 #endif
 
-  json.printTo(configFile);
+  json.prettyPrintTo(configFile);
+  configFile.flush();
+  configFile.close();
+  return true;
+}
+
+//*************************
+// SAVE SHOLAT CONFIG
+//*************************
+bool save_config_sholat()
+{
+  DEBUGASYNCWS("%s\r\n", __PRETTY_FUNCTION__);
+
+  DynamicJsonBuffer jsonBuffer;
+  JsonObject &root = jsonBuffer.createObject();
+
+  //root[FPSTR(pgm_location)] = _sholatConfig.location;
+  //root[FPSTR(pgm_timezone)] = _sholatConfig.timezone;
+  //root[FPSTR(pgm_latitude)] = _sholatConfig.latitude;
+  //root[FPSTR(pgm_longitude)] = _sholatConfig.longitude;
+
+  // calcMethod
+  if (_sholatConfig.calcMethod == Jafari)
+  {
+    root[FPSTR(pgm_calcMethod)] = FPSTR(pgm_Jafari);
+  }
+  else if (_sholatConfig.calcMethod == Karachi)
+  {
+    root[FPSTR(pgm_calcMethod)] = FPSTR(pgm_Karachi);
+  }
+  else if (_sholatConfig.calcMethod == ISNA)
+  {
+    root[FPSTR(pgm_calcMethod)] = FPSTR(pgm_ISNA);
+  }
+  else if (_sholatConfig.calcMethod == MWL)
+  {
+    root[FPSTR(pgm_calcMethod)] = FPSTR(pgm_MWL);
+  }
+  else if (_sholatConfig.calcMethod == Makkah)
+  {
+    root[FPSTR(pgm_calcMethod)] = FPSTR(pgm_Makkah);
+  }
+  else if (_sholatConfig.calcMethod == Egypt)
+  {
+    root[FPSTR(pgm_calcMethod)] = FPSTR(pgm_Egypt);
+  }
+  else if (_sholatConfig.calcMethod == Custom)
+  {
+    root[FPSTR(pgm_calcMethod)] = FPSTR(pgm_Custom);
+  }
+
+  //asrJuristic
+  if (_sholatConfig.asrJuristic == Shafii)
+  {
+    root[FPSTR(pgm_asrJuristic)] = FPSTR(pgm_Shafii);
+  }
+  else if (_sholatConfig.asrJuristic == Hanafi)
+  {
+    root[FPSTR(pgm_asrJuristic)] = FPSTR(pgm_Hanafi);
+  }
+
+  // highLatsAdjustMethod
+  if (_sholatConfig.highLatsAdjustMethod == None)
+  {
+    root[FPSTR(pgm_highLatsAdjustMethod)] = FPSTR(pgm_None);
+  }
+  else if (_sholatConfig.highLatsAdjustMethod == MidNight)
+  {
+    root[FPSTR(pgm_highLatsAdjustMethod)] = FPSTR(pgm_MidNight);
+  }
+  else if (_sholatConfig.highLatsAdjustMethod == OneSeventh)
+  {
+    root[FPSTR(pgm_highLatsAdjustMethod)] = FPSTR(pgm_OneSeventh);
+  }
+  else if (_sholatConfig.highLatsAdjustMethod == AngleBased)
+  {
+    root[FPSTR(pgm_highLatsAdjustMethod)] = FPSTR(pgm_AngleBased);
+  }
+
+  root[FPSTR(pgm_fajrAngle)] = _sholatConfig.fajrAngle;
+  root[FPSTR(pgm_maghribAngle)] = _sholatConfig.maghribAngle;
+  root[FPSTR(pgm_ishaAngle)] = _sholatConfig.ishaAngle;
+  root[FPSTR(pgm_offsetImsak)] = _sholatConfig.offsetImsak;
+  root[FPSTR(pgm_offsetFajr)] = _sholatConfig.offsetFajr;
+  root[FPSTR(pgm_offsetSunrise)] = _sholatConfig.offsetSunrise;
+  root[FPSTR(pgm_offsetDhuhr)] = _sholatConfig.offsetDhuhr;
+  root[FPSTR(pgm_offsetAsr)] = _sholatConfig.offsetAsr;
+  root[FPSTR(pgm_offsetSunset)] = _sholatConfig.offsetSunset;
+  root[FPSTR(pgm_offsetMaghrib)] = _sholatConfig.offsetMaghrib;
+  root[FPSTR(pgm_offsetIsha)] = _sholatConfig.offsetIsha;
+
+#ifndef RELEASEASYNCWS
+  root.prettyPrintTo(DEBUGPORT);
+#endif
+
+  File configFile = SPIFFS.open(FPSTR(pgm_configfilesholat), "w");
+  root.prettyPrintTo(configFile);
+  configFile.flush();
+  configFile.close();
+  return true;
+}
+
+//*************************
+// SAVE CONFIG LEDMATRIX
+//*************************
+bool save_config_ledmatrix()
+{
+  DEBUGASYNCWS("%s\r\n", __PRETTY_FUNCTION__);
+
+  DynamicJsonBuffer jsonBuffer;
+  JsonObject &root = jsonBuffer.createObject();
+
+  uint8_t opmode = 0;
+
+  if (_ledMatrixSettings.operatingmode == Normal)
+  {
+    opmode = 0;
+  }
+  else if (_ledMatrixSettings.operatingmode == Config)
+  {
+    opmode = 1;
+  }
+  else if (_ledMatrixSettings.operatingmode == Edit)
+  {
+    opmode = 2;
+  }
+
+  root[FPSTR(pgm_operatingmode)] = opmode;
+
+  if (_ledMatrixSettings.pagemode == Automatic)
+  {
+    root[FPSTR(pgm_pagemode)] = FPSTR(pgm_automatic);
+  }
+  else if (_ledMatrixSettings.pagemode == Manual)
+  {
+    root[FPSTR(pgm_pagemode)] = FPSTR(pgm_manual);
+  }
+
+  root[FPSTR(pgm_pagemode0)] = _ledMatrixSettings.pagemode0;
+  root[FPSTR(pgm_pagemode1)] = _ledMatrixSettings.pagemode1;
+  root[FPSTR(pgm_pagemode2)] = _ledMatrixSettings.pagemode2;
+  root[FPSTR(pgm_scrollrow_0)] = _ledMatrixSettings.scrollrow_0;
+  root[FPSTR(pgm_scrollrow_1)] = _ledMatrixSettings.scrollrow_1;
+  root[FPSTR(pgm_scrollspeed)] = _ledMatrixSettings.scrollspeed;
+  root[FPSTR(pgm_brightness)] = _ledMatrixSettings.brightness;
+  root[FPSTR(pgm_adzanwaittime)] = _ledMatrixSettings.adzanwaittime;
+  root[FPSTR(pgm_iqamahwaittime)] = _ledMatrixSettings.iqamahwaittime;
+
+#ifndef RELEASEASYNCWS
+  root.prettyPrintTo(DEBUGPORT);
+#endif
+
+  File configFile = SPIFFS.open(FPSTR(pgm_configfileledmatrix), "w");
+  root.prettyPrintTo(configFile);
   configFile.flush();
   configFile.close();
   return true;
@@ -2553,6 +3195,72 @@ void load_running_text()
   //return F("success");
 }
 
+void load_running_text_2()
+{
+  File runningTextFile = SPIFFS.open(RUNNING_TEXT_FILE_2, "r");
+  if (!runningTextFile)
+  {
+    DEBUGLOG("Failed to open running text file");
+    //return F("failed");
+    //    return false;
+    return;
+  }
+
+  // this is going to get the number of bytes in the file and give us the value in an integer
+  int fileSize = runningTextFile.size();
+  //Serial.println(fileSize);
+  //int chunkSize=1;
+  int chunkSize = 512;
+  //This is a character array to store a chunk of the file.
+  //We'll store 1024 characters at a time
+  // char contents[fileSize];
+  char buf[chunkSize];
+  int numberOfChunks = (fileSize / chunkSize) + 1;
+
+  // int count = 0;
+  int remainingChunks = fileSize;
+
+  int16_t x1Temp, y1Temp;
+  uint16_t wTemp, hTemp;
+
+  wText = 0;
+
+  for (int i = 0; i < numberOfChunks; i++)
+  {
+    if (remainingChunks - chunkSize < 0)
+    {
+      chunkSize = remainingChunks;
+    }
+    runningTextFile.read((uint8_t *)buf, chunkSize);
+    buf[chunkSize] = '\0';
+
+    //Convert UTF8-string to Extended ASCII
+    //utf8ascii(buf);
+
+    matrix.print(buf);
+
+    //contents += String(buf);
+    //strcat(contents, buf);
+    //buf[0] = (char)0; // clear buffer
+    remainingChunks = remainingChunks - chunkSize;
+  }
+
+  //char* chr = const_cast<char*>(contents.c_str());
+  //matrix.getTextBounds(chr, 0, 0, &x1Temp, &y1Temp, &wTemp, &hTemp);
+  matrix.getTextBounds(buf, 0, 0, &x1Temp, &y1Temp, &wTemp, &hTemp);
+  //matrix.getTextBounds(contents, 0, 0, &x1Temp, &y1Temp, &wTemp, &hTemp);
+  wText = wTemp;
+
+  runningTextFile.close();
+
+  //contents = "";
+  //return contents;
+
+  DEBUGLOG("%s\r\n", __PRETTY_FUNCTION__);
+
+  //return F("success");
+}
+
 char *formatBytes(size_t bytes)
 {
   static char buf[10];
@@ -2604,7 +3312,7 @@ bool loadHTTPAuth()
   // use configFile.readString instead.
   configFile.readBytes(buf.get(), size);
   configFile.close();
-  DEBUGASYNCWS("JSON secret file size: %d bytes\n", size);
+  DEBUGASYNCWS("JSON secret file size: %d bytes\r\n", size);
   DynamicJsonBuffer jsonBuffer(256);
   //StaticJsonBuffer<256> jsonBuffer;
   JsonObject &json = jsonBuffer.parseObject(buf.get());
@@ -2652,28 +3360,33 @@ void AsyncWSLoop()
     //if (ws.hasClient(clientID)) {
     if (ws.hasClient(clientID))
     {
-      if (clientVisitNetworkStatusPage)
+      if (clientVisitStatusNetworkPage)
       {
         //WsSendInfoDynamic(clientID);
         //EventSendNetworkStatus();
         WsSendNetworkStatus();
       }
-      else if (clientVisitTimeStatusPage)
+      else if (clientVisitStatusTimePage)
       {
         //WsSendInfoDynamic(clientID);
         WsSendTimeStatus();
       }
-      else if (clientVisitSystemStatusPage)
+      else if (clientVisitStatusSystemPage)
       {
         //WsSendInfoDynamic(clientID);
         //EventSendHeap();
         WsSendHeap();
+        WsSendFsInfo();
       }
       else if (clientVisitSholatTimePage)
       {
         WsSendSholatDynamic(clientID);
       }
-      else if (clientVisitRunningLedConfigPage)
+      else if (clientVisitConfigRunningLedPage)
+      {
+        // do nothing
+      }
+      else if (clientVisitConfigMqttPage)
       {
         // do nothing
       }
@@ -2683,10 +3396,209 @@ void AsyncWSLoop()
       clientID = 0;
       clientVisitInfoPage = false;
       clientVisitSholatTimePage = false;
-      clientVisitRunningLedConfigPage = false;
+      clientVisitConfigRunningLedPage = false;
+      clientVisitConfigMqttPage = false;
     }
 
-    // oldTime = localTime;
+    static char ssid_old[32];
+    static char password_old[32];
+    static bool dhcp_old;
+    static char static_ip_old[16];
+    static char netmask_old[16];
+    static char gateway_old[16];
+    static char dns0_old[16];
+    static char dns1_old[16];
+
+    static bool doOnce = true;
+    if (doOnce)
+    {
+      doOnce = false;
+      strlcpy(ssid_old, _config.ssid, sizeof(ssid_old));
+      strlcpy(password_old, _config.password, sizeof(password_old));
+      dhcp_old = _config.dhcp;
+      strlcpy(static_ip_old, _config.static_ip, sizeof(static_ip_old));
+      strlcpy(netmask_old, _config.netmask, sizeof(netmask_old));
+      strlcpy(gateway_old, _config.gateway, sizeof(gateway_old));
+      strlcpy(dns0_old, _config.dns0, sizeof(dns0_old));
+      strlcpy(dns1_old, _config.dns1, sizeof(dns1_old));
+    }
+
+    if (configNetworkUpdatedFlag)
+    {
+      configNetworkUpdatedFlag = false;
+
+      if (strcmp(ssid_old, _config.ssid) != 0 ||
+          strcmp(password_old, _config.password) != 0 ||
+          dhcp_old != _config.dhcp ||
+          strcmp(static_ip_old, _config.static_ip) != 0 ||
+          strcmp(netmask_old, _config.netmask) != 0 ||
+          strcmp(gateway_old, _config.gateway) != 0 ||
+          strcmp(dns0_old, _config.dns0) != 0 ||
+          strcmp(dns1_old, _config.dns1) != 0)
+      {
+
+        PRINT("\r\n*** Network Settings Updated ***\r\nApllying new settings...\r\n\r\n");
+
+        // update old values
+        strlcpy(ssid_old, _config.ssid, sizeof(ssid_old));
+        strlcpy(password_old, _config.password, sizeof(password_old));
+        dhcp_old = _config.dhcp;
+        strlcpy(static_ip_old, _config.static_ip, sizeof(static_ip_old));
+        strlcpy(netmask_old, _config.netmask, sizeof(netmask_old));
+        strlcpy(gateway_old, _config.gateway, sizeof(gateway_old));
+        strlcpy(dns0_old, _config.dns0, sizeof(dns0_old));
+        strlcpy(dns1_old, _config.dns1, sizeof(dns1_old));
+
+        if (!_config.dhcp)
+        {
+          PRINT("DHCP disabled, starting wifi in WIFI_STA mode with static IP.\r\n");
+          WiFi.mode(WIFI_OFF);
+          WiFi.mode(WIFI_STA);
+
+          IPAddress static_ip;
+          IPAddress gateway;
+          IPAddress netmask;
+          IPAddress dns0;
+          IPAddress dns1;
+
+          static_ip.fromString(_config.static_ip);
+          gateway.fromString(_config.gateway);
+          netmask.fromString(_config.netmask);
+          dns0.fromString(_config.dns0);
+          dns1.fromString(_config.dns1);
+
+          WiFi.config(static_ip, gateway, netmask, dns0, dns1);
+          WiFi.hostname(_config.hostname);
+          WiFi.begin(_config.ssid, _config.password);
+          // WiFi.waitForConnectResult();
+        }
+        else
+        {
+          if (_config.ssid)
+          {
+            WiFi.mode(WIFI_OFF);
+            IPAddress zeroIp(0, 0, 0, 0);
+            WiFi.config(zeroIp, zeroIp, zeroIp);
+            WiFi.hostname(_config.hostname);
+            WiFi.begin(_config.ssid, _config.password);
+            // WiFi.waitForConnectResult();
+          }
+        }
+      }
+      else
+      {
+        if (WiFi.status() != WL_CONNECTED)
+        {          
+          if (_config.ssid)
+          {
+            PRINT("\r\nApllying new NETWORK settings...\r\n\r\n");
+            WiFi.mode(WIFI_OFF);
+            IPAddress zeroIp(0, 0, 0, 0);
+            WiFi.config(zeroIp, zeroIp, zeroIp);
+            WiFi.hostname(_config.hostname);
+            WiFi.begin(_config.ssid, _config.password);
+            // WiFi.waitForConnectResult();
+          }
+        }
+      }
+    }
+  }
+
+  if (wifiGotIpFlag)
+  {
+    wifiGotIpFlag = false;
+
+    uint8_t mode = WiFi.getMode();
+    if (mode == WIFI_AP)
+    {
+      // root[FPSTR(pgm_mode)] = FPSTR(pgm_WIFI_AP);
+    }
+    else if (mode == WIFI_STA)
+    {
+      // root[FPSTR(pgm_mode)] = FPSTR(pgm_WIFI_STA);
+    }
+    else if (mode == WIFI_AP_STA)
+    {
+      // root[FPSTR(pgm_mode)] = FPSTR(pgm_WIFI_AP_STA);
+      PRINT("\r\nTurning Off Wifi Access Point...\r\n");
+      WiFi.softAPdisconnect(true);
+    }
+    else if (mode == WIFI_OFF)
+    {
+      // root[FPSTR(pgm_mode)] = FPSTR(pgm_WIFI_OFF);
+    }
+    else
+    {
+      // root[FPSTR(pgm_mode)] = FPSTR(pgm_NA);
+    }
+
+    /*
+    https://github.com/esp8266/Arduino/blob/4897e0006b5b0123a2fa31f67b14a3fff65ce561/libraries/ESP8266WiFi/src/include/wl_definitions.h
+
+    typedef enum {
+    WL_NO_SHIELD        = 255,   // for compatibility with WiFi Shield library
+    WL_IDLE_STATUS      = 0,
+    WL_NO_SSID_AVAIL    = 1,
+    WL_SCAN_COMPLETED   = 2,
+    WL_CONNECTED        = 3,
+    WL_CONNECT_FAILED   = 4,
+    WL_CONNECTION_LOST  = 5,
+    WL_DISCONNECTED     = 6
+    } wl_status_t;
+  */
+  }
+
+  if (wifiDisconnectedFlag)
+  {
+    wifiDisconnectedFlag = false;
+
+    // WiFi.reconnect();
+    uint8_t client = WiFi.softAPgetStationNum();
+
+    Serial.printf("\r\nStations connected to soft-AP = %d\r\n", client);
+
+    if (!client)
+    {
+      WiFi.reconnect();
+    }
+
+    static bool apEnable = false;
+
+    if (wifiDisconnectedSince == 0)
+    {
+      wifiDisconnectedSince = millis();
+      apEnable = true;
+    }
+
+    if (apEnable == true && (int)((millis() - wifiDisconnectedSince) / 1000) >= 30)
+    {
+      PRINT("\r\nStarting Wifi Access Point...\r\n");
+      // DEBUGPORT.printf_P(PSTR("\r\nStarting Wifi Access Point...\r\n"));
+      apEnable = false;
+      WiFi.mode(WIFI_OFF);
+      WiFi.mode(WIFI_AP_STA);
+      WiFi.softAP(_configAP.ssid, _configAP.password);
+      WiFi.softAPConfig(IPAddress(192, 168, 4, 1), IPAddress(192, 168, 4, 1), IPAddress(255, 255, 255, 0));
+    }
+
+    // PRINT("\r\nWifi disconnected for %d seconds\r\n", (int)((millis() - wifiDisconnectedSince) / 1000);
+    DEBUGPORT.printf_P(PSTR("\r\nWifi disconnected for %d seconds\r\n"), (int)((millis() - wifiDisconnectedSince) / 1000));
+  }
+
+  if (stationConnectedFlag)
+  {
+    stationConnectedFlag = false;
+  }
+
+  if (stationDisconnectedFlag)
+  {
+    stationDisconnectedFlag = false;
+    uint8_t client = WiFi.softAPgetStationNum();
+
+    if (!client)
+    {
+      WiFi.reconnect();
+    }
   }
 }
 

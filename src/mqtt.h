@@ -36,6 +36,11 @@
 #include <AsyncMqttClient.h>
 #include <ESP8266WiFi.h>
 #include <Ticker.h>
+#include "config.h"
+#include "asyncserver.h"
+
+#define CONFIG_FILE_MQTT "/configmqtt.json"
+#define CONFIG_FILE_MQTT_PUBSUB "/configmqttpubsub.json"
 
 extern AsyncMqttClient mqttClient;
 extern IPAddress mqttServer;
@@ -43,30 +48,50 @@ extern IPAddress mqttServer;
 extern const char pgm_txt_subcribedTopic_0[];
 extern const char pgm_txt_subcribedTopic_1[];
 
+// extern const char pgm_pub1_basetopic[];
+extern const char pgm_pub1_topicprefix[];
+extern const char pgm_pub1_qos[];
+extern const char pgm_pub1_retain[];
+extern const char pgm_pub1_payload[];
+extern const char pgm_sub1_topic[];
+extern const char pgm_sub1_qos[];
+extern const char pgm_sub2_topic[];
+extern const char pgm_sub2_qos[];
+
+
+extern const char pgm_mqtt_enabled[];
+extern const char pgm_mqtt_server[];
+extern const char pgm_mqtt_port[];
+extern const char pgm_mqtt_user[];
+extern const char pgm_mqtt_pass[];
+extern const char pgm_mqtt_clientid[];
+extern const char pgm_mqtt_keepalive[];
+extern const char pgm_mqtt_cleansession[];
+extern const char pgm_mqtt_lwttopicprefix[];
+extern const char pgm_mqtt_lwtqos[];
+extern const char pgm_mqtt_lwtretain[];
+extern const char pgm_mqtt_lwtpayload[];
+
 // MQTT config
 typedef struct {
+  bool enabled = false;
   char server[45];
-  uint16_t port;
+  uint16_t port = 1883;
   char user[32];
   char pass[64];
-  char clientid[16];
-  uint16_t keepalive;
-  bool cleansession;
-  char lwttopic[64];
-  uint8_t lwtqos;
-  bool lwtretain;
-  char lwtpayload[64];
-  //char publish_1_topic[64];
-  //uint8_t publish_1_qos;
-  //bool publish_1_retain;
-  //char publish_1_payload[64];
-  //char subscribe_1_topic[64];
-  //uint8_t subscribe_1_qos;
-  //char subscribe_2_topic[64];
-  //uint8_t subscribe_2_qos;
+  char clientid[24] = "arbitrary_cliendId";
+  uint16_t keepalive = 60;
+  bool cleansession = true;
+  char lwttopicprefix[64] = "mqttstatus";
+  uint8_t lwtqos = 2;
+  bool lwtretain = true;
+  char lwtpayload[64] = "DISCONNECTED";
+
 } strConfigMqtt;
 
 extern  strConfigMqtt configMqtt;
+
+extern uint32_t lastTimePayloadReceived;
 
 //
 void connectToMqtt();
@@ -93,14 +118,16 @@ extern void mqtt_restart();
 // -------------------------------------------------------------------
 // Return true if we are connected to an MQTT broker, false if not
 // -------------------------------------------------------------------
-extern boolean mqtt_connected();
+extern bool mqtt_connected();
 
 // -------------------------------------------------------------------
 // Initialize MQTT connection
 // -------------------------------------------------------------------
-extern boolean mqtt_setup();
+extern bool load_config_mqtt();
 
-extern boolean mqtt_reconnect();
+extern bool mqtt_setup();
+
+extern bool mqtt_reconnect();
 
 
 

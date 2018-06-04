@@ -18,6 +18,42 @@
 	</td>
 </tr>
 <tr>
+	<td align="right">totalBytes</td>
+	<td>
+		<strong><span id="totalBytes"></span></strong>
+	</td>
+</tr>
+<tr>
+	<td align="right">usedBytes</td>
+	<td>
+		<strong><span id="usedBytes"></span></strong>
+	</td>
+</tr>
+<tr>
+	<td align="right">blockSize</td>
+	<td>
+		<strong><span id="blockSize"></span></strong>
+	</td>
+</tr>
+<tr>
+	<td align="right">pageSize</td>
+	<td>
+		<strong><span id="pageSize"></span></strong>
+	</td>
+</tr>
+<tr>
+	<td align="right">maxOpenFiles</td>
+	<td>
+		<strong><span id="maxOpenFiles"></span></strong>
+	</td>
+</tr>
+<tr>
+	<td align="right">maxPathLength</td>
+	<td>
+		<strong><span id="maxPathLength"></span></strong>
+	</td>
+</tr>
+<tr>
 	<td align="right">File name :</td>
 	<td>
 		<span id="filename"></span>
@@ -181,24 +217,34 @@ function startSocket(){
       else if (isJSON(e.data)) {
         var json = JSON.parse(e.data);
         if (json.hasOwnProperty('cpufreq')) {
-          document.getElementById("heap").textContent = json.heap;
+          document.getElementById("heap").textContent = json.heap.toLocaleString("en");
           document.getElementById("filename").textContent = json.filename;
           document.getElementById("lastboot").textContent = json.lastboot;
           document.getElementById("chipid").textContent = json.chipid;
-          document.getElementById("cpufreq").textContent = json.cpufreq;
-          document.getElementById("sketchsize").textContent = json.sketchsize;
-          document.getElementById("freesketchspace").textContent = json.freesketchspace;
+          document.getElementById("cpufreq").textContent = json.cpufreq.toLocaleString("en");
+          document.getElementById("sketchsize").textContent = json.sketchsize.toLocaleString("en");
+          document.getElementById("freesketchspace").textContent = json.freesketchspace.toLocaleString("en");
           document.getElementById("flashchipid").textContent = json.flashchipid;
-          document.getElementById("flashchipsize").textContent = json.flashchipsize;
-          document.getElementById("flashchiprealsize").textContent = json.flashchiprealsize;
-          document.getElementById("flashchipspeed").textContent = json.flashchipspeed;
-          document.getElementById("cyclecount").textContent = json.cyclecount;
+          document.getElementById("flashchipsize").textContent = json.flashchipsize.toLocaleString("en");
+          document.getElementById("flashchiprealsize").textContent = json.flashchiprealsize.toLocaleString("en");
+          document.getElementById("flashchipspeed").textContent = json.flashchipspeed.toLocaleString("en");
+          document.getElementById("cyclecount").textContent = json.cyclecount.toLocaleString("en");
           document.getElementById("corever").textContent = json.corever;
           document.getElementById("sdkver").textContent = json.sdkver;
           document.getElementById("resetreason").textContent = json.resetreason;
         }
-        else if (json.hasOwnProperty('heap')) {
-          document.getElementById("heap").textContent = json.heap;
+        else if (json.hasOwnProperty('heap'))
+        {
+          document.getElementById("heap").textContent = json.heap.toLocaleString("en");
+        }
+        else if (json.hasOwnProperty('totalBytes'))
+        {
+          document.getElementById("totalBytes").textContent = json.totalBytes.toLocaleString("en");
+          document.getElementById("usedBytes").textContent = json.usedBytes.toLocaleString("en");
+          document.getElementById("blockSize").textContent = json.blockSize.toLocaleString("en");
+          document.getElementById("pageSize").textContent = json.pageSize.toLocaleString("en");
+          document.getElementById("maxOpenFiles").textContent = json.maxOpenFiles.toLocaleString("en");
+          document.getElementById("maxPathLength").textContent = json.maxPathLength.toLocaleString("en");
         }
       }
     }

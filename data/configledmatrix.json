@@ -3,9 +3,11 @@
   "pagemode": "Automatic",
   "pagemode0": 6,
   "pagemode1": 12,
-  "pagemode2": 0,
+  "pagemode2": 3,
   "scrollrow_0": false,
   "scrollrow_1": false,
-  "scrollspeed": 8,
-  "brightness": 50
+  "scrollspeed": 31,
+  "brightness": 50,
+  "adzanwaittime": 1,
+  "iqamahwaittime": 10
 }

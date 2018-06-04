@@ -1,5 +1,7 @@
 {
     "port": "COM17",
     "board": "esp8266:esp8266:generic",
-    "configuration": "CpuFrequency=160,ResetMethod=nodemcu,CrystalFreq=26,FlashFreq=40,FlashMode=qio,FlashSize=4M3M,led=2,LwIPVariant=v2mss536,Debug=Disabled,DebugLevel=None____,FlashErase=none,UploadSpeed=921600"
+    "configuration": "CpuFrequency=160,ResetMethod=nodemcu,CrystalFreq=26,FlashFreq=40,FlashMode=qio,FlashSize=4M3M,led=2,LwIPVariant=v2mss536,Debug=Disabled,DebugLevel=None____,FlashErase=none,UploadSpeed=921600",
+    "sketch": "src\\Sholat-LedMatrix-esp8266.ino",
+    "output": "../build"
 }

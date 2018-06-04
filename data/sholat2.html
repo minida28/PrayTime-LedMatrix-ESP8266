@@ -13,10 +13,10 @@
   <title>Sholat Time</title>
 </head>
 <body>
-<div class="siimple-jumbotron  siimple-jumbotron--teal siimple-jumbotron--large" style="padding-top:40px; padding-bottom:40px">
+<div class="siimple-jumbotron  siimple-jumbotron--teal siimple-jumbotron--small" style="padding-top:40px; padding-bottom:40px">
   <div id="jumboLoc"></div>
-  <div id="jumboCountdown" style="font-size:10vw;"></div>
-  <div id="jumboNextTime" class="siimple-jumbotron-subtitle" style="font-size:5vw; margin-top:0; margin-bottom:0"></div>
+  <div id="jumboCountdown" class="siimple-jumbotron-title"></div>
+  <div id="jumboNextTime" class="siimple-jumbotron-subtitle" style="margin-top:0; margin-bottom:0"></div>
 </div>
 <div class="siimple-content siimple-content--small">
 	<div class="siimple-grid">
@@ -246,7 +246,7 @@ function reqListenerSholat () {
               }
             }
           }
-          document.getElementById("jumboNextTime").textContent = "menuju " + jsonData.next;
+          document.getElementById("jumboNextTime").textContent = "to " + jsonData.next;
         }
       }
     }
