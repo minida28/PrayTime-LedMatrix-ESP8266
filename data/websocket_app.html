@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Websockets support tester</title> 
+        <script src="websocket_client.js"></script>
+    </head>
+    <body onload="javascript:init()">
+        <h2>WebSocket Simple Application</h2>   
+
+        <div id = "websocketelements">
+            <div id="send">
+                <a href="javascript:doSend('Experience the awesomeness of websockets')">Send Message to WebSocket Server</a>
+            </div>
+
+            <div id="close">
+                <a href="javascript:onClose()">Close connection to WebSocket Server</a>
+            </div>
+
+            <hr>
+
+            <h4>readyState and bufferedAmount attribute values log</h4>
+
+            <div id="attributes_log"> </div>
+
+            <hr>
+        </div>
+
+        <h4>Output Konsole</h4>
+
+        <div id="output"></div> 
+    </body>
+</html>

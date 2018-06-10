@@ -16,6 +16,7 @@
         "vector": "cpp",
         "list": "cpp",
         "cstdlib": "cpp",
-        "*.tcc": "cpp"
+        "*.tcc": "cpp",
+        "fstream": "cpp"
     }
 }

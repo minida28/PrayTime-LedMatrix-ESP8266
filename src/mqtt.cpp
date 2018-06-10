@@ -13,11 +13,7 @@
 #define RELEASEMQTT
 
 #define PROGMEM_T __attribute__((section(".irom.text.template")))
-#define PRINT(fmt, ...)                       \
-  {                                           \
-    static const char pfmt[] PROGMEM_T = fmt; \
-    PRINTPORT.printf_P(pfmt, ##__VA_ARGS__);  \
-  }
+
 
 #ifndef RELEASEMQTT
 #define DEBUGMQTT(fmt, ...)                   \
@@ -317,7 +313,7 @@ void onMqttDisconnect(AsyncMqttClientDisconnectReason reason)
 
   if (WiFi.isConnected())
   {
-    mqttReconnectTimer.once(2, connectToMqtt);
+    mqttReconnectTimer.once(5, connectToMqtt);
   }
 }
 

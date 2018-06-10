@@ -37,12 +37,6 @@
 
 #define PROGMEM_T __attribute__((section(".irom.text.template")))
 
-#define PRINT(fmt, ...)                       \
-  {                                           \
-    static const char pfmt[] PROGMEM_T = fmt; \
-    PRINTPORT.printf_P(pfmt, ##__VA_ARGS__);  \
-  }
-
 #ifndef RELEASE
 #define DEBUGLOG(fmt, ...)                    \
   {                                           \
@@ -95,10 +89,11 @@ bool wifiDisconnectedFlag = false;
 bool stationConnectedFlag = false;
 bool stationDisconnectedFlag = false;
 
+bool firmwareUpdated = false;
+
 // SKETCH BEGIN
 
 FSInfo fs_info;
-
 
 DNSServer dnsServer;
 
@@ -115,6 +110,7 @@ bool clientVisitConfigMqttPage = false;
 bool clientVisitStatusNetworkPage = false;
 bool clientVisitStatusTimePage = false;
 bool clientVisitStatusSystemPage = false;
+bool clientVisitSetTimePage = false;
 
 bool clientVisitInfoPage = false;
 bool clientVisitSholatTimePage = false;
@@ -301,6 +297,16 @@ void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventTyp
               else if (strcmp_P(url, pgm_schedulepagesholat) == 0)
               {
                 clientVisitSholatTimePage = true;
+
+                //WsSendInfoStatic(clientID);
+                //WsSendInfoDynamic(clientID);
+                //WsSendSholatStatic(clientID);
+                //WsSendSholatDynamic(clientID);
+                //WsSendRunningLedConfig(clientID);
+              }
+              else if (strcmp_P(url, pgm_settimepage) == 0)
+              {
+                clientVisitSetTimePage = true;
 
                 //WsSendInfoStatic(clientID);
                 //WsSendInfoDynamic(clientID);
@@ -802,12 +808,54 @@ void AsyncWSBegin()
 
   SPIFFS.info(fs_info);
 
-  PRINT("totalBytes: %u\r\n",fs_info.totalBytes);
-  PRINT("usedBytes: %u\r\n",fs_info.totalBytes);
-  PRINT("blockSize: %u\r\n",fs_info.totalBytes);
-  PRINT("pageSize: %u\r\n",fs_info.totalBytes);
-  PRINT("maxOpenFiles: %u\r\n",fs_info.totalBytes);
-  PRINT("maxPathLength: %u\r\n",fs_info.totalBytes);
+  PRINT("totalBytes: %u\r\n", fs_info.totalBytes);
+  PRINT("usedBytes: %u\r\n", fs_info.totalBytes);
+  PRINT("blockSize: %u\r\n", fs_info.totalBytes);
+  PRINT("pageSize: %u\r\n", fs_info.totalBytes);
+  PRINT("maxOpenFiles: %u\r\n", fs_info.totalBytes);
+  PRINT("maxPathLength: %u\r\n", fs_info.totalBytes);
+
+  // start update firmware
+  // Dir dir = SPIFFS.openDir("/");
+
+  // pinMode(LED_BUILTIN, OUTPUT);
+  // digitalWrite(LED_BUILTIN, LOW);
+
+  if (SPIFFS.exists("/firmware.bin"))
+  {
+    File file = SPIFFS.open("/firmware.bin", "r");
+    if (!file)
+    {
+      PRINT("Failed to open FIRMWARE file\r\n");
+      file.close();
+      return;
+    }
+    uint32_t maxSketchSpace = (ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000;
+    if (!Update.begin(maxSketchSpace, U_FLASH))
+    { //start with max available size
+      Update.printError(Serial);
+      Serial.println("ERROR");
+      file.close();
+      return;
+    }
+    while (file.available())
+    {
+      uint8_t ibuffer[128];
+      file.read((uint8_t *)ibuffer, 128);
+      Serial.println((char *)ibuffer);
+      Update.write(ibuffer, sizeof(ibuffer));
+      // Serial.print("#");
+    }
+    Serial.print(Update.end(true));
+    // digitalWrite(LED_BUILTIN, HIGH);
+    file.close();
+    SPIFFS.remove("/firmware.bin");
+  }
+  else
+  {
+    PRINT("Path to FIRMWARE file not exist.\r\n");
+  }
+  // end update firmware
 
 #ifndef RELEASE
   { // List files
@@ -902,7 +950,7 @@ void AsyncWSBegin()
 
   // _configAP.APenable = true;
 
-  // WiFi.persistent(false);
+  // WiFi.persistent(true);
   // WiFi.mode(WIFI_OFF);
 
   bool autoConnect = true;
@@ -910,6 +958,8 @@ void AsyncWSBegin()
 
   bool autoReconnect = true;
   WiFi.setAutoReconnect(autoReconnect);
+
+  // WiFi.hostname(_config.hostname);
 
   if (_configAP.APenable || strcmp(_config.ssid, "") == 0)
   {
@@ -940,6 +990,12 @@ void AsyncWSBegin()
       dns1.fromString(_config.dns1);
 
       WiFi.config(static_ip, gateway, netmask, dns0, dns1);
+      WiFi.hostname(_config.hostname);
+      WiFi.begin(_config.ssid, _config.password);
+      WiFi.waitForConnectResult();
+    }
+    else
+    {
       WiFi.hostname(_config.hostname);
       WiFi.begin(_config.ssid, _config.password);
       WiFi.waitForConnectResult();
@@ -1000,6 +1056,11 @@ void AsyncWSBegin()
   //  server.addHandler(&sholattimeevent);
 
   server.addHandler(new SPIFFSEditor());
+
+  server.on("/list", HTTP_GET, [](AsyncWebServerRequest *request) {
+    DEBUGASYNCWS("%s\r\n", __PRETTY_FUNCTION__);
+    handleFileList(request);
+  });
 
   server.on("/description.xml", HTTP_GET, [](AsyncWebServerRequest *request) {
     DEBUGASYNCWS("%s\r\n", __PRETTY_FUNCTION__);
@@ -1212,17 +1273,15 @@ void AsyncWSBegin()
     setUpdateMD5(request);
   });
 
-  server.on("/update", HTTP_GET, [](AsyncWebServerRequest *request) {
-    request->send(SPIFFS, "/update.html");
-  });
+  // server.on("/update", HTTP_GET, [](AsyncWebServerRequest *request) {
+  //   request->send(SPIFFS, "/update.html");
+  // });
 
   server.on("/update", HTTP_POST, [](AsyncWebServerRequest *request) {
     AsyncWebServerResponse *response = request->beginResponse(200, "text/html", (Update.hasError()) ? "FAIL" : "<META http-equiv=\"refresh\" content=\"15;URL=/update\">Update correct. Restarting...");
     response->addHeader("Connection", "close");
     response->addHeader("Access-Control-Allow-Origin", "*");
-    request->send(response);
-    SPIFFS.end();
-    ESP.restart(); }, [](AsyncWebServerRequest *request, const String filename, size_t index, uint8_t *data, size_t len, bool final) { updateFirmware(request, filename, index, data, len, final); });
+    request->send(response); }, [](AsyncWebServerRequest *request, const String filename, size_t index, uint8_t *data, size_t len, bool final) { updateFirmware(request, filename, index, data, len, final); });
 
   server.on("/admin/connectionstate", [](AsyncWebServerRequest *request) {
     send_connection_state_values_html(request);
@@ -1232,9 +1291,9 @@ void AsyncWSBegin()
     send_sholat_values_html(request);
   });
 
-  server.on("/setrtctime.html", [](AsyncWebServerRequest *request) {
-    set_RTC_TIME_html(request);
-  });
+  // server.on("/settime.html", [](AsyncWebServerRequest *request) {
+  //   set_time_html(request);
+  // });
 
   server.on("/config/network", [](AsyncWebServerRequest *request) {
     DEBUGASYNCWS("%s\r\n", request->url().c_str());
@@ -1264,6 +1323,42 @@ void AsyncWSBegin()
   server.on("/config/mqtt", [](AsyncWebServerRequest *request) {
     DEBUGASYNCWS("%s\r\n", request->url().c_str());
     send_config_mqtt(request);
+  });
+
+  server.on("/status/heap", [](AsyncWebServerRequest *request) {
+    DEBUGASYNCWS("%s\r\n", request->url().c_str());
+
+    uint32_t heap = ESP.getFreeHeap();
+
+    DynamicJsonBuffer jsonBuffer;
+    JsonObject &root = jsonBuffer.createObject();
+
+    root[FPSTR(pgm_heap)] = heap;
+
+    AsyncResponseStream *response = request->beginResponseStream("application/json");
+    root.prettyPrintTo(*response);
+    request->send(response);
+  });
+
+  server.on("/status/datetime", [](AsyncWebServerRequest *request) {
+    DEBUGASYNCWS("%s\r\n", request->url().c_str());
+
+    DynamicJsonBuffer jsonBuffer;
+    JsonObject &root = jsonBuffer.createObject();
+
+    root["d"] = day(localTime);
+    root["m"] = month(localTime);
+    root["y"] = year(localTime);
+    root["hr"] = hour(localTime);
+    root["min"] = minute(localTime);
+    root["sec"] = second(localTime);
+    root["tz"] = _configLocation.timezone;
+    root["utc"] = utcTime;
+    root["local"] = localTime;
+
+    AsyncResponseStream *response = request->beginResponseStream("application/json");
+    root.prettyPrintTo(*response);
+    request->send(response);
   });
 
   server.begin();
@@ -1328,6 +1423,42 @@ char *macToString(const unsigned char *mac)
   snprintf(buf, sizeof(buf), "%02x:%02x:%02x:%02x:%02x:%02x",
            mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
   return buf;
+}
+
+void handleFileList(AsyncWebServerRequest *request)
+{
+  if (!request->hasArg("dir"))
+  {
+    request->send(500, "text/plain", "BAD ARGS");
+    return;
+  }
+
+  String path = request->arg("dir");
+  DEBUGLOG("handleFileList: %s\r\n", path.c_str());
+  Dir dir = SPIFFS.openDir(path);
+  path = String();
+
+  String output = "[";
+  while (dir.next())
+  {
+    File entry = dir.openFile("r");
+    if (true) //entry.name()!="secret.json") // Do not show secrets
+    {
+      if (output != "[")
+        output += ',';
+      bool isDir = false;
+      output += "{\"type\":\"";
+      output += (isDir) ? "dir" : "file";
+      output += "\",\"name\":\"";
+      output += String(entry.name()).substring(1);
+      output += "\"}";
+    }
+    entry.close();
+  }
+
+  output += "]";
+  DEBUGLOG("%s\r\n", output.c_str());
+  request->send(200, "application/json", output);
 }
 
 void send_network_configuration_values_html(AsyncWebServerRequest *request)
@@ -1658,24 +1789,24 @@ void WsSendSystemStatus()
   ws.text(clientID, buf);
 }
 
-void EventSendHeap()
-{
-  DEBUGLOG("%s\r\n", __PRETTY_FUNCTION__);
+// void EventSendHeap()
+// {
+//   DEBUGLOG("%s\r\n", __PRETTY_FUNCTION__);
 
-  uint32_t heap = ESP.getFreeHeap();
+//   uint32_t heap = ESP.getFreeHeap();
 
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject &root = jsonBuffer.createObject();
+//   DynamicJsonBuffer jsonBuffer;
+//   JsonObject &root = jsonBuffer.createObject();
 
-  root[FPSTR(pgm_heap)] = heap;
+//   root[FPSTR(pgm_heap)] = heap;
 
-  size_t len = root.measureLength();
-  char buf[len + 1];
-  root.printTo(buf, len + 1);
-  events.send(buf);
-}
+//   size_t len = root.measureLength();
+//   char buf[len + 1];
+//   root.printTo(buf, len + 1);
+//   events.send(buf);
+// }
 
-void WsSendHeap()
+void sendHeap(uint8_t mode)
 {
   DEBUGASYNCWS("%s\r\n", __PRETTY_FUNCTION__);
 
@@ -1689,7 +1820,54 @@ void WsSendHeap()
   size_t len = root.measureLength();
   char buf[len + 1];
   root.printTo(buf, len + 1);
-  ws.text(clientID, buf);
+  if (mode == 0)
+  {
+    //
+  }
+  else if (mode == 1)
+  {
+    events.send(buf);
+  }
+  else if (mode == 2)
+  {
+    ws.text(clientID, buf);
+  }
+}
+
+void sendDateTime(uint8_t mode)
+{
+  DEBUGASYNCWS("%s\r\n", __PRETTY_FUNCTION__);
+
+  DynamicJsonBuffer jsonBuffer;
+  JsonObject &root = jsonBuffer.createObject();
+
+  root["d"] = day(localTime);
+  root["m"] = month(localTime);
+  root["y"] = year(localTime);
+  root["hr"] = hour(localTime);
+  root["min"] = minute(localTime);
+  root["sec"] = second(localTime);
+  root["tz"] = _configLocation.timezone;
+  root["utc"] = utcTime;
+  root["local"] = localTime;
+
+  size_t len = root.measurePrettyLength();
+  char buf[len + 1];
+  root.prettyPrintTo(buf, sizeof(buf));
+
+  if (mode == 0)
+  {
+    //
+  }
+  else if (mode == 1)
+  {
+    events.send(buf);
+    // events.send(buf, "timeDate", millis());
+  }
+  else if (mode == 2)
+  {
+    ws.text(clientID, buf);
+  }
 }
 
 void WsSendFsInfo()
@@ -1737,9 +1915,9 @@ void restart_esp(AsyncWebServerRequest *request)
 
 void restart_1()
 {
-  digitalWrite(0, HIGH); //GPIO0
-  digitalWrite(2, HIGH); //GPIO2
-  digitalWrite(15, LOW); //GPIO15
+  // digitalWrite(0, HIGH); //GPIO0
+  // digitalWrite(2, HIGH); //GPIO2
+  // digitalWrite(15, LOW); //GPIO15
   ESP.restart();
 }
 
@@ -1755,9 +1933,9 @@ void reset_esp(AsyncWebServerRequest *request)
 
 void reset_1()
 {
-  digitalWrite(0, HIGH); //GPIO0
-  digitalWrite(2, HIGH); //GPIO2
-  digitalWrite(15, LOW); //GPIO15
+  // digitalWrite(0, HIGH); //GPIO0
+  // digitalWrite(2, HIGH); //GPIO2
+  // digitalWrite(15, LOW); //GPIO15
   ESP.reset();
   //ESP.restart();
 }
@@ -1882,28 +2060,30 @@ bool saveHTTPAuth()
 
 void send_update_firmware_values_html(AsyncWebServerRequest *request)
 {
+  DEBUGASYNCWS("%s\r\n", __PRETTY_FUNCTION__);
   String values = "";
+  uint32_t freeSketchSpace = ESP.getFreeSketchSpace();
   uint32_t maxSketchSpace = (ESP.getSketchSize() - 0x1000) & 0xFFFFF000;
   //bool updateOK = Update.begin(maxSketchSpace);
-  bool updateOK = maxSketchSpace < ESP.getFreeSketchSpace();
+  bool updateOK = maxSketchSpace < freeSketchSpace;
   StreamString result;
   Update.printError(result);
-  DEBUGLOG("--MaxSketchSpace: %d\r\n", maxSketchSpace);
-  DEBUGLOG("--Update error = %s\r\n", result.c_str());
-  values += "remupd|" + (String)((updateOK) ? "OK" : "ERROR") + "|div\r\n";
+  DEBUGASYNCWS("--FreeSketchSpace: %d\r\n", freeSketchSpace);
+  DEBUGASYNCWS("--MaxSketchSpace: %d\r\n", maxSketchSpace);
+  DEBUGASYNCWS("--Update error = %s\r\n", result.c_str());
+  values += "remupd|" + (String)((updateOK) ? "OK" : "ERROR") + "|div\n";
 
   if (Update.hasError())
   {
     result.trim();
-    values += "remupdResult|" + result + "|div\r\n";
+    values += "remupdResult|" + result + "|div\n";
   }
   else
   {
-    values += "remupdResult||div\r\n";
+    values += "remupdResult||div\n";
   }
 
   request->send(200, "text/plain", values);
-  DEBUGLOG("%s\r\n", __PRETTY_FUNCTION__);
 }
 
 void setUpdateMD5(AsyncWebServerRequest *request)
@@ -1939,7 +2119,7 @@ void updateFirmware(AsyncWebServerRequest *request, String filename, size_t inde
   static unsigned long totalSize = 0;
   if (!index)
   { //UPLOAD_FILE_START
-    SPIFFS.end();
+    // SPIFFS.end();
     Update.runAsync(true);
     DEBUGASYNCWS("Update start: %s\r\n", filename.c_str());
     uint32_t maxSketchSpace = ESP.getSketchSize();
@@ -1975,6 +2155,12 @@ void updateFirmware(AsyncWebServerRequest *request, String filename, size_t inde
       updateHash = Update.md5String();
       DEBUGASYNCWS("Upload finished. Calculated MD5: %s\r\n", updateHash.c_str());
       DEBUGASYNCWS("Update Success: %u\r\nRebooting...\r\n", request->contentLength());
+      // SPIFFS.end();
+      // mqttClient.disconnect();
+      // WiFi.mode(WIFI_OFF);
+      // restartESP.attach(1.0f, restart_1);
+      // restartESP.attach(1.0f, reset_1);
+      firmwareUpdate = true;
     }
     else
     {
@@ -2296,7 +2482,7 @@ void WsSendConfigSholat()
   //  ws.text(clientID, buf);
 }
 
-void set_RTC_TIME_html(AsyncWebServerRequest *request)
+void set_time_html(AsyncWebServerRequest *request)
 {
   DEBUGASYNCWS("%s\r\n", __PRETTY_FUNCTION__);
 
@@ -3356,6 +3542,12 @@ void AsyncWSLoop()
   //if (localTime != oldTime) {
   if (tick1000ms)
   {
+    if (firmwareUpdated)
+    { // check the flag here to determine if a restart is required
+      Serial.printf("Restarting ESP\n\r");
+      firmwareUpdated = false;
+      ESP.restart();
+    }
 
     //if (ws.hasClient(clientID)) {
     if (ws.hasClient(clientID))
@@ -3375,7 +3567,7 @@ void AsyncWSLoop()
       {
         //WsSendInfoDynamic(clientID);
         //EventSendHeap();
-        WsSendHeap();
+        sendHeap(2);
         WsSendFsInfo();
       }
       else if (clientVisitSholatTimePage)
@@ -3390,6 +3582,11 @@ void AsyncWSLoop()
       {
         // do nothing
       }
+      else if (clientVisitSetTimePage)
+      {
+        // sendDateTime(1);
+        sendDateTime(2);
+      }
     }
     else
     {
@@ -3398,6 +3595,7 @@ void AsyncWSLoop()
       clientVisitSholatTimePage = false;
       clientVisitConfigRunningLedPage = false;
       clientVisitConfigMqttPage = false;
+      clientVisitSetTimePage = false;
     }
 
     static char ssid_old[32];
@@ -3488,7 +3686,7 @@ void AsyncWSLoop()
       else
       {
         if (WiFi.status() != WL_CONNECTED)
-        {          
+        {
           if (_config.ssid)
           {
             PRINT("\r\nApllying new NETWORK settings...\r\n\r\n");

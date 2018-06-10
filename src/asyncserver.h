@@ -47,7 +47,7 @@ void onStationDisconnected(const WiFiEventSoftAPModeStationDisconnected& evt);
 void onProbeRequestPrint(const WiFiEventSoftAPModeProbeRequestReceived& evt);
 void onProbeRequestBlink(const WiFiEventSoftAPModeProbeRequestReceived&);
 char* macToString(const unsigned char* mac);
-//void handleFileList(AsyncWebServerRequest *request);
+void handleFileList(AsyncWebServerRequest *request);
 void send_network_configuration_values_html(AsyncWebServerRequest *request);
 //void send_NTP_configuration_html(AsyncWebServerRequest *request);
 void restart_esp(AsyncWebServerRequest *request);
@@ -61,7 +61,7 @@ void send_connection_state_values_html(AsyncWebServerRequest *request);
 void send_information_values_html(AsyncWebServerRequest *request);
 // void send_NTP_configuration_values_html(AsyncWebServerRequest *request);
 void send_sholat_values_html(AsyncWebServerRequest *request);
-void set_RTC_TIME_html(AsyncWebServerRequest *request);
+void set_time_html(AsyncWebServerRequest *request);
 void send_config_network(AsyncWebServerRequest *request);
 void send_config_location(AsyncWebServerRequest *request);
 void send_config_time(AsyncWebServerRequest *request);
@@ -83,8 +83,10 @@ void EventSendHeap();
 void WsSendNetworkStatus();
 void WsSendTimeStatus();
 void WsSendSystemStatus();
-void WsSendHeap();
 void WsSendConfigSholat();
+void sendHeap(uint8_t mode);
+void sendDateTime(uint8_t mode);
+
 
 
 #endif

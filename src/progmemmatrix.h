@@ -138,6 +138,7 @@ const char pgm_configfilemqtt[] PROGMEM = "/configmqtt.json";
 const char pgm_statuspagemqtt[] PROGMEM = "/statusmqtt.html";
 const char pgm_configpagemqttpubsub[] PROGMEM = "configPubSub";
 const char pgm_configfilemqttpubsub[] PROGMEM = "/configmqttpubsub.json";
+const char pgm_settimepage[] PROGMEM = "/setrtctime.html";
 
 const char pgm_matrixConfig[] PROGMEM = "matrixConfig";
 const char pgm_pagemode0[] PROGMEM = "pagemode0";
