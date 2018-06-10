@@ -2160,7 +2160,7 @@ void updateFirmware(AsyncWebServerRequest *request, String filename, size_t inde
       // WiFi.mode(WIFI_OFF);
       // restartESP.attach(1.0f, restart_1);
       // restartESP.attach(1.0f, reset_1);
-      firmwareUpdate = true;
+      firmwareUpdated = true;
     }
     else
     {
