@@ -25,29 +25,14 @@
   <!--<link rel="stylesheet" href="bulma.min.css">-->
   
   <style>
-    body
-    {
-      font-size: 0.9em; 
+    /*body*/
+    /*{*/
+    /*  font-size: 0.9em; */
       /*line-height: 1.6;*/
       /*font-weight: 400;*/
       /*font-family: "Raleway", "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif;*/
-      color: #222;
-    }
-
-    .chart
-    {
-      /*width: 300px;*/
-      /*height: 130px;*/
-      /*max-height: 200px;*/
-      /*max-width: 420px;*/
-      /*border: 1px dotted red;*/
-      /*box-sizing: border-box;*/
-      
-      /*position: relative;*/
-      /*margin: auto;*/
-      /*height: 100px;*/
-      /*width: 100%;*/
-    }
+    /*  color: #222;*/
+    /*}*/
 
   </style>
 
@@ -59,12 +44,6 @@
 </head>
 <body>
   
-<!--<div class="overlay"></div>-->
-<!--<div class="overlay-message">-->
-<!--    <p>CLICK TO CLOSE</p>-->
-<!--</div>-->
-  
-  
 
 <section class="hero is-primary is-bold">
   <!-- Hero head: will stick at the top -->
@@ -72,9 +51,9 @@
     <nav class="navbar">
       <div class="container">
         <div class="navbar-brand">
-          <a class="navbar-item">
-            <img src="https://bulma.io/images/bulma-type-white.png" alt="Logo">
-          </a>
+          <!--<a class="navbar-item">-->
+          <!--  <img src="https://bulma.io/images/bulma-type-white.png" alt="Logo">-->
+          <!--</a>-->
           <span class="navbar-burger burger" data-target="navbarMenuHeroA">
             <span></span>
             <span></span>
@@ -83,11 +62,11 @@
         </div>
         <div id="navbarMenuHeroA" class="navbar-menu">
           <div class="navbar-end">
-            <a class="navbar-item is-active">
+            <a class="navbar-item" href="/">
               Home
             </a>
-            <a class="navbar-item">
-              Examples
+            <a class="navbar-item is-active" href="setrtctime.html">
+             Set Date & Time
             </a>
             <a class="navbar-item">
               Documentation
@@ -191,18 +170,6 @@
   </div>
 </div>
       
-<!--<div class="notification">-->
-<!--  <button class="delete"></button>-->
-<!--  Lorem ipsum dolor sit amet, consectetur-->
-<!--  adipiscing elit lorem ipsum dolor. <strong>Pellentesque risus mi</strong>, tempus quis placerat ut, porta nec nulla. Vestibulum rhoncus ac ex sit amet fringilla. Nullam gravida purus diam, et dictum <a>felis venenatis</a> efficitur. Sit amet,-->
-<!--  consectetur adipiscing elit-->
-<!--</div>-->
-
-<!--<div class="notification is-success">-->
-<!--  <button class="delete"></button>-->
-<!--  <div id="status_box"></div>-->
-<!--</div>-->
-
 <div style="display:none">
 
     <table>
@@ -373,22 +340,7 @@
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
 <!--<script src="ui.js"></script>-->
 <!--<script src="https://playground.abysscorp.org/chartjs/livecharts/dist/Chart.min.js"></script>-->
-<script src="//widget.time.is/id.js"></script>
-<script>
-  time_is_widget.init({
-  	timeisUTC_time : {
-  	 id: "UTC_za00",
-  	 template:"TIME",
-  	 //callback: "TimeIs"
-  	},
-  	timeisUTC_date : {
-  	  id: "UTC_za00",
-  	  template:"DATE",
-  	  date_format:"daynum/monthnum/year, dayname",
-  	  callback: "TimeIs"
-  	},
-	});
-</script>
+
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment.min.js"></script>
 <script src="moment-timezone-data.js"></script>
@@ -1174,9 +1126,22 @@ function startEvents(){
   es.addEventListener('timeDate', function(e) {
   }, false);
 }
-			
-
-
+</script>
+<script src="//widget.time.is/id.js"></script>
+<script>
+  time_is_widget.init({
+  	timeisUTC_time : {
+  	 id: "UTC_za00",
+  	 template:"TIME",
+  	 //callback: "TimeIs"
+  	},
+  	timeisUTC_date : {
+  	  id: "UTC_za00",
+  	  template:"DATE",
+  	  date_format:"daynum/monthnum/year, dayname",
+  	  callback: "TimeIs"
+  	},
+	});
 </script>
 
 <!-- End Document
