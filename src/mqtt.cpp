@@ -1,6 +1,5 @@
 
 
-
 #include "mqtt.h"
 // #include "config.h"
 //#include "FSWebServerLib.h"
@@ -13,7 +12,6 @@
 #define RELEASEMQTT
 
 #define PROGMEM_T __attribute__((section(".irom.text.template")))
-
 
 #ifndef RELEASEMQTT
 #define DEBUGMQTT(fmt, ...)                   \
@@ -79,23 +77,12 @@ bool load_config_mqtt()
     return false;
   }
 
-  size_t size = file.size();
-  DEBUGMQTT("MQTT file size: %d bytes\r\n", size);
+  DEBUGMQTT("config MQTT file size: %d bytes\r\n", file.size());
 
-  // Allocate a buffer to store contents of the file
-  char buf[size];
+  StaticJsonBuffer<512> jsonBuffer;
+  JsonObject &root = jsonBuffer.parseObject(file);
 
-  //copy file to buffer
-  file.readBytes(buf, size);
-
-  //add termination character at the end
-  buf[size] = '\0';
-
-  //close the file, save your memory, keep healthy :-)
   file.close();
-
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject &root = jsonBuffer.parseObject(buf);
 
   if (!root.success())
   {
@@ -103,9 +90,7 @@ bool load_config_mqtt()
     return false;
   }
 
-#ifndef RELEASEMQTT
   root.prettyPrintTo(DEBUGPORT);
-#endif
 
   configMqtt.enabled = root[FPSTR(pgm_mqtt_enabled)];
   strlcpy(configMqtt.server, root[FPSTR(pgm_mqtt_server)], sizeof(configMqtt.server));
@@ -213,39 +198,21 @@ void onMqttConnect(bool sessionPresent)
 {
   PRINT("Connected to MQTT.\r\n\tSession present: %d\r\n", sessionPresent);
 
-  File configFile = SPIFFS.open(CONFIG_FILE_MQTT_PUBSUB, "r");
-  if (!configFile)
+  File file = SPIFFS.open(CONFIG_FILE_MQTT_PUBSUB, "r");
+  if (!file)
   {
     DEBUGMQTT("Failed to open config file\r\n");
-    configFile.close();
+    file.close();
     return;
   }
 
-  size_t size = configFile.size();
-  DEBUGMQTT("CONFIG_FILE_MQTT_PUBSUB file size: %d bytes\r\n", size);
-  if (size > 1024)
-  {
-    PRINT("WARNING, file size maybe too large\r\n");
+  // size_t size = file.size();
+  DEBUGMQTT("CONFIG_FILE_MQTT_PUBSUB file size: %d bytes\r\n", file.size());
 
-    //configFile.close();
+  StaticJsonBuffer<512> jsonBuffer;
+  JsonObject &json = jsonBuffer.parseObject(file);
 
-    //return false;
-  }
-
-  // Allocate a buffer to store contents of the file.
-  std::unique_ptr<char[]> buf(new char[size]);
-
-  // We don't use String here because ArduinoJson library requires the input
-  // buffer to be mutable. If you don't use ArduinoJson, you may as well
-  // use configFile.readString instead.
-  configFile.readBytes(buf.get(), size);
-  configFile.close();
-  DynamicJsonBuffer jsonBuffer;
-
-  JsonObject &json = jsonBuffer.parseObject(buf.get());
-
-  //  JsonVariant json;
-  //  json = jsonBuffer.parse(buf.get());
+  file.close();
 
   if (!json.success())
   {
@@ -253,11 +220,9 @@ void onMqttConnect(bool sessionPresent)
     return;
   }
 
-#ifndef RELEASEMQTT
-  // String temp;
+  // #ifndef RELEASEMQTT
   json.prettyPrintTo(DEBUGPORT);
-  // Serial.println(temp);
-#endif
+  // #endif
 
   // publish 1
   const char *pub1_basetopic = _config.hostname;
@@ -343,7 +308,7 @@ void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties 
   //  Serial.print("  index: ");
   //  Serial.println(index);
   //  Serial.print("  total: ");
-  //  Serial.println(total);  
+  //  Serial.println(total);
 
   DEBUGMQTT("MQTT received [%s] ", topic);
   for (size_t i = 0; i < len; i++)
@@ -355,44 +320,22 @@ void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties 
   char t[64];
   strcpy(t, topic);
 
-  File configFile = SPIFFS.open(CONFIG_FILE_MQTT_PUBSUB, "r");
-  if (!configFile)
+  File file = SPIFFS.open(CONFIG_FILE_MQTT_PUBSUB, "r");
+  if (!file)
   {
-    DEBUGMQTT("Failed to open MQTT config file\r\n");
-    configFile.close();
+    DEBUGMQTT("Failed to open MQTT_PUBSUB config file\r\n");
+    file.close();
     return;
   }
+ 
+  StaticJsonBuffer<512> jsonBuffer;
+  JsonObject &json = jsonBuffer.parseObject(file);
 
-  size_t size = configFile.size();
-  //DEBUGMQTT("CONFIG_FILE_MQTT_PUBSUB file size: %d bytes\r\n", size);
-  if (size > 1024)
-  {
-    DEBUGMQTT("WARNING, file size maybe too large\r\n");
-
-    //configFile.close();
-
-    //return false;
-  }
-
-  // Allocate a buffer to store contents of the file.
-  std::unique_ptr<char[]> buf(new char[size]);
-
-  // We don't use String here because ArduinoJson library requires the input
-  // buffer to be mutable. If you don't use ArduinoJson, you may as well
-  // use configFile.readString instead.
-  configFile.readBytes(buf.get(), size);
-  configFile.close();
-  DynamicJsonBuffer jsonBuffer;
-  //StaticJsonBuffer<1024> jsonBuffer;
-
-  JsonObject &json = jsonBuffer.parseObject(buf.get());
-
-  //  JsonVariant json;
-  //  json = jsonBuffer.parse(buf.get());
+  file.close();
 
   if (!json.success())
   {
-    DEBUGMQTT("Failed to parse MQTT config file\r\n");
+    DEBUGMQTT("Failed to parse MQTT_PUBSUB config file\r\n");
     return;
   }
 
@@ -411,7 +354,7 @@ void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties 
   if (strncmp(const_cast<char *>(topic), sub1_topic, json[FPSTR(sub1_topic)].measureLength()) == 0)
   {
     lastTimePayloadReceived = 0;
-    
+
     //copy payload
     //    for (int i = 0; i < len; i++) {
     //      //DEBUGMQTT("%c", (char)payload[i]);
@@ -419,8 +362,7 @@ void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties 
     //    }
     //    bufWatt[len] = '\0';
 
-    DynamicJsonBuffer jsonBuffer;
-    //StaticJsonBuffer<512> jsonBuffer;
+    StaticJsonBuffer<1024> jsonBuffer;
     JsonObject &root = jsonBuffer.parseObject(payload);
 
     const char *voltage;

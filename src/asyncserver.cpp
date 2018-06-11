@@ -1273,15 +1273,26 @@ void AsyncWSBegin()
     setUpdateMD5(request);
   });
 
-  // server.on("/update", HTTP_GET, [](AsyncWebServerRequest *request) {
-  //   request->send(SPIFFS, "/update.html");
-  // });
+  server.on("/update", HTTP_GET, [](AsyncWebServerRequest *request) {
+    request->send(SPIFFS, "/update.html");
+  });
 
   server.on("/update", HTTP_POST, [](AsyncWebServerRequest *request) {
-    AsyncWebServerResponse *response = request->beginResponse(200, "text/html", (Update.hasError()) ? "FAIL" : "<META http-equiv=\"refresh\" content=\"15;URL=/update\">Update correct. Restarting...");
+    const char* responseContent;
+    if (Update.hasError())
+    {
+      responseContent = PSTR("FAIL");
+    }
+    else
+    {
+       responseContent = PSTR("<META http-equiv=\"refresh\" content=\"15;URL=/update\">Update correct. Restarting...");
+    }
+    AsyncWebServerResponse *response = request->beginResponse_P(200, "text/html", responseContent);
+    
     response->addHeader("Connection", "close");
     response->addHeader("Access-Control-Allow-Origin", "*");
-    request->send(response); }, [](AsyncWebServerRequest *request, const String filename, size_t index, uint8_t *data, size_t len, bool final) { updateFirmware(request, filename, index, data, len, final); });
+    request->send(response); },
+            [](AsyncWebServerRequest *request, const String filename, size_t index, uint8_t *data, size_t len, bool final) { updateFirmware(request, filename, index, data, len, final); });
 
   server.on("/admin/connectionstate", [](AsyncWebServerRequest *request) {
     send_connection_state_values_html(request);
@@ -2088,28 +2099,70 @@ void send_update_firmware_values_html(AsyncWebServerRequest *request)
 
 void setUpdateMD5(AsyncWebServerRequest *request)
 {
-  _browserMD5 = "";
-  DEBUGLOG("Arg number: %d\r\n", request->args());
-  if (request->args() > 0) // Read hash
+  DEBUGASYNCWS("%s %d\r\n", __FUNCTION__, request->args());
+
+  const char *browserMD5 = nullptr;
+
+  int params = request->params();
+  if (params)
   {
-    for (uint8_t i = 0; i < request->args(); i++)
+    for (int i = 0; i < params; i++)
     {
-      DEBUGLOG("Arg %s: %s\r\n", request->argName(i).c_str(), request->arg(i).c_str());
-      if (request->argName(i) == "md5")
-      {
-        _browserMD5 = urldecode(request->arg(i));
-        Update.setMD5(_browserMD5.c_str());
-        continue;
+      AsyncWebParameter *p = request->getParam(i);
+      if (p->isFile())
+      { //p->isPost() is also true
+        DEBUGASYNCWS("FILE[%s]: %s, size: %u\r\n", p->name().c_str(), p->value().c_str(), p->size());
       }
-      if (request->argName(i) == "size")
+      else if (p->isPost())
       {
-        _updateSize = request->arg(i).toInt();
-        DEBUGLOG("Update size: %l\r\n", _updateSize);
-        continue;
+        DEBUGASYNCWS("POST[%s]: %s\r\n", p->name().c_str(), p->value().c_str());
+        if (request->hasParam("md5", true))
+        {
+          if (p->name() == "md5")
+          {
+            browserMD5 = p->value().c_str();
+            Update.setMD5(browserMD5);
+          }
+          if (p->name() == "size")
+          {
+            _updateSize = atoi(p->value().c_str());
+            DEBUGASYNCWS("Update size: %u\r\n", _updateSize);
+          }
+        }
+      }
+      else
+      {
+        DEBUGASYNCWS("GET[%s]: %s\r\n", p->name().c_str(), p->value().c_str());
+        if (request->hasParam("md5"))
+        {
+          if (p->name() == "md5")
+          {
+            browserMD5 = p->value().c_str();
+            Update.setMD5(browserMD5);
+          }
+          if (p->name() == "size")
+          {
+            _updateSize = atoi(p->value().c_str());
+            DEBUGASYNCWS("Update size: %u\r\n", _updateSize);
+          }
+        }
       }
     }
-    request->send(200, "text/html", "OK --> MD5: " + _browserMD5);
+
+    if (browserMD5 != nullptr)
+    {
+      char buf[64] = "OK --> MD5: ";
+      strncat(buf, browserMD5, sizeof(buf));
+      request->send(200, "text/html", buf);
+      return;
+    }
+    else
+    {
+      request->send_P(500, "text/html", PSTR("Error: MD5 is NULL"));
+      return;
+    }
   }
+  request->send_P(200, "text/html", PSTR("Empty Parameter"));
 }
 
 void updateFirmware(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final)
@@ -2534,22 +2587,11 @@ bool load_config_location()
   }
 
   size_t size = file.size();
-  DEBUGASYNCWS("JSON file size: %d bytes\r\n", size);
+  DEBUGASYNCWS("config LOCATION file size: %d bytes\r\n", size);
 
-  // Allocate a buffer to store contents of the file
-  char buf[size];
-
-  //copy file to buffer
-  file.readBytes(buf, size);
-
-  //add termination character at the end
-  buf[size] = '\0';
-
-  //close the file, save your memory, keep healthy :-)
+  StaticJsonBuffer<512> jsonBuffer;
+  JsonObject &root = jsonBuffer.parseObject(file);
   file.close();
-
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject &root = jsonBuffer.parseObject(buf);
 
   if (!root.success())
   {
@@ -3499,7 +3541,7 @@ bool loadHTTPAuth()
   configFile.readBytes(buf.get(), size);
   configFile.close();
   DEBUGASYNCWS("JSON secret file size: %d bytes\r\n", size);
-  DynamicJsonBuffer jsonBuffer(256);
+  DynamicJsonBuffer jsonBuffer;
   //StaticJsonBuffer<256> jsonBuffer;
   JsonObject &json = jsonBuffer.parseObject(buf.get());
 

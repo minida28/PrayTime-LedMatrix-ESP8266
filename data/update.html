@@ -43,11 +43,16 @@
       function GetState() {
           setValues("/update/updatepossible")
           setTimeout(function () {
-              if (document.getElementById("remupd").innerHTML == "OK") {
-                  console.warn("ERROR = OK");
-                  document.getElementById("fileName").disabled = false;
-                  document.getElementById("updateButton").disabled = false;
-                  document.getElementById("remupdResult").innerHTML = "";
+              if (document.getElementById("remupd").textContent === "OK")
+              {
+                console.log("OK, update is possible :)");
+                document.getElementById("fileName").disabled = false;
+                document.getElementById("updateButton").disabled = false;
+                document.getElementById("remupdResult").textContent = "";
+              }
+              else
+              {
+                console.error("Ooops, update is NOT possible :(");
               }
           }, 2000);
       }
