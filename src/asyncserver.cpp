@@ -2629,23 +2629,13 @@ bool load_config_network()
     return false;
   }
 
-  size_t size = file.size();
-  DEBUGASYNCWS("JSON file size: %d bytes\r\n", size);
+  // size_t size = file.size();
+  DEBUGASYNCWS("JSON file size: %d bytes\r\n", file.size());
 
-  // Allocate a buffer to store contents of the file
-  char buf[size];
+  StaticJsonBuffer<512> jsonBuffer;
+  JsonObject &root = jsonBuffer.parseObject(file);
 
-  //copy file to buffer
-  file.readBytes(buf, size);
-
-  //add termination character at the end
-  buf[size] = '\0';
-
-  //close the file, save your memory, keep healthy :-)
   file.close();
-
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject &root = jsonBuffer.parseObject(buf);
 
   if (!root.success())
   {
@@ -2655,7 +2645,10 @@ bool load_config_network()
 
 #ifndef RELEASEASYNCWS
   root.prettyPrintTo(DEBUGPORT);
+  DEBUGASYNCWS("\r\n");
 #endif
+
+  config_setup();
 
   // strlcpy(_config.hostname, root[FPSTR(pgm_hostname)], sizeof(_config.hostname));
   strlcpy(_config.ssid, root[FPSTR(pgm_ssid)], sizeof(_config.ssid));
@@ -3072,7 +3065,7 @@ bool save_config_network()
 {
   DEBUGASYNCWS("%s\r\n", __PRETTY_FUNCTION__);
 
-  DynamicJsonBuffer jsonBuffer;
+  StaticJsonBuffer<1024> jsonBuffer;
   JsonObject &json = jsonBuffer.createObject();
   // json[FPSTR(pgm_hostname)] = _config.hostname;
   json[FPSTR(pgm_ssid)] = _config.ssid;
@@ -3085,15 +3078,19 @@ bool save_config_network()
   json[FPSTR(pgm_dns1)] = _config.dns1;
 
   //TODO add AP data to html
-  File configFile = SPIFFS.open(FPSTR(pgm_configfilenetwork), "w");
+  File file = SPIFFS.open(FPSTR(pgm_configfilenetwork), "w");
 
 #ifndef RELEASEASYNCWS
   json.prettyPrintTo(DEBUGPORT);
+  DEBUGASYNCWS("\r\n");
 #endif
 
-  json.prettyPrintTo(configFile);
-  configFile.flush();
-  configFile.close();
+  // EEPROM_write_char(eeprom_wifi_ssid_start, eeprom_wifi_ssid_size, _config.ssid);
+  // EEPROM_write_char(eeprom_wifi_password_start, eeprom_wifi_password_size, wifi_password);
+
+  json.prettyPrintTo(file);
+  file.flush();
+  file.close();
   return true;
 }
 
@@ -3104,7 +3101,7 @@ bool save_config_location()
 {
   DEBUGASYNCWS("%s\r\n", __PRETTY_FUNCTION__);
 
-  DynamicJsonBuffer jsonBuffer;
+  StaticJsonBuffer<512> jsonBuffer;
   JsonObject &json = jsonBuffer.createObject();
 
   json[FPSTR(pgm_city)] = _configLocation.city;
@@ -3112,15 +3109,16 @@ bool save_config_location()
   json[FPSTR(pgm_latitude)] = _configLocation.latitude;
   json[FPSTR(pgm_longitude)] = _configLocation.longitude;
 
-  File configFile = SPIFFS.open(FPSTR(pgm_configfilelocation), "w");
+  File file = SPIFFS.open(FPSTR(pgm_configfilelocation), "w");
 
 #ifndef RELEASEASYNCWS
   json.prettyPrintTo(DEBUGPORT);
+  DEBUGASYNCWS("\r\n");
 #endif
 
-  json.prettyPrintTo(configFile);
-  configFile.flush();
-  configFile.close();
+  json.prettyPrintTo(file);
+  file.flush();
+  file.close();
   return true;
 }
 
@@ -3131,7 +3129,7 @@ bool save_config_time()
 {
   DEBUGASYNCWS("%s\r\n", __PRETTY_FUNCTION__);
 
-  DynamicJsonBuffer jsonBuffer;
+  StaticJsonBuffer<512> jsonBuffer;
   JsonObject &json = jsonBuffer.createObject();
 
   json[FPSTR(pgm_dst)] = _configTime.dst;
@@ -3145,15 +3143,16 @@ bool save_config_time()
   //json["led"] = config.connectionLed;
 
   //TODO add AP data to html
-  File configFile = SPIFFS.open(FPSTR(pgm_configfiletime), "w");
+  File file = SPIFFS.open(FPSTR(pgm_configfiletime), "w");
 
 #ifndef RELEASEASYNCWS
   json.prettyPrintTo(DEBUGPORT);
+  DEBUGASYNCWS("\r\n");
 #endif
 
-  json.prettyPrintTo(configFile);
-  configFile.flush();
-  configFile.close();
+  json.prettyPrintTo(file);
+  file.flush();
+  file.close();
   return true;
 }
 
@@ -3164,7 +3163,7 @@ bool save_config_sholat()
 {
   DEBUGASYNCWS("%s\r\n", __PRETTY_FUNCTION__);
 
-  DynamicJsonBuffer jsonBuffer;
+  StaticJsonBuffer<1024> jsonBuffer;
   JsonObject &root = jsonBuffer.createObject();
 
   //root[FPSTR(pgm_location)] = _sholatConfig.location;
@@ -3244,12 +3243,13 @@ bool save_config_sholat()
 
 #ifndef RELEASEASYNCWS
   root.prettyPrintTo(DEBUGPORT);
+  DEBUGASYNCWS("\r\n");
 #endif
 
-  File configFile = SPIFFS.open(FPSTR(pgm_configfilesholat), "w");
-  root.prettyPrintTo(configFile);
-  configFile.flush();
-  configFile.close();
+  File file = SPIFFS.open(FPSTR(pgm_configfilesholat), "w");
+  root.prettyPrintTo(file);
+  file.flush();
+  file.close();
   return true;
 }
 
@@ -3260,7 +3260,7 @@ bool save_config_ledmatrix()
 {
   DEBUGASYNCWS("%s\r\n", __PRETTY_FUNCTION__);
 
-  DynamicJsonBuffer jsonBuffer;
+  StaticJsonBuffer<1024> jsonBuffer;
   JsonObject &root = jsonBuffer.createObject();
 
   uint8_t opmode = 0;
@@ -3301,12 +3301,13 @@ bool save_config_ledmatrix()
 
 #ifndef RELEASEASYNCWS
   root.prettyPrintTo(DEBUGPORT);
+  DEBUGASYNCWS("\r\n");
 #endif
 
-  File configFile = SPIFFS.open(FPSTR(pgm_configfileledmatrix), "w");
-  root.prettyPrintTo(configFile);
-  configFile.flush();
-  configFile.close();
+  File file = SPIFFS.open(FPSTR(pgm_configfileledmatrix), "w");
+  root.prettyPrintTo(file);
+  file.flush();
+  file.close();
   return true;
 }
 

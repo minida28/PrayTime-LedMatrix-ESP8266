@@ -369,8 +369,8 @@ typedef enum enumConfigID
 
 typedef struct {
   char hostname[32] = "ESP_XXXX";
-  char ssid[32];
-  char password[32];
+  char ssid[33] = "your_wifi_ssid";
+  char password[65] = "your_wifi_password";
   bool dhcp = true;
   char static_ip[16] = "192.168.10.15";
   char netmask[16] = "255.255.255.0";
@@ -571,6 +571,7 @@ extern OperatingMode OPERATING_MODE_old;
 // -------------------------------------------------------------------
 // Reset the config back to defaults
 // -------------------------------------------------------------------
+extern void config_setup();
 extern void config_reset();
 extern void ResetEEPROM();
 
