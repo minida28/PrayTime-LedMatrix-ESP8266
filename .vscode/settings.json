@@ -18,5 +18,12 @@
         "cstdlib": "cpp",
         "*.tcc": "cpp",
         "fstream": "cpp"
-    }
+    },
+    // "arduino.path": "C:/Program Files (x86)/Arduino",
+    // "arduino.commandPath": "run-arduino.bat",
+    // "arduino.additionalUrls": "",
+    "arduino.logLevel": "verbose",
+    "arduino.enableUSBDetection": true,
+    // "arduino.disableTestingOpen": false,
+    // "arduino.skipHeaderProvider": false,
 }

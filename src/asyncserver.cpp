@@ -301,7 +301,7 @@ void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventTyp
                 //WsSendInfoStatic(clientID);
                 //WsSendInfoDynamic(clientID);
                 //WsSendSholatStatic(clientID);
-                //WsSendSholatDynamic(clientID);
+                WsSendSholatDynamic(clientID);
                 //WsSendRunningLedConfig(clientID);
               }
               else if (strcmp_P(url, pgm_settimepage) == 0)
@@ -996,6 +996,7 @@ void AsyncWSBegin()
     }
     else
     {
+      // WiFi.mode(WIFI_OFF);
       WiFi.hostname(_config.hostname);
       WiFi.begin(_config.ssid, _config.password);
       WiFi.waitForConnectResult();
@@ -1011,12 +1012,28 @@ void AsyncWSBegin()
 
   NBNS.begin(_config.hostname);
 
+  
+  DEBUGASYNCWS("Starting SSDP...\r\n");
   SSDP.setSchemaURL(FPSTR(pgm_descriptionxml));
   SSDP.setHTTPPort(80);
   SSDP.setDeviceType(FPSTR(pgm_upnprootdevice));
   //  SSDP.setModelName(_config.deviceName.c_str());
   //  SSDP.setModelNumber(FPSTR(modelNumber));
   SSDP.begin();
+
+  
+  // // SSDP.setSchemaURL("description.xml");
+  // SSDP.setSchemaURL(FPSTR(pgm_descriptionxml));
+  // SSDP.setHTTPPort(80);
+  // SSDP.setName("Philips hue clone");
+  // SSDP.setSerialNumber("001788102201");
+  // SSDP.setURL("index.html");
+  // SSDP.setModelName("Philips hue bridge 2012");
+  // SSDP.setModelNumber("929000226503");
+  // SSDP.setModelURL("http://www.meethue.com");
+  // SSDP.setManufacturer("Royal Philips Electronics");
+  // SSDP.setManufacturerURL("http://www.philips.com");
+  // SSDP.begin();
 
   //SPIFFS.begin();
 
@@ -1062,17 +1079,22 @@ void AsyncWSBegin()
     handleFileList(request);
   });
 
+  // server.on("/description.xml", [](AsyncWebServerRequest *request) {
+  //   DEBUGASYNCWS("%s\r\n", __PRETTY_FUNCTION__);
+  //   // SSDP.schema(HTTP.client());
+  // });
+
   server.on("/description.xml", HTTP_GET, [](AsyncWebServerRequest *request) {
     DEBUGASYNCWS("%s\r\n", __PRETTY_FUNCTION__);
 
-    File configFile = SPIFFS.open(DESCRIPTION_XML_FILE, "r");
-    if (!configFile)
+    File file = SPIFFS.open(DESCRIPTION_XML_FILE, "r");
+    if (!file)
     {
       PRINT("Failed to open config file\r\n");
       return;
     }
 
-    size_t size = configFile.size();
+    size_t size = file.size();
     PRINT("DESCRIPTION_XML_FILE file size: %d bytes\r\n", size);
     if (size > 1024)
     {
@@ -1083,13 +1105,13 @@ void AsyncWSBegin()
     char buf[size];
 
     //copy file to buffer
-    configFile.readBytes(buf, size);
+    file.readBytes(buf, size);
 
     //add termination character at the end
     buf[size] = '\0';
 
     //close the file, save your memory, keep healthy :-)
-    configFile.close();
+    file.close();
 
     PRINT("%s\r\n", buf);
 
@@ -1100,13 +1122,17 @@ void AsyncWSBegin()
       //convert IP address to char array
       size_t len = strlen(WiFi.localIP().toString().c_str());
       char URLBase[len + 1];
-      strlcpy(URLBase, WiFi.localIP().toString().c_str(), sizeof(URLBase));
+      strlcpy(URLBase, WiFi.localIP().toString().c_str(), sizeof(URLBase));      
 
-      const char *friendlyName = _config.hostname;
-      char presentationURL[] = "index.htm";
+      // const char *friendlyName = WiFi.hostname().toString().c_str();
+      len = strlen(WiFi.hostname().c_str());
+      char friendlyName[len + 1];
+      strlcpy(friendlyName, WiFi.hostname().c_str(), sizeof(friendlyName)); 
+
+      char presentationURL[] = "/";
       uint32_t serialNumber = ESP.getChipId();
       char modelName[] = "LS-01";
-      const char *modelNumber = _config.hostname;
+      const char *modelNumber = friendlyName;
       //output.printf(ssdpTemplate,
       output.printf(buf,
                     URLBase,
@@ -1125,6 +1151,8 @@ void AsyncWSBegin()
       request->send(500);
     }
   });
+
+  // SSDP.schema(HTTP.client());
 
   server.serveStatic("/", SPIFFS, "/").setDefaultFile("index.htm");
 
@@ -1336,25 +1364,47 @@ void AsyncWSBegin()
     send_config_mqtt(request);
   });
 
-  server.on("/status/heap", [](AsyncWebServerRequest *request) {
+  server.on("/status/network", [](AsyncWebServerRequest *request) {
     DEBUGASYNCWS("%s\r\n", request->url().c_str());
 
-    uint32_t heap = ESP.getFreeHeap();
-
-    DynamicJsonBuffer jsonBuffer;
+    StaticJsonBuffer<1024> jsonBuffer;
     JsonObject &root = jsonBuffer.createObject();
 
-    root[FPSTR(pgm_heap)] = heap;
+    root[FPSTR(pgm_chipid)] = ESP.getChipId();
+    root[FPSTR(pgm_hostname)] = WiFi.hostname();
+    root[FPSTR(pgm_status)] = FPSTR(wifistatus_P[WiFi.status()]);
 
-    AsyncResponseStream *response = request->beginResponseStream("application/json");
-    root.prettyPrintTo(*response);
-    request->send(response);
+    root[FPSTR(pgm_mode)] = FPSTR(wifimode_P[WiFi.getMode()]);
+    const char *phymodes[] = {"", "B", "G", "N"};
+    root[FPSTR(pgm_phymode)] = phymodes[WiFi.getPhyMode()];
+    root[FPSTR(pgm_channel)] = WiFi.channel();
+    root[FPSTR(pgm_ssid)] = WiFi.SSID();
+    root[FPSTR(pgm_password)] = WiFi.psk();
+    root[FPSTR(pgm_encryption)] = WiFi.encryptionType(0);
+    root[FPSTR(pgm_isconnected)] = WiFi.isConnected();
+    root[FPSTR(pgm_autoconnect)] = WiFi.getAutoConnect();
+    root[FPSTR(pgm_persistent)] = WiFi.getPersistent();
+    root[FPSTR(pgm_bssid)] = WiFi.BSSIDstr();
+    root[FPSTR(pgm_rssi)] = WiFi.RSSI();
+    root[FPSTR(pgm_sta_ip)] = WiFi.localIP().toString();
+    root[FPSTR(pgm_sta_mac)] = WiFi.macAddress();
+    root[FPSTR(pgm_ap_ip)] = WiFi.softAPIP().toString();
+    root[FPSTR(pgm_ap_mac)] = WiFi.softAPmacAddress();
+    root[FPSTR(pgm_gateway)] = WiFi.gatewayIP().toString();
+    root[FPSTR(pgm_netmask)] = WiFi.subnetMask().toString();
+    root[FPSTR(pgm_dns0)] = WiFi.dnsIP().toString();
+    root[FPSTR(pgm_dns1)] = WiFi.dnsIP(1).toString();
+
+    size_t len = root.measureLength();
+    char response[len + 1];
+    root.printTo(response, sizeof(response));
+    request->send(200, "text/plain", response);
   });
 
   server.on("/status/datetime", [](AsyncWebServerRequest *request) {
     DEBUGASYNCWS("%s\r\n", request->url().c_str());
 
-    DynamicJsonBuffer jsonBuffer;
+    StaticJsonBuffer<512> jsonBuffer;
     JsonObject &root = jsonBuffer.createObject();
 
     root["d"] = day(localTime);
@@ -1367,9 +1417,26 @@ void AsyncWSBegin()
     root["utc"] = utcTime;
     root["local"] = localTime;
 
-    AsyncResponseStream *response = request->beginResponseStream("application/json");
-    root.prettyPrintTo(*response);
-    request->send(response);
+    size_t len = root.measureLength();
+    char response[len + 1];
+    root.printTo(response, sizeof(response));
+    request->send(200, "text/plain", response);
+  });
+
+  server.on("/status/heap", [](AsyncWebServerRequest *request) {
+    DEBUGASYNCWS("%s\r\n", request->url().c_str());
+
+    uint32_t heap = ESP.getFreeHeap();
+
+    StaticJsonBuffer<64> jsonBuffer;
+    JsonObject &root = jsonBuffer.createObject();
+
+    root[FPSTR(pgm_heap)] = heap;
+
+    size_t len = root.measureLength();
+    char response[len + 1];
+    root.printTo(response, sizeof(response));
+    request->send(200, "application/json", response);
   });
 
   server.begin();
@@ -1574,7 +1641,7 @@ void WsSendNetworkStatus()
 {
   DEBUGLOG("%s\r\n", __PRETTY_FUNCTION__);
 
-  DynamicJsonBuffer jsonBuffer;
+  StaticJsonBuffer<1024> jsonBuffer;
   JsonObject &root = jsonBuffer.createObject();
 
   root[FPSTR(pgm_chipid)] = ESP.getChipId();
@@ -3948,7 +4015,7 @@ void WsSendSholatDynamic(int clientID)
 {
   DEBUGLOG("%s\r\n", __PRETTY_FUNCTION__);
 
-  DynamicJsonBuffer jsonBuffer;
+  StaticJsonBuffer<512> jsonBuffer;
   JsonObject &root = jsonBuffer.createObject();
 
   root[FPSTR(pgm_type)] = FPSTR(pgm_sholatdynamic);
@@ -3957,6 +4024,16 @@ void WsSendSholatDynamic(int clientID)
   root[FPSTR(pgm_s)] = SECOND;
   root[FPSTR(pgm_curr)] = sholatNameStr(CURRENTTIMEID);
   root[FPSTR(pgm_next)] = sholatNameStr(NEXTTIMEID);
+
+  root[FPSTR(pgm_loc)] = _configLocation.city;
+  //  root[FPSTR(pgm_day)] = dayNameStr(weekday(local_time()));
+  //  root[FPSTR(pgm_date)] = getDateStr(local_time());
+  root[FPSTR(pgm_fajr)] = sholatTimeArray[0];
+  root[FPSTR(pgm_syuruq)] = sholatTimeArray[1];
+  root[FPSTR(pgm_dhuhr)] = sholatTimeArray[2];
+  root[FPSTR(pgm_ashr)] = sholatTimeArray[3];
+  root[FPSTR(pgm_maghrib)] = sholatTimeArray[5];
+  root[FPSTR(pgm_isya)] = sholatTimeArray[6];
 
   size_t len = root.measureLength();
   char buf[len + 1];

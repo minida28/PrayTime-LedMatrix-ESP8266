@@ -1,6 +1,6 @@
 {
-  "ssid": "galaxi",
-  "password": "n1n4iqb4l",
+  "ssid": "your_wifi_ssid",
+  "password": "your_wifi_password",
   "dhcp": true,
   "static_ip": "192.168.10.15",
   "netmask": "255.255.255.0",

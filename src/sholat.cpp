@@ -648,4 +648,3 @@ const int PrayerTimes::NUM_ITERATIONS = 1;    // number of iterations needed to 
 
 
 
-

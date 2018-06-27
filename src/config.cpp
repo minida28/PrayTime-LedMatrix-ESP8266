@@ -990,7 +990,7 @@ void printDigits(int digits)
 
 byte RtcStatus()
 {
-  DEBUGCONFIG("%s\r\n", __PRETTY_FUNCTION__);
+  // DEBUGCONFIG("%s\r\n", __PRETTY_FUNCTION__);
   // status = 0; RTC time is valid.
   // status = 1; RTC lost confidence in the DateTime!
   // status = 2; Actual clock is NOT running on the RTC

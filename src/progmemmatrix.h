@@ -1,7 +1,6 @@
 #ifndef _PROGMEMMATRIX_H
 #define _PROGMEMMATRIX_H
 
-
 const char Page_WaitAndReload[] PROGMEM = R"=====(
 <p>Rebooting...</p>
 <p>Please wait in <strong><span id="counter">20</span></strong> second(s).</p>
@@ -18,28 +17,26 @@ setInterval(function(){ countdown(); },1000);
 </script>
 )=====";
 
-
-const char fajrStr [] PROGMEM = "FAJR";
-const char syuruqStr [] PROGMEM = "SYURUQ";
-const char dhuhrStr [] PROGMEM = "DHUHR";
-const char ashrStr [] PROGMEM = "ASHR";
-const char sunsetStr [] PROGMEM = "SUNSET";
+const char fajrStr[] PROGMEM = "FAJR";
+const char syuruqStr[] PROGMEM = "SYURUQ";
+const char dhuhrStr[] PROGMEM = "DHUHR";
+const char ashrStr[] PROGMEM = "ASHR";
+const char sunsetStr[] PROGMEM = "SUNSET";
 const char maghribStr[] PROGMEM = "MAGHRIB";
-const char isyaStr [] PROGMEM = "ISYA";
-const char sholatNameCountStr [] PROGMEM = "TIMESCOUNT";
+const char isyaStr[] PROGMEM = "ISYA";
+const char sholatNameCountStr[] PROGMEM = "TIMESCOUNT";
 
-const char* const sholatName_P[] PROGMEM =
-{
-  fajrStr,
-  syuruqStr,
-  dhuhrStr,
-  ashrStr,
-  sunsetStr,
-  maghribStr,
-  isyaStr,
+const char *const sholatName_P[] PROGMEM =
+    {
+        fajrStr,
+        syuruqStr,
+        dhuhrStr,
+        ashrStr,
+        sunsetStr,
+        maghribStr,
+        isyaStr,
 
-  sholatNameCountStr
-};
+        sholatNameCountStr};
 
 const char pgm_txt_manual[] PROGMEM = "manual";
 const char pgm_txt_hapelaptop[] PROGMEM = "hapelaptop";
@@ -50,20 +47,50 @@ const char pgm_txt_gotyourtextmessage[] PROGMEM = "I got your text message";
 const char pgm_txt_gotyourbinarymessage[] PROGMEM = "I got your binary message";
 static const char pgm_txt_serverloseconnection[] PROGMEM = "Server close connection";
 
-
-
 const char Page_Restart[] PROGMEM = "Please Wait... Configuring and Restarting";
 const char Page_Reset[] PROGMEM = "Please Wait... Configuring and Resetting";
 const char modelName[] PROGMEM = "ESP8266EX";
 const char modelNumber[] PROGMEM = "929000226503";
 
-
 //network
+const char WL_IDLE_STATUS_Str[] PROGMEM = "WL_IDLE_STATUS";
+const char WL_NO_SSID_AVAIL_Str[] PROGMEM = "WL_NO_SSID_AVAIL";
+const char WL_SCAN_COMPLETED_Str[] PROGMEM = "WL_SCAN_COMPLETED";
+const char WL_CONNECTED_Str[] PROGMEM = "WL_CONNECTED";
+const char WL_CONNECT_FAILED_Str[] PROGMEM = "WL_CONNECT_FAILED";
+const char WL_CONNECTION_LOST_Str[] PROGMEM = "WL_CONNECTION_LOST";
+const char WL_DISCONNECTED_Str[] PROGMEM = "WL_DISCONNECTED";
+
+const char *const wifistatus_P[] PROGMEM =
+    {
+        //   WL_NO_SHIELD_Str,
+        WL_IDLE_STATUS_Str,
+        WL_NO_SSID_AVAIL_Str,
+        WL_SCAN_COMPLETED_Str,
+        WL_CONNECTED_Str,
+        WL_CONNECT_FAILED_Str,
+        WL_CONNECTION_LOST_Str,
+        WL_DISCONNECTED_Str};
+
+const char NULL_Str[] PROGMEM = "NULL";
+const char STA_Str[] PROGMEM = "STA";
+const char AP_Str[] PROGMEM = "AP";
+const char STA_AP_Str[] PROGMEM = "STA+AP";
+
+const char *const wifimode_P[] PROGMEM =
+    {
+        // WL_NO_SHIELD_Str,
+        NULL_Str,
+        STA_Str,
+        AP_Str,
+        STA_AP_Str};
+
 const char pgm_loc[] PROGMEM = "loc";
 const char pgm_hostname[] PROGMEM = "hostname";
 const char pgm_mode[] PROGMEM = "mode";
 const char pgm_ssid[] PROGMEM = "ssid";
 const char pgm_password[] PROGMEM = "password";
+const char pgm_encryption[] PROGMEM = "encryption";
 const char pgm_dhcp[] PROGMEM = "dhcp";
 const char pgm_static_ip[] PROGMEM = "static_ip";
 const char pgm_sta_ip[] PROGMEM = "sta_ip";
@@ -75,6 +102,14 @@ const char pgm_netmask[] PROGMEM = "netmask";
 const char pgm_mac[] PROGMEM = "mac";
 const char pgm_dns0[] PROGMEM = "dns0";
 const char pgm_dns1[] PROGMEM = "dns1";
+const char pgm_rssi[] PROGMEM = "rssi";
+const char pgm_isconnected[] PROGMEM = "isconnected";
+const char pgm_autoconnect[] PROGMEM = "autoconnect";
+const char pgm_persistent[] PROGMEM = "persistent";
+const char pgm_bssid[] PROGMEM = "bssid";
+const char pgm_status[] PROGMEM = "status";
+const char pgm_phymode[] PROGMEM = "phymode";
+const char pgm_channel[] PROGMEM = "channel";
 
 // System Info
 const char pgm_chipid[] PROGMEM = "chipid";
@@ -95,7 +130,6 @@ const char pgm_resetreason[] PROGMEM = "resetreason";
 const char pgm_filename[] PROGMEM = "filename";
 const char pgm_compiledate[] PROGMEM = "compiledate";
 const char pgm_compiletime[] PROGMEM = "compiletime";
-
 
 const char pgm_WIFI_AP[] PROGMEM = "WIFI_AP";
 const char pgm_WIFI_STA[] PROGMEM = "WIFI_STA";
@@ -244,6 +278,5 @@ const char pgm_rtctemp[] PROGMEM = "rtctemp";
 //SSDP
 const char pgm_descriptionxml[] PROGMEM = "description.xml";
 const char pgm_upnprootdevice[] PROGMEM = "upnp:rootdevice";
-
 
 #endif

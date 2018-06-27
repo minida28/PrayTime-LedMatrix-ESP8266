@@ -1,661 +1,754 @@
-<!DOCTYPE html>	
+<!DOCTYPE html>
+<html lang="en">
+
 <head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, user-scalable=no">
-	<link rel="stylesheet" type="text/css" href="siimple.min.css">
-	<!--<link rel="stylesheet" type="text/css" href="style.css">-->
-	<link rel="shortcut icon" href="favicon.ico">
-	<title>Sholat Settings</title>
-<style>
-/*body {font-family: Verdana, Arial, 'sans-serif';}*/
-/*body {font-family: Consolas, monaco, monospace;}*/
-.siimple-jumbotron-title, .siimple-table-cell {font-family: "Lucida Sans Typewriter", "Lucida Console", Monaco, "Bitstream Vera Sans Mono", monospace;}
-</style>
+
+  <!-- Basic Page Needs
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <meta charset="utf-8">
+  <title>Location</title>
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!-- Mobile Specific Metas
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- FONT
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <!--<link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css">-->
+
+  <!-- CSS
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link rel="stylesheet" href="bulma.min.css">
+
+  <style>
+  </style>
+
+
+  <!-- Favicon
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link rel="icon" type="image/png" href="favicon.png">
+
 </head>
+
 <body>
-<div class="siimple-content siimple-content--small">
-  <div class="siimple-grid">
-    
-	  <div class="siimple-grid-row">
-	    <div class="siimple-grid-col siimple-grid-col--12">
-        <div class="siimple-box siimple-box--pink">
-          <div class="siimple-box-title">Pengaturan Lokasi</div>
-          <!--<div class="siimple-box-subtitle">This is the box subtitle</div>-->
-          <!--<div class="siimple-box-detail">This is the box detail text</div>-->
+
+
+  <section class="hero is-info is-bold">
+    <!-- Hero head: will stick at the top -->
+    <div class="hero-head">
+      <nav class="navbar">
+        <div class="container">
+          <div class="navbar-brand">
+            <!--<a class="navbar-item">-->
+            <!--  <img src="https://bulma.io/images/bulma-type-white.png" alt="Logo">-->
+            <!--</a>-->
+            <span class="navbar-burger burger" data-target="navbarMenuHeroA">
+              <span></span>
+              <span></span>
+              <span></span>
+            </span>
+          </div>
+          <div id="navbarMenuHeroA" class="navbar-menu">
+            <div class="navbar-end">
+              <a class="navbar-item" href="/">
+                Home
+              </a>
+              <a class="navbar-item is-active" href="configlocation.html">
+                Location
+              </a>
+              <a class="navbar-item" href="setrtctime.html">
+                Time & Date
+              </a>
+              <a class="navbar-item" href="confignetwork.html">
+                Network
+              </a>
+              <a class="navbar-item" href="menu.html">
+                Menu
+              </a>
+            </div>
+          </div>
         </div>
-	    </div>
-	  </div>
-	  
-	  <div class="siimple-grid-row">
-	    <div class="siimple-grid-col siimple-grid-col--12">
-        <div class="siimple-tabs siimple-tabs--boxed">
-          <a href="/"><div class="siimple-tabs-tab">Menu</div></a>
-          <a href="/configlocation.html"><div class="siimple-tabs-tab siimple-tabs-tab--selected">Location</div></a>
-          <a href="/configsholat.html"><div class="siimple-tabs-tab">Sholat</div></a>
-          <a href="/configledmatrix.html"><div class="siimple-tabs-tab">LedMatrix</div></a>
-          <a href="/statussystem.html"><div class="siimple-tabs-tab">System Status</div></a>
+      </nav>
+    </div>
+
+    <!-- Hero content: will be in the middle -->
+    <div class="hero-body">
+      <div class="container has-text-centered">
+        <h1 id="jumboCountdown" class="title is-size-3">
+          Location Settings
+        </h1>
+      </div>
+    </div>
+
+  </section>
+
+  <div id="modalDisconnected" class="modal">
+    <div class="modal-background"></div>
+    <div class="modal-content">
+      <!-- Any other Bulma elements you want -->
+      <article id="status_box" class="tile has-text-centered is-child notification is-danger is-marginless">
+        <p class="subtitle is-5 is-marginless">DISCONNECTED</p>
+        <p>Refresh the browser to reconnect.</p>
+      </article>
+    </div>
+    <button class="modal-close is-large" aria-label="close"></button>
+  </div>
+
+
+
+  <section class="section">
+    <div class="container is-desktop">
+
+      <div class="columns">
+        <div class="column">
+          <!-- Column 1 content -->
         </div>
-	    </div>
-	  </div>
+        <div class="column is-one-quarter" style="display:hidden">
+          <!-- Column 2 content -->
+          <div class="box">
 
-	  <div class="siimple-grid-row">
-	    <div class="siimple-grid-col siimple-grid-col--12">
-	      <b><div id="status_box" class="alert alert-info"></div></b>
-	    </div>
-      <div class="siimple-grid-col siimple-grid-col--6">
+            <p class="title is-4 has-text-weight-semibold">Current Location</p>
+            <hr>
+            <table class="table is-narrow">
+              <tbody>
+                <tr class="is-selected">
+                  <td><p class="has-text-weight-bold">Location</p></td>
+                  <td>:</td>
+                  <td><p id="city-current" class="has-text-weight-bold"></p></td>
+                </tr>
+                <tr>
+                  <td><p class="has-text-weight-semibold">Timezone</p></td>
+                  <td>:</td>
+                  <td><p id="timezone-current" class="has-text-info"></p></td>
+                </tr>
+                <tr>
+                  <td><p class="has-text-weight-semibold">Latitude</p></td>
+                  <td>:</td>
+                  <td><p id="latitude-current" class="has-text-info"></p></td>
+                </tr>
+                <tr>
+                  <td><p class="has-text-weight-semibold">Longitude</p></td>
+                  <td>:</td>
+                  <td><p id="longitude-current" class="has-text-info"></p></td>
+              </tbody>
+            </table>
+              
+          </div>
+        </div>
+
+        <div class="column is-one-quarter">
+          <!-- Column 3 content -->
+          <div class="box">
+
+            <p class="title is-4 has-text-weight-semibold">Change Location</p>
+            <hr>
+            
+            <div class="field">
+              <label class="label">Data source</label>
+              <div class="control">
+                <div class="select">
+                  <select id="datasource" onchange="loadDataSource();">
+                    <option style="display:none">Choose data source</option>
+                    <option value="DATABASE">DATABASE</option>
+                    <option value="MANUAL">MANUAL</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="field" name="province" style="display:none">
+              <label class="label">Province</label>
+              <div class="control">
+                <div class="select is-small">
+                  <select id="province" onchange="updateRegenciesDropdown();">
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="field" name="city" style="display:none">
+              <label class="label">City/Regencies</label>
+              <div class="control">
+                <div class="select is-small">
+                  <select id="city" onchange="updateTz(); updateLatLon();">
+                  </select>
+                </div>
+              </div>
+              <p id="tzlatlon" class="help is-danger is-italic"></p>
+            </div>
+
+
+            <div class="field" name="city-input" style="display:none">
+              <label class="label">City</label>
+              <div class="control">
+                <input id="city-input" maxlength="32" class="input">
+              </div>
+            </div>
+
+
+            <div class="field" name="timezone-span" style="display:none">
+              <label class="label">Timezone</label>
+              <div class="control">
+                <input id="timezone-span" class="input">
+              </div>
+            </div>
+
+            <div class="field" name="timezone-dropdown" style="display:none">
+              <label class="label">Timezone</label>
+              <div class="control">
+                <div class="select">
+                  <select id="timezone-dropdown">
+                    <option style="display:none">Set Timezone</option>
+                    <option value="70">WIB</option>
+                    <option value="80">WITA</option>
+                    <option value="90">WIT</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="field" name="latitude-span" style="display:none">
+              <label class="label">Latitude</label>
+              <div class="control">
+                <input id="latitude-span" class="input">
+              </div>
+            </div>
+
+            <div class="field" name="latitude-input" style="display:none">
+              <label class="label">Latitude</label>
+              <div class="control">
+                <input id="latitude-input" class="input" maxlength="10">
+              </div>
+            </div>
+
+            <div class="field" name="longitude-span" style="display:none">
+              <label class="label">Longitude</label>
+              <div class="control">
+                <input id="longitude-span" class="input">
+              </div>
+            </div>
+
+            <div class="field" name="longitude-input" style="display:none">
+              <label class="label">Longitude</label>
+              <div class="control">
+                <input id="longitude-input" class="input" maxlength="10">
+              </div>
+            </div>
+
+            <div class="field" id="btnSave-div" style="display:none">
+              <div class="field-label">
+                <label class="label"></label>
+              </div>
+              <div class="field-body">
+                <div class="field">
+                  <div class="control">
+                    <a id="btnSave" class="button is-info is-block" onclick="sendConfig();">
+                      Save settings
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+
+          </div>
+        </div>
+        
+        <div class="column">
+          <!-- Column 4 content -->
+        </div>
+        
       </div>
-	  </div>
-	  
-    <div class="siimple-grid-row">
-      <div class="siimple-grid-col siimple-grid-col--3 siimple-grid-col-sm--12">
-        <label class="siimple-label">Sumber Data</label>
-      </div>
-      <div class="siimple-grid-col siimple-grid-col--9 siimple-grid-col-sm--12">
-        <!--<select id="province" name="province" class="siimple-select" onchange="updateLatLon(this.value); something(this.value);"></select>-->
-        <select id="datasource" name="datasource" class="siimple-select" onchange="loadDataSource();">
-          <option style="display:none">Pilih sumber data</option>
-					<option value="DATABASE">DATABASE</option>
-					<!--<option value="GPS">GPS</option>-->
-					<option value="MANUAL">MANUAL</option>
-        </select>
-      </div>
-    </div>
-	  
-    <div name="province" style="display:none">
-    <div class="siimple-grid-row">
-      <div class="siimple-grid-col siimple-grid-col--3 siimple-grid-col-sm--12">
-        <label class="siimple-label">Propinsi</label>
-      </div>
-      <div class="siimple-grid-col siimple-grid-col--9 siimple-grid-col-sm--12">
-        <!--<select id="province" name="province" class="siimple-select" onchange="updateLatLon(this.value); something(this.value);"></select>-->
-        <select id="province" class="siimple-select" onchange="updateRegenciesDropdown();"></select>
-      </div>
-    </div>
-	  </div> 
-	  
-    <div name="city" style="display:none">
-    <div class="siimple-grid-row">
-      <div class="siimple-grid-col siimple-grid-col--3 siimple-grid-col-sm--12">
-        <label class="siimple-label">Kota/Kab</label>
-      </div>
-      <div class="siimple-grid-col siimple-grid-col--9 siimple-grid-col-sm--12">
-        <!--<select id="city" name="city" class="siimple-select" onchange="updateLatLon(this.value); something(this.value);"></select>-->
-        <select id="city" class="siimple-select" onchange="updateTz(); updateLatLon();"></select>
-      </div>
-    </div>
-    </div>
-    
-    <div name="city-input" style="display:none">
-    <div class="siimple-grid-row">
-      <div class="siimple-grid-col siimple-grid-col--3 siimple-grid-col-sm--12">
-        <label class="siimple-label">Kota</label>
-      </div>
-      <div class="siimple-grid-col siimple-grid-col--9 siimple-grid-col-sm--12">
-        <input type="text" class="siimple-input" id="city-input" maxlength="32" value="">
-      </div>
-    </div>
-    </div>
-    
-    <div name="timezone-span" style="display:none">
-    <div class="siimple-grid-row">
-      <div class="siimple-grid-col siimple-grid-col--3 siimple-grid-col-sm--12">
-        <label class="siimple-label">Timezone</label>
-      </div>
-      <div id="timezone-span" class="siimple-grid-col siimple-grid-col--9 siimple-grid-col-sm--12">
-      </div>
-    </div>
-    </div>
-    
-    <div name="timezone-dropdown" style="display:none">
-    <div class="siimple-grid-row">
-      <div class="siimple-grid-col siimple-grid-col--3 siimple-grid-col-sm--12">
-        <label class="siimple-label">Timezone</label>
-      </div>
-      <div class="siimple-grid-col siimple-grid-col--9 siimple-grid-col-sm--12">
-				<select class="siimple-select" id="timezone-dropdown">
-				  <option style="display:none">Set Timezone</option>
-					<option value="70">WIB</option>
-					<option value="80">WITA</option>
-					<option value="90">WIT</option>
-				</select>
-      </div>
-    </div>
-    </div>
-    
-    <div name="latitude-span" style="display:none">
-    <div class="siimple-grid-row">
-      <div class="siimple-grid-col siimple-grid-col--3 siimple-grid-col-sm--12">
-        <label class="siimple-label">Latitude</label>
-      </div>
-      <div id="latitude-span" class="siimple-grid-col siimple-grid-col--9 siimple-grid-col-sm--12">
-        <!--<input type="text" class="siimple-input" id="latitude" name="latitude" size="10" maxlength="10" value="">-->
-      </div>
-    </div>
-    </div>
-    
-    <div name="latitude-input" style="display:none">
-    <div class="siimple-grid-row">
-      <div class="siimple-grid-col siimple-grid-col--3 siimple-grid-col-sm--12">
-        <label class="siimple-label">Latitude</label>
-      </div>
-      <div class="siimple-grid-col siimple-grid-col--9 siimple-grid-col-sm--12">
-        <input type="number" class="siimple-input" id="latitude-input" size="10" maxlength="10" value="">
-      </div>
-    </div>
-    </div>
-    
-    <div name="longitude-span" style="display:none">
-    <div class="siimple-grid-row">
-      <div class="siimple-grid-col siimple-grid-col--3 siimple-grid-col-sm--12">
-        <label class="siimple-label">Longitude</label>
-      </div>
-      <div id="longitude-span" class="siimple-grid-col siimple-grid-col--9 siimple-grid-col-sm--12">
-        <!--<input type="text" class="siimple-input" id="longitude" name="longitude" size="10" maxlength="10" value="">-->
-      </div>
-    </div>
-    </div>
-    
-    <div name="longitude-input" style="display:none">
-    <div class="siimple-grid-row">
-      <div class="siimple-grid-col siimple-grid-col--3 siimple-grid-col-sm--12">
-        <label class="siimple-label">Longitude</label>
-      </div>
-      <div class="siimple-grid-col siimple-grid-col--9 siimple-grid-col-sm--12">
-        <input type="number" class="siimple-input" id="longitude-input" size="10" maxlength="10" value="">
-      </div>
-    </div>
-    </div>
-    
-    <br>
-    <div class="siimple-grid-row">
-      <div class="siimple-grid-col siimple-grid-col--12 siimple-grid-col-sm--12">
-        <div align="center">
-        <div class="siimple-btn siimple-btn--red" onclick="sendConfig();">Save</div>
+      
+      <div class="columns">
+        
+        <div class="column">
+          <div class="box">
+            
+            <p class="title is-4 has-text-weight-semibold">Map</p>
+            <hr>
+
+            <div class="field">
+              <label class="label">Google API Key</label>
+              <div class="field has-addons">
+                <div class="control">
+                  <input class="input" type="text" placeholder="API key" id="apikey" name="apikey">
+                  <input class="input" type="password" id="hiddenapikey" name="hiddenapikey" style="display:none">
+                </div>
+                <div class="control">
+                  <a class="button is-info" id="btnHideShow" onclick="hideShowKey()">Hide</a>
+                </div>
+              </div>
+            </div>
+            
+
+
+
+      <div>
+        <div class="siimple-grid-row">
+          <div class="siimple-grid-col siimple-grid-col--9 siimple-grid-col-sm--12">
+            <div id="map" style="width:100%;height:400px;background:yellow"></div>
+          </div>
         </div>
       </div>
-    </div>
-    
-    
-<h2>Google Map</h2>
-
-    <div name="apikey">
-    <div class="siimple-grid-row">
-      <div class="siimple-grid-col siimple-grid-col--3 siimple-grid-col-sm--12">
-        <label class="siimple-label">Api key</label>
+            
+            
+          </div>
+          
+        </div>
       </div>
-      <div class="siimple-grid-col siimple-grid-col--9 siimple-grid-col-sm--12">
-        <input type="password" class="siimple-input" id="apikey" value="">
-      </div>
+
     </div>
-    </div>
-    
-    <div name="hiddenapikey" style="display:none">
-    <div class="siimple-grid-row">
-      <div class="siimple-grid-col siimple-grid-col--3 siimple-grid-col-sm--12">
-        <label class="siimple-label">Api key</label>
-      </div>
-      <div class="siimple-grid-col siimple-grid-col--9 siimple-grid-col-sm--12">
-        <input type="text" class="siimple-input" id="hiddenapikey" value="">
-      </div>
-    </div>
-    </div>
-    
-    <div>
-    <div class="siimple-grid-row">
-      <div class="siimple-grid-col siimple-grid-col--9 siimple-grid-col-sm--12">
-        <div id="btnHideShow" class="siimple-btn siimple-btn--blue" onclick="hideShowKey()">Show Key</div>
-      </div>
-    </div>
-    </div>
-    
-    <div>
-    <div class="siimple-grid-row">
-      <div class="siimple-grid-col siimple-grid-col--9 siimple-grid-col-sm--12">
-        <div id="map" style="width:100%;height:400px;background:yellow"></div>
-      </div>
-    </div>
-    </div>
-    
-
-  </div> 
-
-  
-</div>
+  </section>
 
 
-<!--<script id='papaparse' src="papaparse.min.js" type="text/javascript" charset="utf-8"></script>-->
-
-<!--<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAT9wVwvnf6NIVCQP3sssd7JtsZn8R6IjY"></script>-->
-<script language="javascript" type="text/javascript">
-
-var ws = null;
-var json;
-var lan;
-var lon;
-var city;
-
-window.onload = function ()
-{
-  getConfigValues("googleapikey.txt");
-  loadScript();
-  loadProvincesDB();
-  loadRegenciesDB();
-  getConfigValues("config/location");
-  startSocket();
-}
-
-function loadScript() {
-  var script = document.createElement('script');
-  var key = document.getElementById("apikey").value;
-  script.type = 'text/javascript';
-  script.src = 'https://maps.googleapis.com/maps/api/js?v=3' +
-      '&key=' + key +'&callback=initialize'; //& needed
-  document.body.appendChild(script);
-}
 
 
-function getConfigValues(url) {
-  var req = new XMLHttpRequest();
-  if (req) {
-    req.open("GET", url, true);
-    if (url === "config/location")
-    {
-      req.addEventListener("load", reqListenerLocation);
-      // req.addEventListener("load", myMap);
+
+
+
+
+
+  <!--<script id='papaparse' src="papaparse.min.js" type="text/javascript" charset="utf-8"></script>-->
+
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAT9wVwvnf6NIVCQP3sssd7JtsZn8R6IjY"></script>
+  <script src="bulma-ui.js"></script>
+  <script language="javascript" type="text/javascript">
+
+    var ws = null;
+    var json;
+    var lan;
+    var lon;
+    var city;
+
+    window.onload = function () {
+      getConfigValues("googleapikey.txt");
+      // loadScript();
+      loadProvincesDB();
+      loadRegenciesDB();
+      getConfigValues("config/location");
+      startSocket();
     }
-    else if (url === "googleapikey.txt")
-    {
-      req.addEventListener("load", reqListenerApiKey);
-      // req.addEventListener("load", myMap);
+
+    // function loadScript() {
+    //   var script = document.createElement('script');
+    //   var key = document.getElementById("apikey").value;
+    //   script.type = 'text/javascript';
+    //   // script.src = 'https://maps.googleapis.com/maps/api/js?v=3' +'&key=' + key + '&callback=myMap'; //& needed
+    //   script.src = 'https://maps.googleapis.com/maps/api/js?v=3' +'&key=' + key; //& needed
+    //   document.body.appendChild(script);
+    // }
+
+
+    function getConfigValues(url) {
+      var req = new XMLHttpRequest();
+      if (req) {
+        req.open("GET", url, true);
+        if (url === "config/location") {
+          req.addEventListener("load", reqListenerLocation);
+          // req.addEventListener("load", myMap);
+        }
+        else if (url === "googleapikey.txt") {
+          req.addEventListener("load", reqListenerApiKey);
+          // req.addEventListener("load", myMap);
+        }
+
+        req.send();
+      }
     }
-    
-    req.send();
-  }
-}
 
-function reqListenerLocation () {
-  //console.log(this.responseText);
-  var json = JSON.parse(this.responseText);
-  console.log(json);
-  city = json.city;
-  lat = json.latitude;
-  lon = json.longitude;
-  document.getElementById("city-input").value = json.city;
-  document.getElementById("timezone-dropdown").value = json.timezone;
-  document.getElementById("latitude-input").value = json.latitude;
-  document.getElementById("longitude-input").value = json.longitude;
-  myMap(city, lat, lon);
-}
+    function reqListenerLocation() {
+      //console.log(this.responseText);
+      var json = JSON.parse(this.responseText);
+      console.log(json);
+      city = json.city;
+      lat = json.latitude;
+      lon = json.longitude;
+      
+      document.getElementById("city-input").value = json.city;
+      document.getElementById("timezone-dropdown").value = json.timezone;
+      document.getElementById("latitude-input").value = json.latitude;
+      document.getElementById("longitude-input").value = json.longitude;
+      
+      document.getElementById("city-current").textContent = json.city;
+      document.getElementById("timezone-current").textContent = timeZoneString(json.timezone);
+      document.getElementById("latitude-current").textContent = json.latitude;
+      document.getElementById("longitude-current").textContent = json.longitude;
+      
+      myMap(city, lat, lon);
+    }
 
-function reqListenerApiKey () {
-  //console.log(this.responseText);
-  document.getElementById("apikey").value = this.responseText;
-  document.getElementById("hiddenapikey").value = this.responseText;
-}
+    function reqListenerApiKey() {
+      //console.log(this.responseText);
+      document.getElementById("apikey").value = this.responseText;
+      document.getElementById("hiddenapikey").value = this.responseText;
+    }
 
-function hideShowKey()
-{
-  // document.getElementsByName('hiddenapikey')[0].style.display = "none";
+    function hideShowKey() {
+      // document.getElementsByName('hiddenapikey')[0].style.display = "none";
 
-  var val = document.getElementById('btnHideShow').textContent;
-  if (val === "Show Key")
-  {
-    // document.getElementsByName('province')[0].style.display = "inline";
-    document.getElementsByName('apikey')[0].style.display = "none";
-    document.getElementsByName('hiddenapikey')[0].style.display = "inline";
-    document.getElementById('btnHideShow').textContent = "Hide Key";
-  }
-  else if (val === "Hide Key")
-  {
-    document.getElementsByName('apikey')[0].style.display = "inline";
-    document.getElementsByName('hiddenapikey')[0].style.display = "none";
-    document.getElementById('btnHideShow').textContent = "Show Key";
-  }
-}
+      var str = document.getElementById('btnHideShow').textContent;
+      console.log(str);
+      if (str === "Show") {
+        // document.getElementsByName('province')[0].style.display = "inline";
+        document.getElementById('apikey').style.display = "block";
+        document.getElementById('hiddenapikey').style.display = "none";
+        document.getElementById('btnHideShow').textContent = "Hide";
+      }
+      else if (str === "Hide") {
+        document.getElementById('apikey').style.display = "none";
+        document.getElementById('hiddenapikey').style.display = "block";
+        document.getElementById('btnHideShow').textContent = "Show";
+      }
+    }
 
-var map;
-var marker;
-var infowindow;
+    var map;
+    var marker;
+    var infowindow;
 
-function myMap(location_name, lan, lon) {
-  
-  // lat = parseFloat(lat).toFixed(7);
-  // var y = Number(lon).toFixed(7);
-  
-  var mapOptions = {
-    zoom: 10,
-    center: {lat: lat, lng: lon}
-  };
-  map = new google.maps.Map(document.getElementById('map'),
-      mapOptions);
+    function myMap(location_name, lan, lon) {
 
-  var marker = new google.maps.Marker({
-    // The below line is equivalent to writing:
-    position: new google.maps.LatLng(lat, lon),
-    // position: {lat: lat, lng: lon},
-    title: location_name,
-    map: map
-  });
-  
-  // You can use a LatLng literal in place of a google.maps.LatLng object when
-  // creating the Marker object. Once the Marker object is instantiated, its
-  // position will be available as a google.maps.LatLng object. In this case,
-  // we retrieve the marker's position using the
-  // google.maps.LatLng.getPosition() method.
-  infowindow = new google.maps.InfoWindow({
-    content: '<p>Marker Location:' + marker.getPosition() + '</p>'
-  });
+      // lat = parseFloat(lat).toFixed(7);
+      // var y = Number(lon).toFixed(7);
 
-  google.maps.event.addListener(marker, 'click', function() {
-    infowindow.open(map, marker);
-  });
-  
-  google.maps.event.addListener(map, 'click', function(event) {
-      // placeMarker(event.latLng);
-      marker.setPosition(event.latLng);
-      // marker.getPosition();
-      // console.log(event.latLng);
-      // infowindow.open(map, marker);
-      infowindow.setContent(marker.getPosition().toUrlValue());
-  });
-    
-  function placeMarker(location) {
-      if (marker == undefined){
+      var mapOptions = {
+        zoom: 10,
+        center: { lat: lat, lng: lon }
+      };
+      map = new google.maps.Map(document.getElementById('map'),
+        mapOptions);
+
+      var marker = new google.maps.Marker({
+        // The below line is equivalent to writing:
+        position: new google.maps.LatLng(lat, lon),
+        // position: {lat: lat, lng: lon},
+        title: location_name,
+        map: map
+      });
+
+      // You can use a LatLng literal in place of a google.maps.LatLng object when
+      // creating the Marker object. Once the Marker object is instantiated, its
+      // position will be available as a google.maps.LatLng object. In this case,
+      // we retrieve the marker's position using the
+      // google.maps.LatLng.getPosition() method.
+      infowindow = new google.maps.InfoWindow({
+        content: '<p>Marker Location:' + marker.getPosition() + '</p>'
+      });
+
+      google.maps.event.addListener(marker, 'click', function () {
+        infowindow.open(map, marker);
+      });
+
+      google.maps.event.addListener(map, 'click', function (event) {
+        // placeMarker(event.latLng);
+        marker.setPosition(event.latLng);
+        // marker.getPosition();
+        // console.log(event.latLng);
+        // infowindow.open(map, marker);
+        infowindow.setContent(marker.getPosition().toUrlValue());
+      });
+
+      function placeMarker(location) {
+        if (marker == undefined) {
           marker = new google.maps.Marker({
-              position: location,
-              map: map, 
-              animation: google.maps.Animation.DROP,
+            position: location,
+            map: map,
+            animation: google.maps.Animation.DROP,
           });
-      }
-      else{
+        }
+        else {
           marker.setPosition(location);
+        }
+        map.setCenter(location);
+
       }
-      map.setCenter(location);
 
-  }
+    }
 
-}
+    function startSocket() {
+      ws = new WebSocket('ws://' + document.location.host + '/ws', ['arduino']);
+      ws.binaryType = "arraybuffer";
+      ws.onopen = function (e) {
+        var obj = new Object();
+        obj.url = window.location.pathname;
+        var myJSON = JSON.stringify(obj);
+        ws.send(myJSON);
+      };
+      ws.onclose = function (e) {
+      };
+      ws.onerror = function (e) {
+        console.log("ws error", e);
+      };
+      ws.onmessage = function (e) {
+        var msg = "";
+        if (e.data instanceof ArrayBuffer) {
+          msg = "BIN:";
+          var bytes = new Uint8Array(e.data);
+          for (var i = 0; i < bytes.length; i++) {
+            msg += String.fromCharCode(bytes[i]);
+          }
+        } else {
+          msg = "TXT:" + e.data;
+          console.log(msg);
+          if (isJSON(e.data)) {
+            var json = JSON.parse(e.data);
+          }
+        }
+      };
+    }
 
-function startSocket(){
-  ws = new WebSocket('ws://'+document.location.host+'/ws',['arduino']);
-  ws.binaryType = "arraybuffer";
-  ws.onopen = function(e){
-		var obj = new Object();
-    obj.url = window.location.pathname;
-    var myJSON = JSON.stringify(obj);
-    ws.send(myJSON);
-  };
-  ws.onclose = function(e){
-  };
-  ws.onerror = function(e){
-    console.log("ws error", e);
-  };
-  ws.onmessage = function(e){
-    var msg = "";
-    if(e.data instanceof ArrayBuffer){
-      msg = "BIN:";
-      var bytes = new Uint8Array(e.data);
-      for (var i = 0; i < bytes.length; i++) {
-        msg += String.fromCharCode(bytes[i]);
+    // https://stackoverflow.com/questions/3710204/how-to-check-if-a-string-is-a-valid-json-string-in-javascript-without-using-try
+    function isJSON(str) {
+      try {
+        return (JSON.parse(str) && !!str);
+      } catch (e) {
+        return false;
       }
-    } else {
-      msg = "TXT:"+e.data;
-      console.log(msg);
-      if (isJSON(e.data))
-      {
-        var json = JSON.parse(e.data);
+    }
+
+    function sendConfig() {
+      var datasource = document.getElementById('datasource');
+      var dropdownCity = document.getElementById('city');
+      var inputCity = document.getElementById('city-input');
+
+      var spanTimezone = document.getElementById('timezone-span');
+      var spanLatitude = document.getElementById('latitude-span');
+      var spanLongitude = document.getElementById('longitude-span');
+
+      var dropdownTimezone = document.getElementById('timezone-dropdown');
+      var inputLatitude = document.getElementById('latitude-input');
+      var inputLongitude = document.getElementById('longitude-input');
+
+      var json = new Object();
+
+      json.saveconfig = window.location.pathname;
+      // json.datasource = datasource.value;
+      if (datasource.value === "DATABASE") {
+
+        json.city = dropdownCity.options[dropdownCity.selectedIndex].text;
+        json.timezone = parseInt(spanTimezone.value);
+        json.latitude = parseFloat(spanLatitude.value);
+        json.longitude = parseFloat(spanLongitude.value);
+      }
+      else if (datasource.value === "MANUAL") {
+        json.city = inputCity.value;
+        json.timezone = parseInt(dropdownTimezone.value);
+        json.latitude = parseFloat(inputLatitude.value);
+        json.longitude = parseFloat(inputLongitude.value);
+      }
+
+      var myJSON = JSON.stringify(json);
+      ws.send(myJSON);
+      console.log("Data sent: ", myJSON);
+    }
+
+    var dataProvinces;
+
+    function loadProvincesDB() {
+      const url = 'provinces.json';
+
+      const request = new XMLHttpRequest();
+      request.open('GET', url, true);
+
+      request.onload = function () {
+        if (request.status === 200) {
+          dataProvinces = JSON.parse(request.responseText);
+        }
+        else {
+          // Reached the server, but it returned an error
+        }
+      }
+      request.onerror = function () {
+        console.error('An error occurred fetching the JSON from ' + url);
+      };
+      request.send();
+    }
+
+    var dataRegencies;
+
+    function loadRegenciesDB() {
+      const url = 'regencies.json';
+
+      const request = new XMLHttpRequest();
+      request.open('GET', url, true);
+
+      request.onload = function () {
+        if (request.status === 200) {
+          dataRegencies = JSON.parse(request.responseText);
+        }
+        else {
+          // Reached the server, but it returned an error
+        }
+      }
+      request.onerror = function () {
+        console.error('An error occurred fetching the JSON from ' + url);
+      };
+      request.send();
+    }
+
+
+    function loadDataSource() {
+      document.getElementsByName('province')[0].style.display = "none";
+      document.getElementsByName('city')[0].style.display = "none";
+      document.getElementsByName('timezone-span')[0].style.display = "none";
+      document.getElementsByName('latitude-span')[0].style.display = "none";
+      document.getElementsByName('longitude-span')[0].style.display = "none";
+
+      document.getElementsByName('city-input')[0].style.display = "none";
+      document.getElementsByName('timezone-dropdown')[0].style.display = "none";
+      document.getElementsByName('latitude-input')[0].style.display = "none";
+      document.getElementsByName('longitude-input')[0].style.display = "none";
+
+      var dropdown = document.getElementById('datasource');
+      if (dropdown.value === "DATABASE") {
+        updateProvincesDropdown();
+        document.getElementsByName('province')[0].style.display = "inline-block";
+      }
+      // else if (dropdown.value === "GPS")
+      // {
+      //   document.getElementsByName('timezone-dropdown')[0].style.display = "inline";
+      //   document.getElementsByName('latitude-span')[0].style.display = "inline";
+      //   document.getElementsByName('longitude-span')[0].style.display = "inline";
+      // }
+      else if (dropdown.value === "MANUAL") {
+        document.getElementsByName('city-input')[0].style.display = "inline-block";
+        document.getElementsByName('timezone-dropdown')[0].style.display = "inline-block";
+        document.getElementsByName('latitude-input')[0].style.display = "inline-block";
+        document.getElementsByName('longitude-input')[0].style.display = "inline-block";
+        document.getElementById('btnSave-div').style.display = "block";
+
+        city = document.getElementById('city-input').value;
+        lat = parseFloat(document.getElementById('latitude-input').value);
+        lon = parseFloat(document.getElementById('longitude-input').value);
+
+        myMap(city, lat, lon);
       }
     }
-  };
-}
 
-// https://stackoverflow.com/questions/3710204/how-to-check-if-a-string-is-a-valid-json-string-in-javascript-without-using-try
-function isJSON(str) {
-  try {
-      return (JSON.parse(str) && !!str);
-  } catch (e) {
-      return false;
-  }
-}
+    function updateProvincesDropdown() {
+      var dropdown = document.getElementById('province');
+      dropdown.length = 0;
 
-function sendConfig()
-{
-  var datasource = document.getElementById('datasource');
-  var dropdownCity = document.getElementById('city');
-  var inputCity = document.getElementById('city-input');
-  
-  var spanTimezone = document.getElementById('timezone-span');
-  var spanLatitude = document.getElementById('latitude-span');
-  var spanLongitude = document.getElementById('longitude-span');
-  
-  var dropdownTimezone = document.getElementById('timezone-dropdown');
-  var inputLatitude = document.getElementById('latitude-input');
-  var inputLongitude = document.getElementById('longitude-input');
-  
-  var json = new Object();
-  
-  json.saveconfig = window.location.pathname;
-  // json.datasource = datasource.value;
-  if (datasource.value === "DATABASE")
-  {
+      var defaultOption = document.createElement('option');
+      defaultOption.text = 'Pilih Propinsi';
+
+      dropdown.add(defaultOption);
+      dropdown.selectedIndex = 0;
+
+      for (var i = 0; i < dataProvinces.length; i++) {
+        option = document.createElement('option');
+        option.text = dataProvinces[i].name;
+        option.value = dataProvinces[i].id;
+        dropdown.add(option);
+      }
+    }
+
+    function updateRegenciesDropdown() {
+      document.getElementsByName('city')[0].style.display = "inline-block";
+      document.getElementsByName('timezone-span')[0].style.display = "none";
+      document.getElementsByName('latitude-span')[0].style.display = "none";
+      document.getElementsByName('longitude-span')[0].style.display = "none";
+      document.getElementById('btnSave-div').style.display = "none";
+
+
+      //reset tz, lat, lon
+      document.getElementById('timezone-span').value = "";
+      document.getElementById('latitude-span').value = "";
+      document.getElementById('longitude-span').value = "";
+      document.getElementById('tzlatlon').textContent = " ";
+
+      var dropdown = document.getElementById('city');
+      // removeOptions(dropdown);
+      dropdown.length = 0;
+
+      var defaultOption = document.createElement('option');
+      defaultOption.text = 'Pilih Kota/Kabupaten';
+
+      dropdown.add(defaultOption);
+      dropdown.selectedIndex = 0;
+
+      var option;
+      var j = -1;
+      var index;
+      for (var i = dataRegencies.length - 1; i > -1; i--) {
+        if (document.getElementById('province').value === dataRegencies[i].province_id) {
+          j++;
+          option = document.createElement('option');
+          option.text = dataRegencies[i].name;
+          option.value = dataRegencies[i].id;
+          dropdown.add(option);
+        }
+      }
+    }
+
+    function updateTz() {
+      var dropdownProvince = document.getElementById("province");
+      var dropdownCity = document.getElementById("city");
+
+      province = dropdownProvince.options[dropdownProvince.selectedIndex].text;
+      city = dropdownCity.options[dropdownCity.selectedIndex].text;
+
+      for (var i = 0; i < dataProvinces.length; i++) {
+        if (dropdownProvince.value === dataProvinces[i].id) {
+          //update timezone
+          document.getElementById('timezone-span').value = dataProvinces[i].timezone;
+
+          // document.getElementsByName('timezone-span')[0].style.display = "inline-block";
+        }
+      }
+    }
+
+    // google.maps.event.addDomListener(window, 'load', myMap);
+
+    function updateLatLon() {
+      var dropdownProvince = document.getElementById("province");
+      var dropdownCity = document.getElementById("city");
+
+      province = dropdownProvince.options[dropdownProvince.selectedIndex].text;
+      city = dropdownCity.options[dropdownCity.selectedIndex].text;
+
+      for (var i = 0; i < dataRegencies.length; i++) {
+        if (dropdownCity.value === dataRegencies[i].id) {
+          //update lat, lon
+          lat = dataRegencies[i].latitude;
+          lon = dataRegencies[i].longitude;
+
+          document.getElementById('latitude-span').value = dataRegencies[i].latitude;
+          document.getElementById('longitude-span').value = dataRegencies[i].longitude;
+
+          // document.getElementsByName('latitude-span')[0].style.display = "inline-block";
+          // document.getElementsByName('longitude-span')[0].style.display = "inline-block";
+          document.getElementById('btnSave-div').style.display = "block";
+        }
+      }
+
+      //update tzlatlon
+      var tzVal = document.getElementById('timezone-span').value;
+      var tzStr = timeZoneString(tzVal);
+      document.getElementById('tzlatlon').textContent = "Tz: " + tzStr + " , Lat: " + lat + " , Lon: " + lon;
+
+      //update Google Map
+      myMap(city, lat, lon);
+    }
     
-    json.city = dropdownCity.options[dropdownCity.selectedIndex].text;
-    json.timezone = parseInt(spanTimezone.textContent);
-    json.latitude = parseFloat(spanLatitude.textContent);
-    json.longitude = parseFloat(spanLongitude.textContent);
-  }
-  else if (datasource.value === "MANUAL")
-  {
-    json.city = inputCity.value;
-    json.timezone = parseInt(dropdownTimezone.value);
-    json.latitude = parseFloat(inputLatitude.value);
-    json.longitude = parseFloat(inputLongitude.value);
-  }
-  
-  var myJSON = JSON.stringify(json);
-  ws.send(myJSON);
-  console.log("Data sent: ",myJSON);
-}
-
-var dataProvinces;
-
-function loadProvincesDB()
-{
-  const url = 'provinces.json';
-  
-  const request = new XMLHttpRequest();
-  request.open('GET', url, true);
-  
-  request.onload = function() {
-    if (request.status === 200) {
-      dataProvinces = JSON.parse(request.responseText);
-    }
-    else
+    function timeZoneString(val)
     {
-      // Reached the server, but it returned an error
-    }   
-  }
-  request.onerror = function() {
-    console.error('An error occurred fetching the JSON from ' + url);
-  };
-  request.send();
-}
-
-var dataRegencies;
-
-function loadRegenciesDB()
-{
-  const url = 'regencies.json';
-  
-  const request = new XMLHttpRequest();
-  request.open('GET', url, true);
-  
-  request.onload = function() {
-    if (request.status === 200) {
-      dataRegencies = JSON.parse(request.responseText);
-    }
-    else
-    {
-      // Reached the server, but it returned an error
-    }   
-  }
-  request.onerror = function() {
-    console.error('An error occurred fetching the JSON from ' + url);
-  };
-  request.send();
-}
-
-
-function loadDataSource()
-{
-  document.getElementsByName('province')[0].style.display = "none";
-  document.getElementsByName('city')[0].style.display = "none";
-  document.getElementsByName('timezone-span')[0].style.display = "none";
-  document.getElementsByName('latitude-span')[0].style.display = "none";
-  document.getElementsByName('longitude-span')[0].style.display = "none";
-  
-  document.getElementsByName('city-input')[0].style.display = "none";
-  document.getElementsByName('timezone-dropdown')[0].style.display = "none";
-  document.getElementsByName('latitude-input')[0].style.display = "none";
-  document.getElementsByName('longitude-input')[0].style.display = "none";
-  
-  var dropdown = document.getElementById('datasource');
-  if (dropdown.value === "DATABASE")
-  {
-    updateProvincesDropdown();
-    document.getElementsByName('province')[0].style.display = "inline";
-  }
-  // else if (dropdown.value === "GPS")
-  // {
-  //   document.getElementsByName('timezone-dropdown')[0].style.display = "inline";
-  //   document.getElementsByName('latitude-span')[0].style.display = "inline";
-  //   document.getElementsByName('longitude-span')[0].style.display = "inline";
-  // }
-  else if (dropdown.value === "MANUAL")
-  {
-    document.getElementsByName('city-input')[0].style.display = "inline";
-    document.getElementsByName('timezone-dropdown')[0].style.display = "inline";
-    document.getElementsByName('latitude-input')[0].style.display = "inline";
-    document.getElementsByName('longitude-input')[0].style.display = "inline";
-    
-    city  = document.getElementById('city-input').value;
-    lat = parseFloat(document.getElementById('latitude-input').value);
-    lon = parseFloat(document.getElementById('longitude-input').value);
-    
-    myMap(city, lat, lon);
-  }
-}
-
-function updateProvincesDropdown()
-{
-  var dropdown = document.getElementById('province');
-  dropdown.length = 0;
-  
-  var defaultOption = document.createElement('option');
-  defaultOption.text = 'Pilih Propinsi';
-  
-  dropdown.add(defaultOption);
-  dropdown.selectedIndex = 0;
-  
-  for (var i = 0; i < dataProvinces.length; i++) {
-    option = document.createElement('option');
-    option.text = dataProvinces[i].name;
-    option.value = dataProvinces[i].id;
-    dropdown.add(option);
-  }
-}
-
-function updateRegenciesDropdown()
-{
-  document.getElementsByName('city')[0].style.display = "inline";
-  document.getElementsByName('timezone-span')[0].style.display = "none";
-  document.getElementsByName('latitude-span')[0].style.display = "none";
-  document.getElementsByName('longitude-span')[0].style.display = "none";
-  
-  //reset tz, lat, lon
-  document.getElementById('timezone-span').textContent = "";
-  document.getElementById('latitude-span').textContent = "";
-  document.getElementById('longitude-span').textContent = "";
-  
-  var dropdown = document.getElementById('city');
-  // removeOptions(dropdown);
-  dropdown.length = 0;
-  
-  var defaultOption = document.createElement('option');
-  defaultOption.text = 'Pilih Kota/Kabupaten';
-  
-  dropdown.add(defaultOption);
-  dropdown.selectedIndex = 0;
-  
-  var option;
-  var j = -1;
-  var index;
-  for (var i = dataRegencies.length - 1; i > -1; i--)
-  {
-    if (document.getElementById('province').value === dataRegencies[i].province_id)
-    {
-      j++;
-      option = document.createElement('option');
-      option.text = dataRegencies[i].name;
-      option.value = dataRegencies[i].id;
-      dropdown.add(option);
-    }
-  }
-}
-
-function updateTz()
-{
-  var dropdownProvince = document.getElementById("province");
-  var dropdownCity = document.getElementById("city");
-
-  province = dropdownProvince.options[dropdownProvince.selectedIndex].text;
-  city = dropdownCity.options[dropdownCity.selectedIndex].text;
-  
-  for (var i = 0; i < dataProvinces.length; i++)
-  {
-    if (dropdownProvince.value === dataProvinces[i].id)
-    {
-      //update timezone
-      document.getElementById('timezone-span').textContent = dataProvinces[i].timezone;
+      var tzStr;
+      if (val == 70) {
+        tzStr = "WIB";
+      } else if (val == 80) {
+        tzStr = "WITA";
+      } else if (val == 90) {
+        tzStr = "WIT";
+      }
       
-      document.getElementsByName('timezone-span')[0].style.display = "inline";
+      return tzStr;
     }
-  }
-}
-
-// google.maps.event.addDomListener(window, 'load', myMap);
-
-function updateLatLon()
-{
-  var dropdownProvince = document.getElementById("province");
-  var dropdownCity = document.getElementById("city");
-
-  province = dropdownProvince.options[dropdownProvince.selectedIndex].text;
-  city = dropdownCity.options[dropdownCity.selectedIndex].text;
-
-  for (var i = 0; i < dataRegencies.length; i++)
-  {
-    if (dropdownCity.value === dataRegencies[i].id)
-    {
-      //update lat, lon
-      lat = dataRegencies[i].latitude;
-      lon = dataRegencies[i].longitude;
-      
-      document.getElementById('latitude-span').textContent = dataRegencies[i].latitude;
-      document.getElementById('longitude-span').textContent = dataRegencies[i].longitude;
-      
-      document.getElementsByName('latitude-span')[0].style.display = "inline";
-      document.getElementsByName('longitude-span')[0].style.display = "inline";
-    }
-  }
-  
-  //update Google Map
-  myMap(city, lat, lon);
-}
 
 
 
-
-</script>
+  </script>
 
 </body>

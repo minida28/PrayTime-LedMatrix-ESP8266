@@ -60,27 +60,25 @@
             <span></span>
           </span>
         </div>
-        <div id="navbarMenuHeroA" class="navbar-menu">
-          <div class="navbar-end">
-            <a class="navbar-item" href="/">
-              Home
-            </a>
-            <a class="navbar-item is-active" href="setrtctime.html">
-             Set Date & Time
-            </a>
-            <a class="navbar-item">
-              Documentation
-            </a>
-            <span class="navbar-item">
-              <a class="button is-primary is-inverted">
-                <span class="icon">
-                  <i class="fab fa-github"></i>
-                </span>
-                <span>Download</span>
+          <div id="navbarMenuHeroA" class="navbar-menu">
+            <div class="navbar-end">
+              <a class="navbar-item" href="/">
+                Home
               </a>
-            </span>
+              <a class="navbar-item" href="configlocation.html">
+                Location
+              </a>
+              <a class="navbar-item is-active" href="setrtctime.html">
+                Time & Date
+              </a>
+              <a class="navbar-item" href="confignetwork.html">
+                Network
+              </a>
+              <a class="navbar-item" href="menu.html">
+                Menu
+              </a>
+            </div>
           </div>
-        </div>
       </div>
     </nav>
   </div>
@@ -977,7 +975,7 @@ function twoDigits(n) {
 		if (isJSON(evt.data))
 		{
       var json = JSON.parse(evt.data);
-      console.log(json);
+      console.log(evt.data);
       
       if (json.hasOwnProperty('utc'))
       {

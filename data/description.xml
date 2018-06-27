@@ -5,15 +5,15 @@
 <major>1</major>
 <minor>0</minor>
 </specVersion>
-<URLBase>http://192.168.10.123/</URLBase>
+<URLBase>http://%s</URLBase>
 <device>
 <deviceType>upnp:rootdevice</deviceType>
-<friendlyName>SHOLAT_2937814</friendlyName>
-<presentationURL>index.htm</presentationURL>
-<serialNumber>2937814</serialNumber>
-<modelName>LS-01</modelName>
-<modelNumber>SHOLAT_2937814</modelNumber>
-<modelURL>http://www.espressif.com</modelURL>
+<friendlyName>%s</friendlyName>
+<presentationURL>%s</presentationURL>
+<serialNumber>%d</serialNumber>
+<modelName>%s</modelName>
+<modelNumber>%s</modelNumber>
+<modelURL>%d%d%d</modelURL>
 <manufacturer>Espressif Systems</manufacturer>
 <manufacturerURL>http://www.espressif.com</manufacturerURL>
 <UDN>uuid:38323636-4558-4dda-9188-cda0e62cd3d6</UDN>
