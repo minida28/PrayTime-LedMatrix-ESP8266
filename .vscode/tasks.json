@@ -1,21 +1,33 @@
-{
     // See https://go.microsoft.com/fwlink/?LinkId=733558
     // for the documentation about the tasks.json format
-    "version": "2.0.0",
-    "tasks": [
-        {
-            "type": "PlatformIO",
-            "task": "Upload SPIFFS image",
-            "problemMatcher": [
-                "$platformio"
-            ]
-        },
-        {
-            "type": "PlatformIO",
-            "task": "Upload",
-            "problemMatcher": [
-                "$platformio"
-            ]
-        }
-    ]
-}
+    {
+        "version": "2.0.0",
+        "tasks": [
+            {
+                "type": "shell",
+                "command": "platformio",
+                "args": [
+                    "run",
+                    "--target",
+                    "buildfs"
+                ],
+                "problemMatcher": [
+                    "$platformio"
+                ],
+                "label": "PlatformIO: Build SPIFFS image"
+            },
+            {
+                "type": "shell",
+                "command": "platformio",
+                "args": [
+                    "run",
+                    "--target",
+                    "uploadfs"
+                ],
+                "problemMatcher": [
+                    "$platformio"
+                ],
+                "label": "PlatformIO: Upload SPIFFS image"
+            }
+        ]
+    }
