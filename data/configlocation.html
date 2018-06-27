@@ -61,8 +61,14 @@
               <a class="navbar-item" href="setrtctime.html">
                 Time & Date
               </a>
+              <a class="navbar-item" href="configsholat.html">
+                Sholat Settings
+              </a>
               <a class="navbar-item" href="confignetwork.html">
                 Network
+              </a>
+              <a class="navbar-item" href="status.html">
+                Status
               </a>
               <a class="navbar-item" href="menu.html">
                 Menu
@@ -99,206 +105,233 @@
 
 
   <section class="section">
-    <div class="container is-desktop">
+    <div class="container">
 
-      <div class="columns">
-        <div class="column">
-          <!-- Column 1 content -->
-        </div>
-        <div class="column is-one-quarter" style="display:hidden">
-          <!-- Column 2 content -->
-          <div class="box">
+      <div class="columns is-centered">
+        <div class="column is-half is-narrow">
 
-            <p class="title is-4 has-text-weight-semibold">Current Location</p>
-            <hr>
-            <table class="table is-narrow">
-              <tbody>
-                <tr class="is-selected">
-                  <td><p class="has-text-weight-bold">Location</p></td>
-                  <td>:</td>
-                  <td><p id="city-current" class="has-text-weight-bold"></p></td>
-                </tr>
-                <tr>
-                  <td><p class="has-text-weight-semibold">Timezone</p></td>
-                  <td>:</td>
-                  <td><p id="timezone-current" class="has-text-info"></p></td>
-                </tr>
-                <tr>
-                  <td><p class="has-text-weight-semibold">Latitude</p></td>
-                  <td>:</td>
-                  <td><p id="latitude-current" class="has-text-info"></p></td>
-                </tr>
-                <tr>
-                  <td><p class="has-text-weight-semibold">Longitude</p></td>
-                  <td>:</td>
-                  <td><p id="longitude-current" class="has-text-info"></p></td>
-              </tbody>
-            </table>
-              
-          </div>
-        </div>
+          <div class="columns">
+            <!--<div class="column">-->
+            <!-- Column 1 content -->
+            <!--</div>-->
+            <div class="column" style="display:hidden">
+              <!-- Column 2 content -->
+              <div class="box">
 
-        <div class="column is-one-quarter">
-          <!-- Column 3 content -->
-          <div class="box">
+                <p class="title is-4 has-text-weight-semibold">Current Location</p>
+                <hr>
+                <table class="table is-narrow">
+                  <tbody>
+                    <tr class="is-selected">
+                      <td>
+                        <p class="has-text-weight-bold">Location</p>
+                      </td>
+                      <td>:</td>
+                      <td>
+                        <p id="city-current" class="has-text-weight-bold"></p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p class="has-text-weight-semibold">Timezone</p>
+                      </td>
+                      <td>:</td>
+                      <td>
+                        <p id="timezone-current" class="has-text-info"></p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p class="has-text-weight-semibold">Latitude</p>
+                      </td>
+                      <td>:</td>
+                      <td>
+                        <p id="latitude-current" class="has-text-info"></p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p class="has-text-weight-semibold">Longitude</p>
+                      </td>
+                      <td>:</td>
+                      <td>
+                        <p id="longitude-current" class="has-text-info"></p>
+                      </td>
+                  </tbody>
+                </table>
 
-            <p class="title is-4 has-text-weight-semibold">Change Location</p>
-            <hr>
-            
-            <div class="field">
-              <label class="label">Data source</label>
-              <div class="control">
-                <div class="select">
-                  <select id="datasource" onchange="loadDataSource();">
-                    <option style="display:none">Choose data source</option>
-                    <option value="DATABASE">DATABASE</option>
-                    <option value="MANUAL">MANUAL</option>
-                  </select>
-                </div>
               </div>
             </div>
 
-            <div class="field" name="province" style="display:none">
-              <label class="label">Province</label>
-              <div class="control">
-                <div class="select is-small">
-                  <select id="province" onchange="updateRegenciesDropdown();">
-                  </select>
-                </div>
-              </div>
-            </div>
+            <div class="column">
+              <!-- Column 3 content -->
+              <div class="box">
 
-            <div class="field" name="city" style="display:none">
-              <label class="label">City/Regencies</label>
-              <div class="control">
-                <div class="select is-small">
-                  <select id="city" onchange="updateTz(); updateLatLon();">
-                  </select>
-                </div>
-              </div>
-              <p id="tzlatlon" class="help is-danger is-italic"></p>
-            </div>
+                <p class="title is-4 has-text-weight-semibold">Change Location</p>
+                <hr>
 
-
-            <div class="field" name="city-input" style="display:none">
-              <label class="label">City</label>
-              <div class="control">
-                <input id="city-input" maxlength="32" class="input">
-              </div>
-            </div>
-
-
-            <div class="field" name="timezone-span" style="display:none">
-              <label class="label">Timezone</label>
-              <div class="control">
-                <input id="timezone-span" class="input">
-              </div>
-            </div>
-
-            <div class="field" name="timezone-dropdown" style="display:none">
-              <label class="label">Timezone</label>
-              <div class="control">
-                <div class="select">
-                  <select id="timezone-dropdown">
-                    <option style="display:none">Set Timezone</option>
-                    <option value="70">WIB</option>
-                    <option value="80">WITA</option>
-                    <option value="90">WIT</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            <div class="field" name="latitude-span" style="display:none">
-              <label class="label">Latitude</label>
-              <div class="control">
-                <input id="latitude-span" class="input">
-              </div>
-            </div>
-
-            <div class="field" name="latitude-input" style="display:none">
-              <label class="label">Latitude</label>
-              <div class="control">
-                <input id="latitude-input" class="input" maxlength="10">
-              </div>
-            </div>
-
-            <div class="field" name="longitude-span" style="display:none">
-              <label class="label">Longitude</label>
-              <div class="control">
-                <input id="longitude-span" class="input">
-              </div>
-            </div>
-
-            <div class="field" name="longitude-input" style="display:none">
-              <label class="label">Longitude</label>
-              <div class="control">
-                <input id="longitude-input" class="input" maxlength="10">
-              </div>
-            </div>
-
-            <div class="field" id="btnSave-div" style="display:none">
-              <div class="field-label">
-                <label class="label"></label>
-              </div>
-              <div class="field-body">
                 <div class="field">
+                  <label class="label">Data source</label>
                   <div class="control">
-                    <a id="btnSave" class="button is-info is-block" onclick="sendConfig();">
-                      Save settings
-                    </a>
+                    <div class="select">
+                      <select id="datasource" onchange="loadDataSource();">
+                        <option style="display:none">Choose data source</option>
+                        <option value="DATABASE">DATABASE</option>
+                        <option value="MANUAL">MANUAL</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
+
+                <div class="field" name="province" style="display:none">
+                  <label class="label">Province</label>
+                  <div class="control">
+                    <div class="select is-small">
+                      <select id="province" onchange="updateRegenciesDropdown();">
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="field" name="city" style="display:none">
+                  <label class="label">City/Regencies</label>
+                  <div class="control">
+                    <div class="select is-small">
+                      <select id="city" onchange="updateTz(); updateLatLon();">
+                      </select>
+                    </div>
+                  </div>
+                  <p id="tzlatlon" class="help is-danger is-italic"></p>
+                </div>
+
+
+                <div class="field" name="city-input" style="display:none">
+                  <label class="label">City</label>
+                  <div class="control">
+                    <input id="city-input" maxlength="32" class="input">
+                  </div>
+                </div>
+
+
+                <div class="field" name="timezone-span" style="display:none">
+                  <label class="label">Timezone</label>
+                  <div class="control">
+                    <input id="timezone-span" class="input">
+                  </div>
+                </div>
+
+                <div class="field" name="timezone-dropdown" style="display:none">
+                  <label class="label">Timezone</label>
+                  <div class="control">
+                    <div class="select">
+                      <select id="timezone-dropdown">
+                        <option style="display:none">Set Timezone</option>
+                        <option value="70">WIB</option>
+                        <option value="80">WITA</option>
+                        <option value="90">WIT</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="field" name="latitude-span" style="display:none">
+                  <label class="label">Latitude</label>
+                  <div class="control">
+                    <input id="latitude-span" class="input">
+                  </div>
+                </div>
+
+                <div class="field" name="latitude-input" style="display:none">
+                  <label class="label">Latitude</label>
+                  <div class="control">
+                    <input id="latitude-input" class="input" maxlength="10">
+                  </div>
+                </div>
+
+                <div class="field" name="longitude-span" style="display:none">
+                  <label class="label">Longitude</label>
+                  <div class="control">
+                    <input id="longitude-span" class="input">
+                  </div>
+                </div>
+
+                <div class="field" name="longitude-input" style="display:none">
+                  <label class="label">Longitude</label>
+                  <div class="control">
+                    <input id="longitude-input" class="input" maxlength="10">
+                  </div>
+                </div>
+
+                <div class="field" id="btnSave-div" style="display:none">
+                  <div class="field-label">
+                    <label class="label"></label>
+                  </div>
+                  <div class="field-body">
+                    <div class="field">
+                      <div class="control">
+                        <a id="btnSave" class="button is-info is-block" onclick="sendConfig();">
+                          Save settings
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+
               </div>
             </div>
 
+            <!--<div class="column">-->
+            <!-- Column 4 content -->
+            <!--</div>-->
 
           </div>
-        </div>
-        
-        <div class="column">
-          <!-- Column 4 content -->
-        </div>
-        
-      </div>
-      
-      <div class="columns">
-        
-        <div class="column">
-          <div class="box">
-            
-            <p class="title is-4 has-text-weight-semibold">Map</p>
-            <hr>
 
-            <div class="field">
-              <label class="label">Google API Key</label>
-              <div class="field has-addons">
-                <div class="control">
-                  <input class="input" type="text" placeholder="API key" id="apikey" name="apikey">
-                  <input class="input" type="password" id="hiddenapikey" name="hiddenapikey" style="display:none">
+
+          <div class="columns">
+
+            <div class="column">
+              <div class="box">
+
+                <p class="title is-4 has-text-weight-semibold">Map</p>
+                <hr>
+
+                <div class="field">
+                  <label class="label">Google API Key</label>
+                  <div class="field has-addons">
+                    <div class="control">
+                      <input class="input" type="text" placeholder="API key" id="apikey" name="apikey">
+                      <input class="input" type="password" id="hiddenapikey" name="hiddenapikey" style="display:none">
+                    </div>
+                    <div class="control">
+                      <a class="button is-info" id="btnHideShow" onclick="hideShowKey()">Hide</a>
+                    </div>
+                  </div>
                 </div>
-                <div class="control">
-                  <a class="button is-info" id="btnHideShow" onclick="hideShowKey()">Hide</a>
+
+
+
+
+                <div>
+                  <div class="siimple-grid-row">
+                    <div class="siimple-grid-col siimple-grid-col--9 siimple-grid-col-sm--12">
+                      <div id="map" style="width:100%;height:400px;background:yellow"></div>
+                    </div>
+                  </div>
                 </div>
+
+
               </div>
+
             </div>
-            
-
-
-
-      <div>
-        <div class="siimple-grid-row">
-          <div class="siimple-grid-col siimple-grid-col--9 siimple-grid-col-sm--12">
-            <div id="map" style="width:100%;height:400px;background:yellow"></div>
           </div>
+
         </div>
       </div>
-            
-            
-          </div>
-          
-        </div>
-      </div>
+
+
+
+
 
     </div>
   </section>
@@ -366,17 +399,17 @@
       city = json.city;
       lat = json.latitude;
       lon = json.longitude;
-      
+
       document.getElementById("city-input").value = json.city;
       document.getElementById("timezone-dropdown").value = json.timezone;
       document.getElementById("latitude-input").value = json.latitude;
       document.getElementById("longitude-input").value = json.longitude;
-      
+
       document.getElementById("city-current").textContent = json.city;
       document.getElementById("timezone-current").textContent = timeZoneString(json.timezone);
       document.getElementById("latitude-current").textContent = json.latitude;
       document.getElementById("longitude-current").textContent = json.longitude;
-      
+
       myMap(city, lat, lon);
     }
 
@@ -732,9 +765,8 @@
       //update Google Map
       myMap(city, lat, lon);
     }
-    
-    function timeZoneString(val)
-    {
+
+    function timeZoneString(val) {
       var tzStr;
       if (val == 70) {
         tzStr = "WIB";
@@ -743,7 +775,7 @@
       } else if (val == 90) {
         tzStr = "WIT";
       }
-      
+
       return tzStr;
     }
 
@@ -752,3 +784,4 @@
   </script>
 
 </body>
+</html>

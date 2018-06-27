@@ -7197,8 +7197,17 @@ bool save_system_info()
   char compileTime[lenCompileTime];
   strcpy_P(compileTime, PSTR(__TIME__));
 
-  DynamicJsonBuffer jsonBuffer;
+  StaticJsonBuffer<1024> jsonBuffer;
   JsonObject &root = jsonBuffer.createObject();
+
+  SPIFFS.info(fs_info);
+
+  root[FPSTR(pgm_totalbytes)] = fs_info.totalBytes;
+  root[FPSTR(pgm_usedbytes)] = fs_info.usedBytes;
+  root[FPSTR(pgm_blocksize)] = fs_info.blockSize;
+  root[FPSTR(pgm_pagesize)] = fs_info.pageSize;
+  root[FPSTR(pgm_maxopenfiles)] = fs_info.maxOpenFiles;
+  root[FPSTR(pgm_maxpathlength)] = fs_info.maxPathLength;
 
   root[FPSTR(pgm_filename)] = fileName;
   root[FPSTR(pgm_compiledate)] = compileDate;

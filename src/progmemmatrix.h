@@ -152,7 +152,7 @@ const char pgm_value[] PROGMEM = "value";
 const char pgm_text[] PROGMEM = "text";
 const char pgm_type[] PROGMEM = "type";
 const char pgm_systeminfofile[] PROGMEM = "/systeminfo.json";
-const char pgm_statuspagesystem[] PROGMEM = "/statussystem.html";
+const char pgm_statuspagesystem[] PROGMEM = "/status.html";
 const char pgm_saveconfig[] PROGMEM = "saveconfig";
 const char pgm_configpagelocation[] PROGMEM = "/configlocation.html";
 const char pgm_configfilelocation[] PROGMEM = "/configlocation.json";
@@ -268,6 +268,14 @@ const char pgm_heapstart[] PROGMEM = "heapstart";
 const char pgm_heapend[] PROGMEM = "heapend";
 const char pgm_heap[] PROGMEM = "heap";
 const char pgm_freeheap[] PROGMEM = "freeheap";
+
+//SPIIFS
+const char pgm_totalbytes[] PROGMEM = "totalbytes";
+const char pgm_usedbytes[] PROGMEM = "usedbytes";
+const char pgm_blocksize[] PROGMEM = "blocksize";
+const char pgm_pagesize[] PROGMEM = "pagesize";
+const char pgm_maxopenfiles[] PROGMEM = "maxopenfiles";
+const char pgm_maxpathlength[] PROGMEM = "maxpathlength";
 
 //temp sensor
 const char pgm_roomtemp[] PROGMEM = "roomtemp";

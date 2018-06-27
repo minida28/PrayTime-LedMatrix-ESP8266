@@ -254,7 +254,7 @@ void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventTyp
                 //  //WsSendSholatDynamic(clientID);
                 //  //WsSendRunningLedConfig(clientID);
 
-                WsSendTimeStatus();
+                sendTimeStatus(2);
               }
               else if (strcmp_P(url, pgm_statuspagesystem) == 0)
               {
@@ -1710,11 +1710,11 @@ void EventSendTimeStatus()
   events.send(buf);
 }
 
-void WsSendTimeStatus()
+void sendTimeStatus(uint8_t mode)
 {
   DEBUGLOG("%s\r\n", __PRETTY_FUNCTION__);
 
-  DynamicJsonBuffer jsonBuffer;
+  StaticJsonBuffer<512> jsonBuffer;
   JsonObject &root = jsonBuffer.createObject();
 
   root[FPSTR(pgm_date)] = getDateStr(localTime);
@@ -1737,7 +1737,19 @@ void WsSendTimeStatus()
   size_t len = root.measureLength();
   char buf[len + 1];
   root.printTo(buf, sizeof(buf));
-  ws.text(clientID, buf);
+
+  if (mode == 0)
+  {
+    //
+  }
+  else if (mode == 1)
+  {
+    events.send(buf);
+  }
+  else if (mode == 2)
+  {
+    ws.text(clientID, buf);
+  }
 }
 
 int apgm_lastIndexOf(uint8_t c, const char *p)
@@ -3671,14 +3683,15 @@ void AsyncWSLoop()
       else if (clientVisitStatusTimePage)
       {
         //WsSendInfoDynamic(clientID);
-        WsSendTimeStatus();
+        sendTimeStatus(2);
       }
       else if (clientVisitStatusSystemPage)
       {
-        //WsSendInfoDynamic(clientID);
-        //EventSendHeap();
+        // WsSendInfoDynamic(clientID);
+        // EventSendHeap();
         sendHeap(2);
-        WsSendFsInfo();
+        sendTimeStatus(2);
+        // WsSendFsInfo();
       }
       else if (clientVisitSholatTimePage)
       {

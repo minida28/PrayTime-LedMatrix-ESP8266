@@ -64,8 +64,14 @@
               <a class="navbar-item" href="setrtctime.html">
                 Time & Date
               </a>
+              <a class="navbar-item" href="configsholat.html">
+                Sholat Settings
+              </a>
               <a class="navbar-item" href="confignetwork.html">
                 Network
+              </a>
+              <a class="navbar-item" href="status.html">
+                Status
               </a>
               <a class="navbar-item" href="menu.html">
                 Menu
@@ -357,7 +363,7 @@ function showDisconnected() {
 		
     if (isJSON(evt.data)) {
       var jsonData = JSON.parse(evt.data);
-      console.log(jsonData);
+      console.log(evt.data);
       if (jsonData.type == "sholatStatic") {
         document.getElementById("jumboLoc").textContent = jsonData.loc;
         document.getElementById("x_fajr").textContent = jsonData.fajr;
@@ -491,3 +497,4 @@ function showDisconnected() {
     
 </script>
 </body>
+</html>
