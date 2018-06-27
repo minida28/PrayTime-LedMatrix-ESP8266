@@ -1931,7 +1931,7 @@ void sendDateTime(uint8_t mode)
 
   size_t len = root.measurePrettyLength();
   char buf[len + 1];
-  root.prettyPrintTo(buf, sizeof(buf));
+  root.printTo(buf, sizeof(buf));
 
   if (mode == 0)
   {
