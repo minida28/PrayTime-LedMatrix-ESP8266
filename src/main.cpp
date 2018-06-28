@@ -1,9 +1,6 @@
 // Added by me
 // #include "Arduino.h"
 
-#include "tcpCleanup-snippet.h"
-
-
 #include "config.h"
 #include "SparkFunTMP102.h" //TMP102 I2C Temperature Sensor
 #include "font.h"
@@ -7367,7 +7364,7 @@ void setup()
 
   //Setup interrupt
   pinMode(MCU_INTERRUPT_PIN, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(MCU_INTERRUPT_PIN), PCFInterrupt, FALLING);
+  // attachInterrupt(digitalPinToInterrupt(MCU_INTERRUPT_PIN), PCFInterrupt, FALLING);
 #endif
   // -------------------------------------------------------------------
   // Setup LED MATRIX
@@ -8382,7 +8379,7 @@ void loop()
   runningled_loop();
   mqtt_loop();
 
-  tcpCleanup();
+  // tcpCleanup();
 
   encoder0PosIncreasing = false;
   encoder0PosDecreasing = false;

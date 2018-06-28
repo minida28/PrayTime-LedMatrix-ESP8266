@@ -39,8 +39,8 @@ void buzzer(uint8_t pinBuzzer, uint16_t duty)
 
     //    int freq_0 = 4435; //2637
     //    int freq_1 = 5274; //2217
-    int freq_0 = 4699; //2637
-    int freq_1 = 5588 ; //2217
+    unsigned int freq_0 = 2217; //4699
+    unsigned int freq_1 = 2637 ; //5588
 
     static unsigned long previousMillisBuzzer;
 
@@ -173,10 +173,11 @@ void Tone0(uint8_t pinBuzzer, uint16_t duty)
 {
   static bool sound;
   static unsigned long startMillis;
+  unsigned int freq = 4000;
   if (tone0) {
     tone0 = false;
     startMillis = millis();
-    tone(pinBuzzer, 8000);
+    tone(pinBuzzer, freq);
     sound = true;
   }
   if (sound && millis() - startMillis >= 50) {
@@ -185,19 +186,28 @@ void Tone0(uint8_t pinBuzzer, uint16_t duty)
   }
 }
 
+// void Tone0(uint8_t pinBuzzer, uint16_t duty)
+// {  
+//   unsigned int freq = 8000;
+//   unsigned long dur = 50;
+//   tone(pinBuzzer, freq, dur);
+// }
+
 void Tone1(uint8_t pinBuzzer, uint16_t duty)
 {
   if (tone1) {
 
-    tone(pinBuzzer, 8000);
+    unsigned int freq = 4000;
+
+    tone(pinBuzzer, freq);
     delay(80);
     noTone(pinBuzzer);
     delay(75);
-    tone(pinBuzzer, 8000);
+    tone(pinBuzzer, freq);
     delay(50);
     noTone(pinBuzzer);
     delay(25);
-    tone(pinBuzzer, 8000);
+    tone(pinBuzzer, freq);
     delay(50);
     noTone(pinBuzzer);
 
@@ -266,12 +276,13 @@ void Tone1(uint8_t pinBuzzer, uint16_t duty)
 void Tone10(uint8_t pinBuzzer, uint16_t duration)
 {
   static time_t start;
-  static bool state;
+  static bool state = LOW;
+  unsigned int freq = 2375; //4750
   if (tone10) {
     if (state == LOW) {
       start = millis();
       state = HIGH;
-      tone(pinBuzzer, 4750);
+      tone(pinBuzzer, freq);
       //tone(pinBuzzer, 440);
     }
     if (state == HIGH && millis() - start >= duration) {
