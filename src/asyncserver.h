@@ -18,6 +18,8 @@ extern AsyncEventSource events;
 
 extern uint32_t clientID;
 
+extern FSInfo fs_info;
+
 void AsyncWSBegin();
 void AsyncWSLoop();
 void load_running_text();
@@ -81,11 +83,12 @@ void EventSendSystemStatus();
 void EventSendHeap();
 
 void WsSendNetworkStatus();
-void WsSendTimeStatus();
+// void WsSendTimeStatus();
 void WsSendSystemStatus();
 void WsSendConfigSholat();
 void sendHeap(uint8_t mode);
 void sendDateTime(uint8_t mode);
+void sendTimeStatus(uint8_t mode);
 
 
 

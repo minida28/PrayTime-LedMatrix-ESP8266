@@ -1,8 +1,27 @@
-
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-	<title> Monthly Prayer Timetable </title>
+
+  <!-- Basic Page Needs
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <meta charset="utf-8">
+  <title> Monthly Prayer Timetable </title>
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!-- Mobile Specific Metas
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- FONT
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <!--<link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css">-->
+
+  <!-- CSS
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link rel="stylesheet" href="bulma.min.css">
+
 	<style>
 		body, tr, form {font-family: tahoma; font-size: 14px; color: #404040; text-align: center; margin: 0; padding: 0}
 		pre {font-family: courier, serif, size: 10pt; margin: 0px 8px;}
@@ -18,9 +37,80 @@
 		.head-row {color: black; background-color: #eef;}
 		.today-row {background-color: #F8F7F4; color: black}
 	</style>
+
+
+  <!-- Favicon
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link rel="icon" type="image/png" href="favicon.png">
+
 </head>
 
 <body>
+
+
+  <section class="hero is-info is-bold">
+    <!-- Hero head: will stick at the top -->
+    <div class="hero-head">
+      <nav class="navbar">
+        <div class="container">
+          <div class="navbar-brand">
+            <!--<a class="navbar-item">-->
+            <!--  <img src="https://bulma.io/images/bulma-type-white.png" alt="Logo">-->
+            <!--</a>-->
+            <span class="navbar-burger burger" data-target="navbarMenuHeroA">
+              <span></span>
+              <span></span>
+              <span></span>
+            </span>
+          </div>
+          <div id="navbarMenuHeroA" class="navbar-menu">
+            <div class="navbar-end">
+              <a class="navbar-item" href="/">
+                Home
+              </a>
+              <a class="navbar-item is-active" href="configlocation.html">
+                Location
+              </a>
+              <a class="navbar-item" href="setrtctime.html">
+                Time & Date
+              </a>
+              <a class="navbar-item" href="confignetwork.html">
+                Network
+              </a>
+              <a class="navbar-item" href="status.html">
+                Status
+              </a>
+              <a class="navbar-item" href="menu.html">
+                Menu
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+
+    <!-- Hero content: will be in the middle -->
+    <div class="hero-body">
+      <div class="container has-text-centered">
+        <h1 id="jumboCountdown" class="title is-size-3">
+          Monthly Prayer Timetable
+        </h1>
+      </div>
+    </div>
+
+  </section>
+
+  <div id="modalDisconnected" class="modal">
+    <div class="modal-background"></div>
+    <div class="modal-content">
+      <!-- Any other Bulma elements you want -->
+      <article id="status_box" class="tile has-text-centered is-child notification is-danger is-marginless">
+        <p class="subtitle is-5 is-marginless">DISCONNECTED</p>
+        <p>Refresh the browser to reconnect.</p>
+      </article>
+    </div>
+    <button class="modal-close is-large" aria-label="close"></button>
+  </div>
 
 <script type="text/javascript" src="http://praytimes.org/code/v2/js/PrayTimes.js"></script>
 
@@ -65,7 +155,8 @@
 </table>
 
 <br/>
-<table id="timetable" class="timetable">
+<!--<table id="timetable" class="timetable">-->
+<table id="timetable" class="table is-narrow">
 	<tbody></tbody>
 </table>
 
@@ -75,6 +166,7 @@
 </div>
 <br/>
 
+<script src="bulma-ui.js"></script>
 <script type="text/javascript">
 
 	var currentDate = new Date();
@@ -133,7 +225,8 @@
 			//console.log(times);
 			var today = new Date(); 
 			var isToday = (date.getMonth() == today.getMonth()) && (date.getDate() == today.getDate());
-			var klass = isToday ? 'today-row' : '';
+		// 	var klass = isToday ? 'today-row' : '';
+			var klass = isToday ? 'is-selected' : '';
 			//tbody.appendChild(makeTableRow(times, items, klass));
 			tbody.appendChild(makeTableRow(times, items, klass));
 			date.setDate(date.getDate()+ 1);  // next day
