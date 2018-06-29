@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 
   <!-- Basic Page Needs
@@ -23,43 +24,50 @@
   <link rel="stylesheet" href="bulma.min.css">
   <!--<link rel="stylesheet" href="side-menu.css">-->
   <!--<link rel="stylesheet" href="bulma.min.css">-->
-  
+
   <style>
     /*body*/
-    /*{*/
-    /*  font-size: 0.9em; */
-      /*line-height: 1.6;*/
-      /*font-weight: 400;*/
-      /*font-family: "Raleway", "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif;*/
-    /*  color: #222;*/
-    /*}*/
 
+    /*{*/
+
+    /*  font-size: 0.9em; */
+
+    /*line-height: 1.6;*/
+
+    /*font-weight: 400;*/
+
+    /*font-family: "Raleway", "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif;*/
+
+    /*  color: #222;*/
+
+    /*}*/
   </style>
 
 
   <!-- Favicon
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
   <link rel="icon" type="image/png" href="favicon.png">
-  
-</head>
-<body>
-  
 
-<section class="hero is-primary is-bold">
-  <!-- Hero head: will stick at the top -->
-  <div class="hero-head">
-    <nav class="navbar">
-      <div class="container">
-        <div class="navbar-brand">
-          <!--<a class="navbar-item">-->
-          <!--  <img src="https://bulma.io/images/bulma-type-white.png" alt="Logo">-->
-          <!--</a>-->
-          <span class="navbar-burger burger" data-target="navbarMenuHeroA">
-            <span></span>
-            <span></span>
-            <span></span>
-          </span>
-        </div>
+</head>
+
+<body>
+
+
+  <section class="hero is-primary is-bold">
+    <!-- Hero head: will stick at the top -->
+    <div class="hero-head">
+      <nav class="navbar">
+        <div class="container">
+          <div class="navbar-brand">
+            <!--<a class="navbar-item">-->
+            <!--  <img src="https://bulma.io/images/bulma-type-white.png" alt="Logo">-->
+            <!--</a>-->
+            <span class="navbar-burger burger" data-target="navbarMenuHeroA">
+              <span></span>
+              <span></span>
+              <span></span>
+            </span>
+          </div>
           <div id="navbarMenuHeroA" class="navbar-menu">
             <div class="navbar-end">
               <a class="navbar-item" href="/">
@@ -74,6 +82,12 @@
               <a class="navbar-item" href="configsholat.html">
                 Sholat Settings
               </a>
+              <a class="navbar-item" href="configledmatrix.html">
+                Led Matrix
+              </a>
+              <a class="navbar-item" href="configmqtt.html">
+                MQTT
+              </a>
               <a class="navbar-item" href="confignetwork.html">
                 Network
               </a>
@@ -85,365 +99,376 @@
               </a>
             </div>
           </div>
-      </div>
-    </nav>
-  </div>
-
-  <!-- Hero content: will be in the middle -->
-  <div class="hero-body">
-    <div class="container has-text-centered">
-      <h1 class="title">
-        DATE & TIME
-      </h1>
-      <!--<h2 class="subtitle">-->
-      <!--  Subtitle-->
-      <!--</h2>-->
-    </div>
-  </div>
-
-  <!-- Hero footer: will stick at the bottom -->
-  <!--<div class="hero-foot">-->
-  <!--  <nav class="tabs">-->
-  <!--    <div class="container">-->
-  <!--      <ul>-->
-  <!--        <li class="is-active"><a>Overview</a></li>-->
-  <!--        <li><a>Modifiers</a></li>-->
-  <!--        <li><a>Grid</a></li>-->
-  <!--        <li><a>Elements</a></li>-->
-  <!--        <li><a>Components</a></li>-->
-  <!--        <li><a>Layout</a></li>-->
-  <!--      </ul>-->
-  <!--    </div>-->
-  <!--  </nav>-->
-  <!--</div>-->
-</section>
-        
-<div id="modalDisconnected" class="modal">
-  <div class="modal-background"></div>
-  <div class="modal-content">
-    <!-- Any other Bulma elements you want -->
-        <article id="status_box" class="tile has-text-centered is-child notification is-danger is-marginless">
-          <p class="subtitle is-5 is-marginless">DISCONNECTED</p>
-          <p>Refresh the browser to reconnect.</p>
-        </article>
-  </div>
-  <button class="modal-close is-large" aria-label="close"></button>
-</div>
-
-    <section class="section">
-      <div class="container">
-
-<div class="tile is-ancestor">
-  <div class="tile is-vertical is-8">
-    <div class="tile">
-      <div class="tile is-parent is-vertical">
-        <article id="status_box" class="tile is-child notification is-danger is-marginless is-hidden">
-          <p class="subtitle is-5 is-marginless">DISCONNECTED.</p>
-          <p>Refresh the browser to reconnect.</p>
-        </article>
-        <article id="tileDtSystem" class="tile is-child notification is-warning is-marginless" style="display:none">
-          <!--<p id="time_big" class="title is-1 is-marginless">Subtitle 3</p>-->
-          <p id="timeSystem" class="title is-2 has-text-centered" style="font-family: monospace;">&#xfeff;</p>
-          <p id="dateSystem" class="subtitle is-5 has-text-centered">&#xfeff;</p>
-        </article>
-        <!--<a class="button is-warning">Warning</a>-->
-        <div id="tileSyncBtn" class="tile is-child" style="display:none">
-          <a id="syncBtn" class="button is-primary is-large is-block">Sync time to PC!</a>
         </div>
-        <article class="tile is-child notification is-warning is-marginless" style="display:none">
-          <p class="subtitle is-6 has-text-weight-semibold">Time on LED Matrix</p>
-          <!--<p id="time_big" class="title is-1 is-marginless">Subtitle 3</p>-->
-          <p id="timeSystem2" class="title is-1" style="font-family: Times New Roman, Times, serif;">&#xfeff;</p>
-          <p id="dateSystem2" class="subtitle is-5 has-text-right">&#xfeff;</p>
-        </article>
-        <article class="tile is-child notification is-marginless has-text-warning has-background-dark" style="display:none">
-          <p class="subtitle is-6 has-text-weight-semibold">Time on your phone/PC</p>
-          <p id="timePC" class="title is-1" style="font-family: Times New Roman, Times, serif;">&#xfeff;</p>
-          <p id="datePC" class="subtitle is-5 has-text-right">&#xfeff;</p>
-        </article>
-        <article class="tile is-child notification is-marginless is-danger is-outlined" style="display:none">
-          <p class="subtitle is-6 has-text-weight-semibold">Time.is</p>
-          <p id="timeTimeIs" class="title is-1" style="font-family: Times New Roman, Times, serif;">&#xfeff;</p>
-          <p id="dateTimeIs" class="subtitle is-5 has-text-right">&#xfeff;</p>
-        </article>
-      </div>
-      <div class="tile is-parent">
+      </nav>
+    </div>
 
+    <!-- Hero content: will be in the middle -->
+    <div class="hero-body">
+      <div class="container has-text-centered">
+        <h1 class="title">
+          DATE & TIME
+        </h1>
+        <!--<h2 class="subtitle">-->
+        <!--  Subtitle-->
+        <!--</h2>-->
       </div>
     </div>
+
+    <!-- Hero footer: will stick at the bottom -->
+    <!--<div class="hero-foot">-->
+    <!--  <nav class="tabs">-->
+    <!--    <div class="container">-->
+    <!--      <ul>-->
+    <!--        <li class="is-active"><a>Overview</a></li>-->
+    <!--        <li><a>Modifiers</a></li>-->
+    <!--        <li><a>Grid</a></li>-->
+    <!--        <li><a>Elements</a></li>-->
+    <!--        <li><a>Components</a></li>-->
+    <!--        <li><a>Layout</a></li>-->
+    <!--      </ul>-->
+    <!--    </div>-->
+    <!--  </nav>-->
+    <!--</div>-->
+  </section>
+
+  <div id="modalDisconnected" class="modal">
+    <div class="modal-background"></div>
+    <div class="modal-content">
+      <!-- Any other Bulma elements you want -->
+      <article id="status_box" class="tile has-text-centered is-child notification is-danger is-marginless">
+        <p class="subtitle is-5 is-marginless">DISCONNECTED</p>
+        <p>Refresh the browser to reconnect.</p>
+      </article>
+    </div>
+    <button class="modal-close is-large" aria-label="close"></button>
   </div>
-</div>
-      
-<div style="display:none">
 
-    <table>
-        <tr>
-          <td colspan="2" style="width:50%" align="right">
-            <strong style="color:red">Time Zone Led Matrix</strong>
-          </td>
-        </tr>
-        <tr>
+  <section class="section">
+    <div class="container">
+
+      <div class="tile is-ancestor">
+        <div class="tile is-vertical is-8">
+          <div class="tile">
+            <div class="tile is-parent is-vertical">
+              <article id="status_box" class="tile is-child notification is-danger is-marginless is-hidden">
+                <p class="subtitle is-5 is-marginless">DISCONNECTED.</p>
+                <p>Refresh the browser to reconnect.</p>
+              </article>
+              <article id="tileDtSystem" class="tile is-child notification is-warning is-marginless" style="display:none">
+                <!--<p id="time_big" class="title is-1 is-marginless">Subtitle 3</p>-->
+                <p id="timeSystem" class="title is-2 has-text-centered" style="font-family: monospace;">&#xfeff;</p>
+                <p id="dateSystem" class="subtitle is-5 has-text-centered">&#xfeff;</p>
+              </article>
+              <!--<a class="button is-warning">Warning</a>-->
+              <div id="tileSyncBtn" class="tile is-child" style="display:none">
+                <a id="syncBtn" class="button is-primary is-large is-block">Sync time to PC!</a>
+              </div>
+              <article class="tile is-child notification is-warning is-marginless" style="display:none">
+                <p class="subtitle is-6 has-text-weight-semibold">Time on LED Matrix</p>
+                <!--<p id="time_big" class="title is-1 is-marginless">Subtitle 3</p>-->
+                <p id="timeSystem2" class="title is-1" style="font-family: Times New Roman, Times, serif;">&#xfeff;</p>
+                <p id="dateSystem2" class="subtitle is-5 has-text-right">&#xfeff;</p>
+              </article>
+              <article class="tile is-child notification is-marginless has-text-warning has-background-dark" style="display:none">
+                <p class="subtitle is-6 has-text-weight-semibold">Time on your phone/PC</p>
+                <p id="timePC" class="title is-1" style="font-family: Times New Roman, Times, serif;">&#xfeff;</p>
+                <p id="datePC" class="subtitle is-5 has-text-right">&#xfeff;</p>
+              </article>
+              <article class="tile is-child notification is-marginless is-danger is-outlined" style="display:none">
+                <p class="subtitle is-6 has-text-weight-semibold">Time.is</p>
+                <p id="timeTimeIs" class="title is-1" style="font-family: Times New Roman, Times, serif;">&#xfeff;</p>
+                <p id="dateTimeIs" class="subtitle is-5 has-text-right">&#xfeff;</p>
+              </article>
+            </div>
+            <div class="tile is-parent">
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:none">
+
+        <table>
+          <tr>
+            <td colspan="2" style="width:50%" align="right">
+              <strong style="color:red">Time Zone Led Matrix</strong>
+            </td>
+          </tr>
+          <tr>
             <!--<td style="width:50%" align="right">Tanggal RTC:</td>-->
             <td colspan="2">
-                <span id="system_timezone">waiting...</span>
+              <span id="system_timezone">waiting...</span>
             </td>
-        </tr>
-        <tr>
-          <td colspan="2" style="width:50%" align="right">
-            <strong style="color:red">Time Zone Komputer/HP</strong>
-          </td>
-        </tr>
-        <tr>
+          </tr>
+          <tr>
+            <td colspan="2" style="width:50%" align="right">
+              <strong style="color:red">Time Zone Komputer/HP</strong>
+            </td>
+          </tr>
+          <tr>
             <!--<td style="width:50%" align="right">Tanggal RTC:</td>-->
             <td colspan="2">
-                <span id="timezone_komputer_hape">waiting...</span>
+              <span id="timezone_komputer_hape">waiting...</span>
             </td>
-        </tr>
-    </table>
-
-    <table>
-        <tr>
-          <td colspan="2" style="width:50%" align="right">
-            <strong style="color:white, background-color:#c35)"><a href="https://time.is/" id="time_is_link" rel="nofollow" style="color:white, background-color:#c35)">Time.is</a></strong>
-          </td>
-        </tr>
-        <tr style="display:none">
-          <td colspan="2">
-            UTC time: <span id="timeisUTC_time">waiting...</span><br/>
-            UTC date: <span id="timeisUTC_date">waiting...</span><br/>
-          </td>
-        </tr>
-        <tr>
-          <td colspan="2">
-          </td>
-        </tr>
-    </table>
-        
-    <form action="" method="post" onsubmit="return false">
-        <table border="0" cellspacing="0" cellpadding="3" style="width:100%, table-layout: fixed">
-            <tr>
-                <td align="right">Sinkronkan ke Time.is</td>
-                <td>
-                    <input id="sync_to_timeis" name="syncChoice" type="radio" value="timeis" onchange="something(this.value)" required>
-                </td>
-            </tr>
-            <tr>
-                <td align="right">Sinkronkan dengan jam hape/laptop</td>
-                <td>
-                    <input id="sync_to_hapelaptop" name="syncChoice" type="radio" value="hapelaptop" onchange="something(this.value)" checked required>
-                </td>
-            </tr>
-            <tr>
-                <td align="right">Set manually</td>
-                <td>
-                    <input id="sync_manual" name="syncChoice" type="radio" value="manual" onchange="something(this.value)" required>
-                </td>
-            </tr>
+          </tr>
         </table>
-        <!--<br>-->
-        <table border="0" cellspacing="0" cellpadding="3" style="width:100%, table-layout: fixed">
+
+        <table>
+          <tr>
+            <td colspan="2" style="width:50%" align="right">
+              <strong style="color:white, background-color:#c35)">
+                <a href="https://time.is/" id="time_is_link" rel="nofollow" style="color:white, background-color:#c35)">Time.is</a>
+              </strong>
+            </td>
+          </tr>
+          <tr style="display:none">
+            <td colspan="2">
+              UTC time:
+              <span id="timeisUTC_time">waiting...</span>
+              <br/> UTC date:
+              <span id="timeisUTC_date">waiting...</span>
+              <br/>
+            </td>
+          </tr>
+          <tr>
+            <td colspan="2">
+            </td>
+          </tr>
+        </table>
+
+        <form action="" method="post" onsubmit="return false">
+          <table border="0" cellspacing="0" cellpadding="3" style="width:100%, table-layout: fixed">
+            <tr>
+              <td align="right">Sinkronkan ke Time.is</td>
+              <td>
+                <input id="sync_to_timeis" name="syncChoice" type="radio" value="timeis" onchange="something(this.value)" required>
+              </td>
+            </tr>
+            <tr>
+              <td align="right">Sinkronkan dengan jam hape/laptop</td>
+              <td>
+                <input id="sync_to_hapelaptop" name="syncChoice" type="radio" value="hapelaptop" onchange="something(this.value)" checked
+                  required>
+              </td>
+            </tr>
+            <tr>
+              <td align="right">Set manually</td>
+              <td>
+                <input id="sync_manual" name="syncChoice" type="radio" value="manual" onchange="something(this.value)" required>
+              </td>
+            </tr>
+          </table>
+          <!--<br>-->
+          <table border="0" cellspacing="0" cellpadding="3" style="width:100%, table-layout: fixed">
             <tr id="dayRow" name="manualDateTime" hidden>
-                <td style="width:60%" align="right">Tanggal:</td>
-                <td>
-                    <input id="day" name="day" type="number" size="4" maxlength="2" min="1" max="31" onchange="calculateManualTimeStamp(this.value)" required>
-                </td>
+              <td style="width:60%" align="right">Tanggal:</td>
+              <td>
+                <input id="day" name="day" type="number" size="4" maxlength="2" min="1" max="31" onchange="calculateManualTimeStamp(this.value)"
+                  required>
+              </td>
             </tr>
             <tr id="monthRow" name="manualDateTime" hidden>
-                <td align="right">Bulan:</td>
-                <td>
-                    <input id="month" name="month" type="number" size="4" maxlength="2" min="1" max="12" onchange="calculateManualTimeStamp(this.value)" required>
-                </td>
+              <td align="right">Bulan:</td>
+              <td>
+                <input id="month" name="month" type="number" size="4" maxlength="2" min="1" max="12" onchange="calculateManualTimeStamp(this.value)"
+                  required>
+              </td>
             </tr>
             <tr id="yearRow" name="manualDateTime" hidden>
-                <td align="right">Tahun:</td>
-                <td>
-                    <input id="year" name="year" type="number" size="4" maxlength="4" min="2017" max="2500" onchange="calculateManualTimeStamp(this.value)" required>
-                </td>
+              <td align="right">Tahun:</td>
+              <td>
+                <input id="year" name="year" type="number" size="4" maxlength="4" min="2017" max="2500" onchange="calculateManualTimeStamp(this.value)"
+                  required>
+              </td>
             </tr>
             <tr id="hourRow" name="manualDateTime" hidden>
-                <td align="right">Jam:</td>
-                <td>
-                    <input id="hour" name="hour" type="number" size="4" maxlength="2" min="0" max="23" onchange="calculateManualTimeStamp(this.value)" required>
-                </td>
+              <td align="right">Jam:</td>
+              <td>
+                <input id="hour" name="hour" type="number" size="4" maxlength="2" min="0" max="23" onchange="calculateManualTimeStamp(this.value)"
+                  required>
+              </td>
             </tr>
             <tr id="minuteRow" name="manualDateTime" hidden>
-                <td align="right">Menit:</td>
-                <td>
-                    <input id="minute" name="minute" type="number" size="4" maxlength="2" min="0" max="59" onchange="calculateManualTimeStamp(this.value)" required>
-                </td>
+              <td align="right">Menit:</td>
+              <td>
+                <input id="minute" name="minute" type="number" size="4" maxlength="2" min="0" max="59" onchange="calculateManualTimeStamp(this.value)"
+                  required>
+              </td>
             </tr>
             <tr id="secondRow" name="manualDateTime" hidden>
-                <td align="right">Detik:</td>
-                <td>
-                    <input id="second" name="second" type="number" size="4" maxlength="2" min="0" max="59" onchange="calculateManualTimeStamp(this.value)" required>
-                </td>
+              <td align="right">Detik:</td>
+              <td>
+                <input id="second" name="second" type="number" size="4" maxlength="2" min="0" max="59" onchange="calculateManualTimeStamp(this.value)"
+                  required>
+              </td>
             </tr>
             <tr>
-                <td align="right">Time.is Timestamp:</td>
-                <td>
-                    <input id="timeistimestamp" name="timeisTimestamp" type="number" required>
-                </td>
+              <td align="right">Time.is Timestamp:</td>
+              <td>
+                <input id="timeistimestamp" name="timeisTimestamp" type="number" required>
+              </td>
             </tr>
             <tr>
-                <td align="right">Hape/laptop Timestamp</td>
-                <td>
-                    <input id="hapeLaptopTimestamp" name="hapeLaptopTimestamp" type="number" required>
-                </td>
+              <td align="right">Hape/laptop Timestamp</td>
+              <td>
+                <input id="hapeLaptopTimestamp" name="hapeLaptopTimestamp" type="number" required>
+              </td>
             </tr>
             <tr>
-                <td align="right">Manual Timestamp:</td>
-                <td>
-                    <input id="manualtimestamp" name="manualTimestamp" type="number" required>
-                </td>
+              <td align="right">Manual Timestamp:</td>
+              <td>
+                <input id="manualtimestamp" name="manualTimestamp" type="number" required>
+              </td>
             </tr>
-        		<tr>
-        			<td colspan="2" align="center">
-        			<input type="button" id="syncBtn2" style="width:100%" class="btn btn--m btn--blue" value="Sync"></td>
-        		</tr>
-        		<tr>
-        			<td colspan="2" align="center">
-        			<input type="button" id="btnSyncToPc" style="width:100%" class="btn btn--m btn--blue" value="Sync"></td>
-        		</tr>
-        </table>
-    </form>
-    <table border="0" cellspacing="0" cellpadding="3" style="width:100%, table-layout: fixed">
-        <tr>
-          <td colspan="2" style="width:100%" align="right">
-            <strong>Websocket status</strong>
-          </td>
-        </tr>
-        <tr>
+            <tr>
+              <td colspan="2" align="center">
+                <input type="button" id="syncBtn2" style="width:100%" class="btn btn--m btn--blue" value="Sync">
+              </td>
+            </tr>
+            <tr>
+              <td colspan="2" align="center">
+                <input type="button" id="btnSyncToPc" style="width:100%" class="btn btn--m btn--blue" value="Sync">
+              </td>
+            </tr>
+          </table>
+        </form>
+        <table border="0" cellspacing="0" cellpadding="3" style="width:100%, table-layout: fixed">
+          <tr>
+            <td colspan="2" style="width:100%" align="right">
+              <strong>Websocket status</strong>
+            </td>
+          </tr>
+          <tr>
             <!--<td style="width:50%" align="right">Tanggal RTC:</td>-->
             <td colspan="2" style="width:100%" align="middle">
-                <span id="connectionStatus">Idle</span>
-                <!--<input type="text" id="connectionStatus" value="Idle" style="border: 0" />-->
+              <span id="connectionStatus">Idle</span>
+              <!--<input type="text" id="connectionStatus" value="Idle" style="border: 0" />-->
             </td>
-        </tr>
-        <tr>
-          <td>
-            <input type="button" value="Connect" onclick="wsOpen()" style="width:100%" class="btn btn--m btn--blue" />
-          </td>
-          <td>
-            <input type="button" value="Disconnect" onclick="disconnect()" style="width:100%" class="btn btn--m btn--blue" />
-          </td>
-        </tr>
-    </table>
-  
-</div>
+          </tr>
+          <tr>
+            <td>
+              <input type="button" value="Connect" onclick="wsOpen()" style="width:100%" class="btn btn--m btn--blue" />
+            </td>
+            <td>
+              <input type="button" value="Disconnect" onclick="disconnect()" style="width:100%" class="btn btn--m btn--blue" />
+            </td>
+          </tr>
+        </table>
 
       </div>
-      
-    </section>
-    
+
+    </div>
+
+  </section>
 
 
 
 
-  
+
+
   <!-- Javascript section
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
-<!--<script src="ui.js"></script>-->
-<!--<script src="https://playground.abysscorp.org/chartjs/livecharts/dist/Chart.min.js"></script>-->
+  <!--<script src="ui.js"></script>-->
+  <!--<script src="https://playground.abysscorp.org/chartjs/livecharts/dist/Chart.min.js"></script>-->
 
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment.min.js"></script>
-<script src="moment-timezone-data.js"></script>
-<!--<script src="moment-2.20.1.min.js"></script>-->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment.min.js"></script>
+  <script src="moment-timezone-data.js"></script>
+  <!--<script src="moment-2.20.1.min.js"></script>-->
 
 
-<script language="javascript" type="text/javascript">
+  <script language="javascript" type="text/javascript">
 
-window.onload = function () {
-	wsOpen();
-	// startPolling();
-// 	startEvents();
-  doOnce();
-  //BrowserTime();
-  calculateManualTimeStamp()
-  something();
-}
-  
-document.addEventListener('DOMContentLoaded', function () {
+    window.onload = function () {
+      wsOpen();
+      // startPolling();
+      // 	startEvents();
+      doOnce();
+      //BrowserTime();
+      calculateManualTimeStamp()
+      something();
+    }
 
-  // Get all "navbar-burger" elements
-  var $navbarBurgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
+    document.addEventListener('DOMContentLoaded', function () {
 
-  // Check if there are any navbar burgers
-  if ($navbarBurgers.length > 0)
-  {
-    // Add a click event on each of them
-    $navbarBurgers.forEach(function ($el) {
-      $el.addEventListener('click', function () {
+      // Get all "navbar-burger" elements
+      var $navbarBurgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
 
-        // Get the target from the "data-target" attribute
-        var target = $el.dataset.target;
-        var $target = document.getElementById(target);
+      // Check if there are any navbar burgers
+      if ($navbarBurgers.length > 0) {
+        // Add a click event on each of them
+        $navbarBurgers.forEach(function ($el) {
+          $el.addEventListener('click', function () {
 
-        // Toggle the class on both the "navbar-burger" and the "navbar-menu"
-        $el.classList.toggle('is-active');
-        $target.classList.toggle('is-active');
+            // Get the target from the "data-target" attribute
+            var target = $el.dataset.target;
+            var $target = document.getElementById(target);
 
-      });
+            // Toggle the class on both the "navbar-burger" and the "navbar-menu"
+            $el.classList.toggle('is-active');
+            $target.classList.toggle('is-active');
+
+          });
+        });
+      }
     });
-  }
-});
-  
-function sendHttpRequest(url)
-{
-  var req = new XMLHttpRequest();
-  if (req) {
-    req.open("GET", url, true);
-    req.addEventListener("load", reqListener);
-    req.send();
-  }
-}
 
-function reqListener ()
-{
-  console.log(this.responseText);
-  let json = JSON.parse(this.responseText);
-  // console.log(json);
-  // document.getElementById("timezone").value = json.timezone;
-  // document.getElementById("dst").checked = json.dst;
-  // document.getElementById("enablertc").checked = json.enablertc;
-  // document.getElementById("syncinterval").value = json.syncinterval;
-  // document.getElementById("enablentp").checked = json.enablentp;
-  // document.getElementById("ntpserver_0").value = json.ntpserver_0;
-  // document.getElementById("ntpserver_1").value = json.ntpserver_1;
-  // document.getElementById("ntpserver_2").value = json.ntpserver_2;
+    function sendHttpRequest(url) {
+      var req = new XMLHttpRequest();
+      if (req) {
+        req.open("GET", url, true);
+        req.addEventListener("load", reqListener);
+        req.send();
+      }
+    }
 
-  // something();
-}
+    function reqListener() {
+      console.log(this.responseText);
+      let json = JSON.parse(this.responseText);
+      // console.log(json);
+      // document.getElementById("timezone").value = json.timezone;
+      // document.getElementById("dst").checked = json.dst;
+      // document.getElementById("enablertc").checked = json.enablertc;
+      // document.getElementById("syncinterval").value = json.syncinterval;
+      // document.getElementById("enablentp").checked = json.enablentp;
+      // document.getElementById("ntpserver_0").value = json.ntpserver_0;
+      // document.getElementById("ntpserver_1").value = json.ntpserver_1;
+      // document.getElementById("ntpserver_2").value = json.ntpserver_2;
 
-  function load(e, t, n) {
+      // something();
+    }
+
+    function load(e, t, n) {
       if ("js" == t) {
-          var a = document.createElement("script");
-          a.src = e,
+        var a = document.createElement("script");
+        a.src = e,
           a.type = "text/javascript",
           a.async = !1,
           a.onload = function () { n() },
           document.getElementsByTagName("head")[0].appendChild(a)
       } else if ("css" == t) {
-          var a = document.createElement("link");
-          a.href = e,
+        var a = document.createElement("link");
+        a.href = e,
           a.rel = "stylesheet",
           a.type = "text/css",
           a.async = !1,
           a.onload = function () { n() },
           document.getElementsByTagName("head")[0].appendChild(a)
       }
-  }
-    
-  
-  var sync = false;
-  
-  // Get the button, and when the user clicks on it, execute myFunction
-  document.getElementById("syncBtn").onclick = function() {myFunction()};
-  
-  /* myFunction toggles between adding and removing the show class, which is used to hide and show the dropdown content */
-  function myFunction() {
+    }
+
+
+    var sync = false;
+
+    // Get the button, and when the user clicks on it, execute myFunction
+    document.getElementById("syncBtn").onclick = function () { myFunction() };
+
+    /* myFunction toggles between adding and removing the show class, which is used to hide and show the dropdown content */
+    function myFunction() {
       sync = !sync;
-      
+
       var btnText = document.getElementById("syncBtn");
       if (sync) {
         // btnText.value = "Stop sync";
@@ -452,465 +477,460 @@ function reqListener ()
         // btnText.value = "Sync";
         btnText.textContent = "Sync time to PC!";
       }
-  }
-  
-  var stateSyncToPc = false;
-  
-  // Get the button, and when the user clicks on it, execute myFunction
-  document.getElementById("btnSyncToPc").onclick = function() {functionSyncToPc()};
-  
-  /* myFunction toggles between adding and removing the show class, which is used to hide and show the dropdown content */
-  function functionSyncToPc() {
+    }
+
+    var stateSyncToPc = false;
+
+    // Get the button, and when the user clicks on it, execute myFunction
+    document.getElementById("btnSyncToPc").onclick = function () { functionSyncToPc() };
+
+    /* myFunction toggles between adding and removing the show class, which is used to hide and show the dropdown content */
+    function functionSyncToPc() {
       stateSyncToPc = !stateSyncToPc;
-      
+
       var btnText = document.getElementById("btnSyncToPc");
       if (stateSyncToPc) {
         btnText.value = "Stop sync";
       } else {
         btnText.value = "Sync";
       }
-  }
+    }
 
 
-  var tahun, bulan, hari, jam, menit, detik, millidetik;
-  
-  var timeNow;
-  
-  var currentTimeZoneOffsetInSeconds;
-  
-  var timeUTC_millisecond;
-  
-  var timeUTC_second;
-  
-  var locale_timestamp;
-  
-  var timerBrowserTime = setInterval(function(){ BrowserTime() });
+    var tahun, bulan, hari, jam, menit, detik, millidetik;
 
-  var browserTime_old = 0;
-  
-  // DATE IN READABLE FORMAT
-  //http://marcoscaceres.github.io/jsi18n/#advanced-langtags
-  var dateOptions = {
+    var timeNow;
+
+    var currentTimeZoneOffsetInSeconds;
+
+    var timeUTC_millisecond;
+
+    var timeUTC_second;
+
+    var locale_timestamp;
+
+    var timerBrowserTime = setInterval(function () { BrowserTime() });
+
+    var browserTime_old = 0;
+
+    // DATE IN READABLE FORMAT
+    //http://marcoscaceres.github.io/jsi18n/#advanced-langtags
+    var dateOptions = {
       weekday: "long",
       year: "numeric",
       month: "short",
       day: "numeric"
-  };
-  var timeOptions = {
-      "hour":"2-digit",
-      "second":"2-digit",
-      "minute":"numeric",
+    };
+    var timeOptions = {
+      "hour": "2-digit",
+      "second": "2-digit",
+      "minute": "numeric",
       // "timeZoneName":"short"
-  };
-  var dateTimeOptions = {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'short',
-    day:'numeric',
-    hour: '2-digit',
-    second: '2-digit',
-    minute: 'numeric',
-    timeZoneName: 'short'
-  };
-  
-  function doOnce(date) {
-    timeNow = new Date();
-    
-    let localtime_ISO = toLocaleISOStringWITHOUTMilliSecond(timeNow);
-    
-    //DAY
-    if (localtime_ISO.substring(8,9) === "0") {
-        document.getElementById('day').value = localtime_ISO.substring(9,10);
-        hari = localtime_ISO.substring(9,10);
-    } else {
-        document.getElementById('day').value = localtime_ISO.substring(8,10);
-        hari = localtime_ISO.substring(8,10);
-    }
-    //MONTH
-    if (localtime_ISO.substring(5,6) === "0") {
-        document.getElementById('month').value = localtime_ISO.substring(6,7);
-        bulan = localtime_ISO.substring(6,7);
-    } else {
-        document.getElementById('month').value = localtime_ISO.substring(5,7);
-        bulan = localtime_ISO.substring(5,7);
-    }
-    //YEAR
-    document.getElementById('year').value = localtime_ISO.substring(0,4);
-    tahun = localtime_ISO.substring(0,4);
-    //HOUR
-    if (localtime_ISO.substring(11,12) === "0") {
-        document.getElementById('hour').value = localtime_ISO.substring(12,13);
-        jam = localtime_ISO.substring(12,13);
-    } else {
-        document.getElementById('hour').value = localtime_ISO.substring(11,13);
-        jam = localtime_ISO.substring(11,13);
-    }
-    //MINUTE
-    if (localtime_ISO.substring(14,15) === "0") {
-        document.getElementById('minute').value = localtime_ISO.substring(15,16);
-        menit = localtime_ISO.substring(15,16);
-    } else {
-        document.getElementById('minute').value = localtime_ISO.substring(14,16);
-        menit = localtime_ISO.substring(14,16);
-    }
-    //SECOND
-    if (localtime_ISO.substring(17,18) === "0") {
-        document.getElementById('second').value = localtime_ISO.substring(18,19);
-        detik = localtime_ISO.substring(18,19);
-    } else {
-        document.getElementById('second').value = localtime_ISO.substring(17,19);
-        detik = localtime_ISO.substring(17,19);
-    }
-    
-    timeUTC_millisecond = timeNow.getTime();
-    timeUTC_second = (timeUTC_millisecond/1000).toFixed();
-    //document.getElementById('utc').value = timeUTC_second;
-    
-    //The getTimezoneOffset() method returns the time zone difference,
-    //in minutes, from UTC to current locale (host system settings).
-    //var x = new Date();
-    currentTimeZoneOffsetInSeconds = timeNow.getTimezoneOffset() * 60;
-    //console.log(currentTimeZoneOffsetInSeconds);
-    
-    locale_timestamp = timeUTC_second - currentTimeZoneOffsetInSeconds;
-    document.getElementById('hapeLaptopTimestamp').value = timeUTC_second;
-    
-    
-    // DATE & TIME IN LOCALE & READABLE FORMAT
-    // document.getElementById('dateTimeString').textContent = timeNow.toLocaleDateString("id", dateTimeOptions);
-  }
-  
-// https://stackoverflow.com/questions/3710204/how-to-check-if-a-string-is-a-valid-json-string-in-javascript-without-using-try
-function isJSON(str) {
-  try {
-      return (JSON.parse(str) && !!str);
-  } catch (e) {
-      return false;
-  }
-}
-
-function twoDigits(n) {
-  return (n < 10 ? '0' : '') + n;
-}
-  
-  var secondPC_old = 0;
-  
-
-  function BrowserTime()
-  {
-    timeNow = new Date();
-    
-    var timeUTC_millisecond = timeNow.getTime();
-    var timeUTC_second = (timeUTC_millisecond/1000).toFixed();
-    
-    currentTimeZoneOffsetInSeconds = timeNow.getTimezoneOffset() * 60;
-    
-    var options = {
+    };
+    var dateTimeOptions = {
       weekday: 'long',
       year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      second: '2-digit',
+      minute: 'numeric',
+      timeZoneName: 'short'
     };
-    
-    var year = timeNow.getFullYear();
-    var month = (timeNow.getMonth() + 1);
-    var day =timeNow.getDate();
-    var hr = twoDigits(timeNow.getHours());
-    var min = twoDigits(timeNow.getMinutes());
-    var sec = twoDigits(timeNow.getSeconds());
-    var millis = twoDigits(timeNow.getMilliseconds());
-    
-    document.getElementById('timePC').textContent = hr + ":" + min + ":" + sec;
-    document.getElementById("datePC").textContent = timeNow.toLocaleDateString('id-ID', options);
-    
-    // DATE IN LOCALE & READABLE FORMAT
-    // document.getElementById('dateTimeString').textContent = timeNow.toLocaleDateString("id", dateTimeOptions);
-    // document.getElementById('timePC').textContent = timeNow.toLocaleTimeString("id", timeOptions);
-    
 
-    
-    //The getTimezoneOffset() method returns the time zone difference,
-    //in minutes, from UTC to current locale (host system settings).
-    //var x = new Date();
-    
-    //console.log(currentTimeZoneOffsetInSeconds);
-    
-    var locale_timestamp = timeUTC_second - currentTimeZoneOffsetInSeconds;
-    
-    //corrected timestamp
-    document.getElementById('hapeLaptopTimestamp').value = timeUTC_millisecond;
-    document.getElementById('timezone_komputer_hape').textContent = currentTimeZoneOffsetInSeconds*-1/3600;
-    
-    //send UTC timestamp to ESP if ITC timestamp has been updated
-    // if (timeUTC_second != browserTime_old)
-    // {
-    //   browserTime_old = timeUTC_second;
-      
-    //   if (sync)
-    //   {
-    //     if (stateButtonSyncManual) {
-    //       ws.send("m " + document.getElementById('manualtimestamp').value);
-    //     }
-    //     else if (stateButtonSyncToInternet) {
-    //       ws.send("t " + document.getElementById('hapeLaptopTimestamp').value);
-    //     }
-    //   }
-    // }
-    // if (timeUTC_millisecond % 1000 <=3)
-    if (secondPC_old != sec)
-    {
-      secondPC_old = sec;
-      if (sync)
-      {
-        var timeStampToSend;
-        if (stateButtonSyncManual) {
-          timeStampToSend = "m " + document.getElementById('manualtimestamp').value;
+    function doOnce(date) {
+      timeNow = new Date();
+
+      let localtime_ISO = toLocaleISOStringWITHOUTMilliSecond(timeNow);
+
+      //DAY
+      if (localtime_ISO.substring(8, 9) === "0") {
+        document.getElementById('day').value = localtime_ISO.substring(9, 10);
+        hari = localtime_ISO.substring(9, 10);
+      } else {
+        document.getElementById('day').value = localtime_ISO.substring(8, 10);
+        hari = localtime_ISO.substring(8, 10);
+      }
+      //MONTH
+      if (localtime_ISO.substring(5, 6) === "0") {
+        document.getElementById('month').value = localtime_ISO.substring(6, 7);
+        bulan = localtime_ISO.substring(6, 7);
+      } else {
+        document.getElementById('month').value = localtime_ISO.substring(5, 7);
+        bulan = localtime_ISO.substring(5, 7);
+      }
+      //YEAR
+      document.getElementById('year').value = localtime_ISO.substring(0, 4);
+      tahun = localtime_ISO.substring(0, 4);
+      //HOUR
+      if (localtime_ISO.substring(11, 12) === "0") {
+        document.getElementById('hour').value = localtime_ISO.substring(12, 13);
+        jam = localtime_ISO.substring(12, 13);
+      } else {
+        document.getElementById('hour').value = localtime_ISO.substring(11, 13);
+        jam = localtime_ISO.substring(11, 13);
+      }
+      //MINUTE
+      if (localtime_ISO.substring(14, 15) === "0") {
+        document.getElementById('minute').value = localtime_ISO.substring(15, 16);
+        menit = localtime_ISO.substring(15, 16);
+      } else {
+        document.getElementById('minute').value = localtime_ISO.substring(14, 16);
+        menit = localtime_ISO.substring(14, 16);
+      }
+      //SECOND
+      if (localtime_ISO.substring(17, 18) === "0") {
+        document.getElementById('second').value = localtime_ISO.substring(18, 19);
+        detik = localtime_ISO.substring(18, 19);
+      } else {
+        document.getElementById('second').value = localtime_ISO.substring(17, 19);
+        detik = localtime_ISO.substring(17, 19);
+      }
+
+      timeUTC_millisecond = timeNow.getTime();
+      timeUTC_second = (timeUTC_millisecond / 1000).toFixed();
+      //document.getElementById('utc').value = timeUTC_second;
+
+      //The getTimezoneOffset() method returns the time zone difference,
+      //in minutes, from UTC to current locale (host system settings).
+      //var x = new Date();
+      currentTimeZoneOffsetInSeconds = timeNow.getTimezoneOffset() * 60;
+      //console.log(currentTimeZoneOffsetInSeconds);
+
+      locale_timestamp = timeUTC_second - currentTimeZoneOffsetInSeconds;
+      document.getElementById('hapeLaptopTimestamp').value = timeUTC_second;
+
+
+      // DATE & TIME IN LOCALE & READABLE FORMAT
+      // document.getElementById('dateTimeString').textContent = timeNow.toLocaleDateString("id", dateTimeOptions);
+    }
+
+    // https://stackoverflow.com/questions/3710204/how-to-check-if-a-string-is-a-valid-json-string-in-javascript-without-using-try
+    function isJSON(str) {
+      try {
+        return (JSON.parse(str) && !!str);
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function twoDigits(n) {
+      return (n < 10 ? '0' : '') + n;
+    }
+
+    var secondPC_old = 0;
+
+
+    function BrowserTime() {
+      timeNow = new Date();
+
+      var timeUTC_millisecond = timeNow.getTime();
+      var timeUTC_second = (timeUTC_millisecond / 1000).toFixed();
+
+      currentTimeZoneOffsetInSeconds = timeNow.getTimezoneOffset() * 60;
+
+      var options = {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      };
+
+      var year = timeNow.getFullYear();
+      var month = (timeNow.getMonth() + 1);
+      var day = timeNow.getDate();
+      var hr = twoDigits(timeNow.getHours());
+      var min = twoDigits(timeNow.getMinutes());
+      var sec = twoDigits(timeNow.getSeconds());
+      var millis = twoDigits(timeNow.getMilliseconds());
+
+      document.getElementById('timePC').textContent = hr + ":" + min + ":" + sec;
+      document.getElementById("datePC").textContent = timeNow.toLocaleDateString('id-ID', options);
+
+      // DATE IN LOCALE & READABLE FORMAT
+      // document.getElementById('dateTimeString').textContent = timeNow.toLocaleDateString("id", dateTimeOptions);
+      // document.getElementById('timePC').textContent = timeNow.toLocaleTimeString("id", timeOptions);
+
+
+
+      //The getTimezoneOffset() method returns the time zone difference,
+      //in minutes, from UTC to current locale (host system settings).
+      //var x = new Date();
+
+      //console.log(currentTimeZoneOffsetInSeconds);
+
+      var locale_timestamp = timeUTC_second - currentTimeZoneOffsetInSeconds;
+
+      //corrected timestamp
+      document.getElementById('hapeLaptopTimestamp').value = timeUTC_millisecond;
+      document.getElementById('timezone_komputer_hape').textContent = currentTimeZoneOffsetInSeconds * -1 / 3600;
+
+      //send UTC timestamp to ESP if ITC timestamp has been updated
+      // if (timeUTC_second != browserTime_old)
+      // {
+      //   browserTime_old = timeUTC_second;
+
+      //   if (sync)
+      //   {
+      //     if (stateButtonSyncManual) {
+      //       ws.send("m " + document.getElementById('manualtimestamp').value);
+      //     }
+      //     else if (stateButtonSyncToInternet) {
+      //       ws.send("t " + document.getElementById('hapeLaptopTimestamp').value);
+      //     }
+      //   }
+      // }
+      // if (timeUTC_millisecond % 1000 <=3)
+      if (secondPC_old != sec) {
+        secondPC_old = sec;
+        if (sync) {
+          var timeStampToSend;
+          if (stateButtonSyncManual) {
+            timeStampToSend = "m " + document.getElementById('manualtimestamp').value;
+            ws.send(timeStampToSend);
+            console.log(timeStampToSend);
+          }
+          else if (stateButtonSyncToInternet) {
+            timeStampToSend = "t " + timeUTC_second;
+            ws.send(timeStampToSend);
+            console.log(timeStampToSend);
+          }
+          // sync = !sync;
+        }
+      }
+    }
+
+    function TimeIs() {
+      var timeisUTC_time = document.getElementById('timeisUTC_time').textContent;
+      var timeisUTC_date = document.getElementById('timeisUTC_date').textContent;
+
+      //DAY
+      var dayUTC;
+      if (timeisUTC_date.substring(0, 1) === "0") {
+        dayUTC = timeisUTC_date.substring(1, 2);
+      } else {
+        dayUTC = timeisUTC_date.substring(0, 2);
+      }
+      //MONTH
+      var monthUTC;
+      if (timeisUTC_date.substring(3, 4) === "0") {
+        monthUTC = timeisUTC_date.substring(4, 5);
+      } else {
+        monthUTC = timeisUTC_date.substring(3, 5);
+      }
+      //YEAR
+      var yearUTC;
+      yearUTC = timeisUTC_date.substring(6, 10);
+      //HOUR
+      var hourUTC;
+      if (timeisUTC_time.substring(0, 1) === "0") {
+        hourUTC = timeisUTC_time.substring(1, 2);
+      } else {
+        hourUTC = timeisUTC_time.substring(0, 2);
+      }
+      //MINUTE
+      var minuteUTC;
+      if (timeisUTC_time.substring(3, 4) === "0") {
+        minuteUTC = timeisUTC_time.substring(4, 5);
+      } else {
+        minuteUTC = timeisUTC_time.substring(3, 5);
+      }
+      //SECOND
+      var secondUTC;
+      if (timeisUTC_time.substring(6, 7) === "0") {
+        secondUTC = timeisUTC_time.substring(7, 8);
+      } else {
+        secondUTC = timeisUTC_time.substring(6, 8);
+      }
+      //MILLISECOND
+
+      var timeisUTC_OBJ = new Date(Date.UTC(yearUTC, monthUTC - 1, dayUTC, hourUTC, minuteUTC, secondUTC));
+
+      var timeisUTCtimestamp = timeisUTC_OBJ.valueOf(); //exact timestamp; remember: timestamp always refer to UTC
+
+      var timeisUTCtimestamp_second = timeisUTCtimestamp / 1000;
+
+      var year = timeisUTC_OBJ.getFullYear();
+      var month = (timeisUTC_OBJ.getMonth() + 1);
+      var day = timeisUTC_OBJ.getDate();
+      var hr = twoDigits(timeisUTC_OBJ.getHours());
+      var min = twoDigits(timeisUTC_OBJ.getMinutes());
+      var sec = twoDigits(timeisUTC_OBJ.getSeconds());
+      var millis = twoDigits(timeisUTC_OBJ.getMilliseconds());
+
+      var options = {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      };
+
+      if (sync) {
+        if (stateButtonSyncToTimeis) {
+          var timeStampToSend = "t " + timeisUTCtimestamp_second;
           ws.send(timeStampToSend);
           console.log(timeStampToSend);
         }
-        else if (stateButtonSyncToInternet) {
-          timeStampToSend = "t " + timeUTC_second;
-          ws.send(timeStampToSend);
-          console.log(timeStampToSend);
-        }
-        // sync = !sync;
       }
-    }
-  }
 
-  function TimeIs() {
-    var timeisUTC_time = document.getElementById('timeisUTC_time').textContent;
-    var timeisUTC_date = document.getElementById('timeisUTC_date').textContent;
+      document.getElementById('timeistimestamp').value = timeisUTCtimestamp_second;
+      document.getElementById('timeTimeIs').textContent = hr + ":" + min + ":" + sec;
+      document.getElementById("dateTimeIs").textContent = timeisUTC_OBJ.toLocaleDateString('id-ID', options);
 
-    //DAY
-    var dayUTC;
-    if (timeisUTC_date.substring(0,1) === "0") {
-        dayUTC = timeisUTC_date.substring(1,2);
-    } else {
-        dayUTC = timeisUTC_date.substring(0,2);
+      return timeisUTCtimestamp_second;
     }
-    //MONTH
-    var monthUTC;
-    if (timeisUTC_date.substring(3,4) === "0") {
-        monthUTC = timeisUTC_date.substring(4,5);
-    } else {
-        monthUTC = timeisUTC_date.substring(3,5);
-    }
-    //YEAR
-    var yearUTC;
-    yearUTC = timeisUTC_date.substring(6,10);
-    //HOUR
-    var hourUTC;
-    if (timeisUTC_time.substring(0,1) === "0") {
-        hourUTC = timeisUTC_time.substring(1,2);
-    } else {
-        hourUTC = timeisUTC_time.substring(0,2);
-    }
-    //MINUTE
-    var minuteUTC;
-    if (timeisUTC_time.substring(3,4) === "0") {
-        minuteUTC = timeisUTC_time.substring(4,5);
-    } else {
-        minuteUTC = timeisUTC_time.substring(3,5);
-    }
-    //SECOND
-    var secondUTC;
-    if (timeisUTC_time.substring(6,7) === "0") {
-        secondUTC = timeisUTC_time.substring(7,8);
-    } else {
-        secondUTC = timeisUTC_time.substring(6,8);
-    }
-    //MILLISECOND
-    
-    var timeisUTC_OBJ = new Date(Date.UTC(yearUTC, monthUTC-1, dayUTC, hourUTC, minuteUTC, secondUTC));
-    
-    var timeisUTCtimestamp = timeisUTC_OBJ.valueOf(); //exact timestamp; remember: timestamp always refer to UTC
-    
-    var timeisUTCtimestamp_second = timeisUTCtimestamp/1000;
-    
-    var year = timeisUTC_OBJ.getFullYear();
-    var month = (timeisUTC_OBJ.getMonth() + 1);
-    var day = timeisUTC_OBJ.getDate();
-    var hr = twoDigits(timeisUTC_OBJ.getHours());
-    var min = twoDigits(timeisUTC_OBJ.getMinutes());
-    var sec = twoDigits(timeisUTC_OBJ.getSeconds());
-    var millis = twoDigits(timeisUTC_OBJ.getMilliseconds());
-    
-    var options = {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    };
-    
-    if (sync)
-    {
-      if (stateButtonSyncToTimeis) {
-        var timeStampToSend = "t " + timeisUTCtimestamp_second;
-        ws.send(timeStampToSend);
-        console.log(timeStampToSend);
-      }
-    }
-    
-    document.getElementById('timeistimestamp').value = timeisUTCtimestamp_second;
-    document.getElementById('timeTimeIs').textContent = hr + ":" + min + ":" + sec;
-    document.getElementById("dateTimeIs").textContent = timeisUTC_OBJ.toLocaleDateString('id-ID', options);
 
-    return timeisUTCtimestamp_second;
-  }
-    
-  // https://blog.serverdensity.com/automatic-timezone-conversion-in-javascript/
-  function getDate(timestamp)
-  {
-    // Multiply by 1000 because JS works in milliseconds instead of the UNIX seconds
-    var date = new Date(timestamp * 1000);
-    
-    var year = date.getUTCFullYear();
-    var month = date.getUTCMonth() + 1; // getMonth() is zero-indexed, so we'll increment to get the correct month number
-    var day = date.getUTCDate();
-    var hours = date.getUTCHours();
-    var minutes = date.getUTCMinutes();
-    var seconds = date.getUTCSeconds();
-    
-    month = (month < 10) ? '0' + month : month;
-    day = (day < 10) ? '0' + day : day;
-    hours = (hours < 10) ? '0' + hours : hours;
-    minutes = (minutes < 10) ? '0' + minutes : minutes;
-    seconds = (seconds < 10) ? '0' + seconds: seconds;
-    
-    return year + '-' + month + '-' + day + ' ' + hours + ':' + minutes;
-  }
-  
-  function UTCtimestamp() {
+    // https://blog.serverdensity.com/automatic-timezone-conversion-in-javascript/
+    function getDate(timestamp) {
+      // Multiply by 1000 because JS works in milliseconds instead of the UNIX seconds
+      var date = new Date(timestamp * 1000);
+
+      var year = date.getUTCFullYear();
+      var month = date.getUTCMonth() + 1; // getMonth() is zero-indexed, so we'll increment to get the correct month number
+      var day = date.getUTCDate();
+      var hours = date.getUTCHours();
+      var minutes = date.getUTCMinutes();
+      var seconds = date.getUTCSeconds();
+
+      month = (month < 10) ? '0' + month : month;
+      day = (day < 10) ? '0' + day : day;
+      hours = (hours < 10) ? '0' + hours : hours;
+      minutes = (minutes < 10) ? '0' + minutes : minutes;
+      seconds = (seconds < 10) ? '0' + seconds : seconds;
+
+      return year + '-' + month + '-' + day + ' ' + hours + ':' + minutes;
+    }
+
+    function UTCtimestamp() {
       var now_millis = Date.now();
       var now_millis_newdate = new Date();
-      var now_second = Math.round((now_millis/1000));
+      var now_second = Math.round((now_millis / 1000));
       console.log(now_second, now_millis, now_millis_newdate.getTime());
-      
-  }
 
-  //source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString
-  function pad(number) {
-    if (number < 10) {
-      return '0' + number;
     }
-    return number;
-  }
 
-  function toLocaleISOStringWITHOUTMilliSecond(date) {
-    var offset = date.getTimezoneOffset()/60;
-    return date.getFullYear() +
-      '-' + pad(date.getMonth() + 1) +
-      '-' + pad(date.getDate()) +
-      'T' + pad(date.getHours()) +
-      ':' + pad(date.getMinutes()) +
-      ':' + pad(date.getSeconds()) 
-      //'.' + (date.getUTCMilliseconds() / 1000).toFixed(3).slice(2, 5)
-      ;
-  };
-  
-  function toLocaleISOStringWITHMilliSecond(date) {
-    var offset = date.getTimezoneOffset()/60;
-    return date.getFullYear() +
-      '-' + pad(date.getMonth() + 1) +
-      '-' + pad(date.getDate()) +
-      'T' + pad(date.getHours() - offset) +
-      ':' + pad(date.getMinutes()) +
-      ':' + pad(date.getSeconds()) +
-      '.' + (date.getUTCMilliseconds() / 1000).toFixed(3).slice(2, 5)
-      ;
-  };
-  
-  var stateButtonSyncManual = document.getElementById("sync_manual").checked;
-  var stateButtonSyncToInternet = document.getElementById("sync_to_hapelaptop").checked;
-  var stateButtonSyncToTimeis = document.getElementById("sync_to_timeis").checked;
-  
-	function something() {
-    stateButtonSyncManual = document.getElementById("sync_manual").checked;
-    stateButtonSyncToInternet = document.getElementById("sync_to_hapelaptop").checked;
-    stateButtonSyncToTimeis = document.getElementById("sync_to_timeis").checked;
-    
-    if (stateButtonSyncManual == true) {
-      document.getElementById('day').disabled = false;
-      document.getElementById('month').disabled = false;
-      document.getElementById('year').disabled = false;
-      document.getElementById('hour').disabled = false;
-      document.getElementById('minute').disabled = false;
-      document.getElementById('second').disabled = false;
-      
-      document.getElementById('dayRow').hidden = false;
-      document.getElementById('monthRow').hidden = false;
-      document.getElementById('yearRow').hidden = false;
-      document.getElementById('hourRow').hidden = false;
-      document.getElementById('minuteRow').hidden = false;
-      document.getElementById('secondRow').hidden = false;
-      // show('manualDateTime');
+    //source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString
+    function pad(number) {
+      if (number < 10) {
+        return '0' + number;
+      }
+      return number;
     }
-    else if (stateButtonSyncToTimeis == true || stateButtonSyncToInternet == true) {
-      document.getElementById('day').disabled = true;
-      document.getElementById('month').disabled = true;
-      document.getElementById('year').disabled = true;
-      document.getElementById('hour').disabled = true;
-      document.getElementById('minute').disabled = true;
-      document.getElementById('second').disabled = true;
-      
-      document.getElementById('dayRow').hidden = true;
-      document.getElementById('monthRow').hidden = true;
-      document.getElementById('yearRow').hidden = true;
-      document.getElementById('hourRow').hidden = true;
-      document.getElementById('minuteRow').hidden = true;
-      document.getElementById('secondRow').hidden = true;
-      
-      // hide('manualDateTime');
+
+    function toLocaleISOStringWITHOUTMilliSecond(date) {
+      var offset = date.getTimezoneOffset() / 60;
+      return date.getFullYear() +
+        '-' + pad(date.getMonth() + 1) +
+        '-' + pad(date.getDate()) +
+        'T' + pad(date.getHours()) +
+        ':' + pad(date.getMinutes()) +
+        ':' + pad(date.getSeconds())
+        //'.' + (date.getUTCMilliseconds() / 1000).toFixed(3).slice(2, 5)
+        ;
+    };
+
+    function toLocaleISOStringWITHMilliSecond(date) {
+      var offset = date.getTimezoneOffset() / 60;
+      return date.getFullYear() +
+        '-' + pad(date.getMonth() + 1) +
+        '-' + pad(date.getDate()) +
+        'T' + pad(date.getHours() - offset) +
+        ':' + pad(date.getMinutes()) +
+        ':' + pad(date.getSeconds()) +
+        '.' + (date.getUTCMilliseconds() / 1000).toFixed(3).slice(2, 5)
+        ;
+    };
+
+    var stateButtonSyncManual = document.getElementById("sync_manual").checked;
+    var stateButtonSyncToInternet = document.getElementById("sync_to_hapelaptop").checked;
+    var stateButtonSyncToTimeis = document.getElementById("sync_to_timeis").checked;
+
+    function something() {
+      stateButtonSyncManual = document.getElementById("sync_manual").checked;
+      stateButtonSyncToInternet = document.getElementById("sync_to_hapelaptop").checked;
+      stateButtonSyncToTimeis = document.getElementById("sync_to_timeis").checked;
+
+      if (stateButtonSyncManual == true) {
+        document.getElementById('day').disabled = false;
+        document.getElementById('month').disabled = false;
+        document.getElementById('year').disabled = false;
+        document.getElementById('hour').disabled = false;
+        document.getElementById('minute').disabled = false;
+        document.getElementById('second').disabled = false;
+
+        document.getElementById('dayRow').hidden = false;
+        document.getElementById('monthRow').hidden = false;
+        document.getElementById('yearRow').hidden = false;
+        document.getElementById('hourRow').hidden = false;
+        document.getElementById('minuteRow').hidden = false;
+        document.getElementById('secondRow').hidden = false;
+        // show('manualDateTime');
+      }
+      else if (stateButtonSyncToTimeis == true || stateButtonSyncToInternet == true) {
+        document.getElementById('day').disabled = true;
+        document.getElementById('month').disabled = true;
+        document.getElementById('year').disabled = true;
+        document.getElementById('hour').disabled = true;
+        document.getElementById('minute').disabled = true;
+        document.getElementById('second').disabled = true;
+
+        document.getElementById('dayRow').hidden = true;
+        document.getElementById('monthRow').hidden = true;
+        document.getElementById('yearRow').hidden = true;
+        document.getElementById('hourRow').hidden = true;
+        document.getElementById('minuteRow').hidden = true;
+        document.getElementById('secondRow').hidden = true;
+
+        // hide('manualDateTime');
+      }
     }
-  }
-    
+
     //new Date(year, month, day, hours, minutes, seconds, milliseconds)
     //var tahun, bulan, hari, jam, menit, detik, millidetik;
-    
+
     function calculateManualTimeStamp() {
-      
-        //DAY
-        hari = document.getElementById('day').value;
-        //MONTH
-        bulan = document.getElementById('month').value;
-        //YEAR
-        tahun = document.getElementById('year').value;
-        //HOUR
-        jam = document.getElementById('hour').value;
-        //MINUTE
-        menit = document.getElementById('minute').value;
-        //SECOND
-        detik = document.getElementById('second').value;
-        //MILLISECOND
 
-        
-        console.log(hari,bulan,tahun,jam,menit,detik);
-        
-        var manualTimeStamp_millisecond = Date.UTC(tahun, bulan-1, hari, jam, menit, detik);
-        var manualTimeStamp_second = manualTimeStamp_millisecond/1000;
-        
-        var manualUTCtimestamp_second = manualTimeStamp_second + currentTimeZoneOffsetInSeconds;
-        
-        console.log("Manual UTC timestamp: ", manualUTCtimestamp_second);
+      //DAY
+      hari = document.getElementById('day').value;
+      //MONTH
+      bulan = document.getElementById('month').value;
+      //YEAR
+      tahun = document.getElementById('year').value;
+      //HOUR
+      jam = document.getElementById('hour').value;
+      //MINUTE
+      menit = document.getElementById('minute').value;
+      //SECOND
+      detik = document.getElementById('second').value;
+      //MILLISECOND
 
-        document.getElementById('manualtimestamp').value = manualUTCtimestamp_second;
-        
-        return manualUTCtimestamp_second;
+
+      console.log(hari, bulan, tahun, jam, menit, detik);
+
+      var manualTimeStamp_millisecond = Date.UTC(tahun, bulan - 1, hari, jam, menit, detik);
+      var manualTimeStamp_second = manualTimeStamp_millisecond / 1000;
+
+      var manualUTCtimestamp_second = manualTimeStamp_second + currentTimeZoneOffsetInSeconds;
+
+      console.log("Manual UTC timestamp: ", manualUTCtimestamp_second);
+
+      document.getElementById('manualtimestamp').value = manualUTCtimestamp_second;
+
+      return manualUTCtimestamp_second;
     }
-    
+
     function toggle(thisname) {
-     tr=document.getElementsByTagName('tr')
-     for (i=0;i<tr.length;i++){
-      if (tr[i].getAttribute(thisname)){
-       if ( tr[i].hidden== false ){
-         tr[i].hidden = true;
-       }
-       else {
-        tr[i].style.display = 'none';
-       }
+      tr = document.getElementsByTagName('tr')
+      for (i = 0; i < tr.length; i++) {
+        if (tr[i].getAttribute(thisname)) {
+          if (tr[i].hidden == false) {
+            tr[i].hidden = true;
+          }
+          else {
+            tr[i].style.display = 'none';
+          }
+        }
       }
-     }
     }
 
     function hide(thisname) {
@@ -918,237 +938,227 @@ function twoDigits(n) {
       var x = document.getElementsByName(thisname);
       var i;
       for (i = 0; i < x.length; i++) {
-          if (x[i].hidden == false) {
-              x[i].hidden == true;
-          }
+        if (x[i].hidden == false) {
+          x[i].hidden == true;
+        }
       }
       console.log("hide", i);
     }
-    
+
     function show(thisname) {
       // console.log("showhide");
       var x = document.getElementsByName(thisname);
       var i;
       for (i = 0; i < x.length; i++) {
-          if (x[i].hidden == true) {
-              x[i].hidden == false;
-          }
+        if (x[i].hidden == true) {
+          x[i].hidden == false;
+        }
       }
       console.log("show", i);
     }
- 
 
-</script>
-<script language="javascript" type="text/javascript">
 
-	var ws;
-	var retries;
-  // 	var series = new TimeSeries();
-  // 	window.onload = function() {
-  // 		wsOpen();
-  // 		startPolling();
-  // 	}
-	function setMsg(cls, text) {
-		var sbox = document.getElementById('status_box');
-		sbox.className = "tile is-child notification is-danger is-marginless is-" + cls;
-		sbox.textContent = text;
-		console.log(text);
-	}
-	function showDisconnected() {
-		// sbox = document.getElementById('status_box');
-		// sbox.className = "tile is-child notification is-danger is-marginless";
-		
-		var sbox = document.getElementById('modalDisconnected');
-		sbox.className = "modal is-active";
-		ws.close();
-		
-		
-		console.log("show DISCONNECTED");
-	}
-	function hideDisconnected() {
-		var sbox = document.getElementById('status_box');
-		sbox.className = "tile is-child notification is-danger is-marginless is-hidden";
-		console.log("hide DISCONNECTED");
-	}
-	function startPolling()
-	{
-		setInterval(function() { wsWrite('A'); }, 1000);
-	}
-	function onMessage(evt) {
+  </script>
+  <script language="javascript" type="text/javascript">
 
-		retries = 0;
-		
-		if (isJSON(evt.data))
-		{
-      var json = JSON.parse(evt.data);
-      console.log(evt.data);
-      
-      if (json.hasOwnProperty('utc'))
-      {
-        document.getElementById("tileDtSystem").style.display = "block";
-        document.getElementById("tileSyncBtn").style.display = "block";
-        
-        var dt = new Date((json.utc)*1000);
-        var timezone = json.tz/10.0;
-  
-        var options =
-        {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric'
-        };
-        
-        var year = dt.getFullYear();
-        var month = (dt.getMonth() + 1);
-        var day = dt.getDate();
-        // var hr = dt.getHours();
-        var hr = twoDigits(dt.getHours());
-        var min = twoDigits(dt.getMinutes());
-        var sec = twoDigits(dt.getSeconds());
-        var millis = twoDigits(dt.getMilliseconds());
-  
-        document.getElementById("system_timezone").textContent = timezone;
-        // document.getElementById("timeSystem").textContent = dt.toLocaleTimeString('it-IT');
-        document.getElementById('timeSystem').textContent = hr + ":" + min + ":" + sec;
-        document.getElementById("dateSystem").textContent = dt.toLocaleDateString('id-ID', options);
-        document.getElementById("timeSystem2").textContent = dt.toLocaleTimeString('it-IT');
-        document.getElementById("dateSystem2").textContent = dt.toLocaleDateString('id-ID', options);
+    var ws;
+    var retries;
+    // 	var series = new TimeSeries();
+    // 	window.onload = function() {
+    // 		wsOpen();
+    // 		startPolling();
+    // 	}
+    function setMsg(cls, text) {
+      var sbox = document.getElementById('status_box');
+      sbox.className = "tile is-child notification is-danger is-marginless is-" + cls;
+      sbox.textContent = text;
+      console.log(text);
+    }
+    function showDisconnected() {
+      // sbox = document.getElementById('status_box');
+      // sbox.className = "tile is-child notification is-danger is-marginless";
+
+      var sbox = document.getElementById('modalDisconnected');
+      sbox.className = "modal is-active";
+      ws.close();
+
+
+      console.log("show DISCONNECTED");
+    }
+    function hideDisconnected() {
+      var sbox = document.getElementById('status_box');
+      sbox.className = "tile is-child notification is-danger is-marginless is-hidden";
+      console.log("hide DISCONNECTED");
+    }
+    function startPolling() {
+      setInterval(function () { wsWrite('A'); }, 1000);
+    }
+    function onMessage(evt) {
+
+      retries = 0;
+
+      if (isJSON(evt.data)) {
+        var json = JSON.parse(evt.data);
+        console.log(evt.data);
+
+        if (json.hasOwnProperty('utc')) {
+          document.getElementById("tileDtSystem").style.display = "block";
+          document.getElementById("tileSyncBtn").style.display = "block";
+
+          var dt = new Date((json.utc) * 1000);
+          var timezone = json.tz / 10.0;
+
+          var options =
+          {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          };
+
+          var year = dt.getFullYear();
+          var month = (dt.getMonth() + 1);
+          var day = dt.getDate();
+          // var hr = dt.getHours();
+          var hr = twoDigits(dt.getHours());
+          var min = twoDigits(dt.getMinutes());
+          var sec = twoDigits(dt.getSeconds());
+          var millis = twoDigits(dt.getMilliseconds());
+
+          document.getElementById("system_timezone").textContent = timezone;
+          // document.getElementById("timeSystem").textContent = dt.toLocaleTimeString('it-IT');
+          document.getElementById('timeSystem').textContent = hr + ":" + min + ":" + sec;
+          document.getElementById("dateSystem").textContent = dt.toLocaleDateString('id-ID', options);
+          document.getElementById("timeSystem2").textContent = dt.toLocaleTimeString('it-IT');
+          document.getElementById("dateSystem2").textContent = dt.toLocaleDateString('id-ID', options);
+        }
       }
-		}
-		else
-		{
-		  console.log("evt.data = ", evt.data);
-		}
-	}
-	function wsOpen() {
-		if (ws === undefined || ws.readyState != 0) {
-			if (retries)
-			{
-				// setMsg("red", "Connection timeout, retrying..");
-				// hideDisconnected();
-			}
-			else
-			{
-				// setMsg("blue", "Connecting..");
-				// hideDisconnected();
-			}
-			ws = new WebSocket("ws://" + location.host + "/ws");
-			ws.binaryType = 'arraybuffer';
-			ws.onopen = function(evt) {
-			  console.log("WebSocket is open. Connected to " + evt.target.url, evt);
-			  retries = 0;
-			 // setMsg("green", "Connected");
-        var obj = new Object();
-        obj.url = window.location.pathname;
-        var myJSON = JSON.stringify(obj);
-        console.log(myJSON);
-        ws.send(myJSON);
-			};
-    	ws.onclose = function(evt)     	{
-    	  console.log("WebSocket close. Code: " + evt.code + ", Reason: " + evt.reason);
-    	 // clearInterval(sendPingVar);
-    	  console.log(clearInterval.name);
-    	 // setMsg("active", "Disconnected");
-    	 if (ws.readyState == 3)
-    	 {
-    	 // showDisconnected();
-    	  setTimeout(function() { showDisconnected(); }, 1000);
-    	 }
-    	};
-			ws.onerror = function(error) {
-			  console.log("WebSocket ERROR ", error);
-			 // clearInterval(sendPingVar);
-			  console.log(clearInterval.name);
-			 // setMsg("red", "Connection error!");
-			 // showDisconnected();
-			};
-			ws.onmessage = function(evt) { onMessage(evt); };
-		}
-	}
-			function wsOpenStream() {
-				var uri = "/streamStats";
-				var ws = new WebSocket("ws://" + location.host + uri);
-				ws.onmessage = function(evt) {
-				// 	console.log(evt.data);
-				// 	var stats = JSON.parse(evt.data);
-				// 	console.log(stats);
-				// 	document.getElementById('uptime').textContent = stats.uptime + ' seconds';
-				// 	document.getElementById('heap').textContent = stats.freeHeap + ' bytes';
-				// 	document.getElementById('led').textContent = (stats.led == 1) ? 'On' : 'Off';
-				};
-			}
-			function wsWrite(data) {
-				if (ws.readyState == 3 || retries++ > 5)
-					wsOpen();
-				else if (ws.readyState == 1)
-					ws.send(data);
-			}
-			function gpio() {
-				if (document.getElementById('led-switch').checked)
-					wsWrite('E');
-				else
-					wsWrite('D');
-			}
-			
-function startEvents(){
-  var es = new EventSource('/events');
-  es.onopen = function(e)
-  {
-    console.log("Events Opened");
-  };
-  es.onerror = function(e) {
-    if (e.target.readyState != EventSource.OPEN)
-    {
-      console.log("Events Closed");
+      else {
+        console.log("evt.data = ", evt.data);
+      }
     }
-  };
-  es.onmessage = function(e)
-  {
-    console.log("Event: " + e.data);
-    if (isJSON(e.data))
-    {
-      var json = JSON.parse(e.data);
-      var dt = new Date((json.utc)*1000);
-
-      var options =
-      {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
+    function wsOpen() {
+      if (ws === undefined || ws.readyState != 0) {
+        if (retries) {
+          // setMsg("red", "Connection timeout, retrying..");
+          // hideDisconnected();
+        }
+        else {
+          // setMsg("blue", "Connecting..");
+          // hideDisconnected();
+        }
+        ws = new WebSocket("ws://" + location.host + "/ws");
+        ws.binaryType = 'arraybuffer';
+        ws.onopen = function (evt) {
+          console.log("WebSocket is open. Connected to " + evt.target.url, evt);
+          retries = 0;
+          // setMsg("green", "Connected");
+          var obj = new Object();
+          obj.url = window.location.pathname;
+          var myJSON = JSON.stringify(obj);
+          console.log(myJSON);
+          ws.send(myJSON);
+        };
+        ws.onclose = function (evt) {
+          console.log("WebSocket close. Code: " + evt.code + ", Reason: " + evt.reason);
+          // clearInterval(sendPingVar);
+          console.log(clearInterval.name);
+          // setMsg("active", "Disconnected");
+          if (ws.readyState == 3) {
+            // showDisconnected();
+            setTimeout(function () { showDisconnected(); }, 1000);
+          }
+        };
+        ws.onerror = function (error) {
+          console.log("WebSocket ERROR ", error);
+          // clearInterval(sendPingVar);
+          console.log(clearInterval.name);
+          // setMsg("red", "Connection error!");
+          // showDisconnected();
+        };
+        ws.onmessage = function (evt) { onMessage(evt); };
+      }
+    }
+    function wsOpenStream() {
+      var uri = "/streamStats";
+      var ws = new WebSocket("ws://" + location.host + uri);
+      ws.onmessage = function (evt) {
+        // 	console.log(evt.data);
+        // 	var stats = JSON.parse(evt.data);
+        // 	console.log(stats);
+        // 	document.getElementById('uptime').textContent = stats.uptime + ' seconds';
+        // 	document.getElementById('heap').textContent = stats.freeHeap + ' bytes';
+        // 	document.getElementById('led').textContent = (stats.led == 1) ? 'On' : 'Off';
       };
-
-      document.getElementById("timeSystem").textContent = dt.toLocaleTimeString('it-IT');
-      document.getElementById("dateSystem").textContent = dt.toLocaleDateString('id-ID', options);
-      document.getElementById("timeSystem2").textContent = dt.toLocaleTimeString('it-IT');
-      document.getElementById("dateSystem2").textContent = dt.toLocaleDateString('id-ID', options);
     }
-  };
-  es.addEventListener('ota', function(e) {
-  }, false);
-  es.addEventListener('timeDate', function(e) {
-  }, false);
-}
-</script>
-<script src="//widget.time.is/id.js"></script>
-<script>
-  time_is_widget.init({
-  	timeisUTC_time : {
-  	 id: "UTC_za00",
-  	 template:"TIME",
-  	 //callback: "TimeIs"
-  	},
-  	timeisUTC_date : {
-  	  id: "UTC_za00",
-  	  template:"DATE",
-  	  date_format:"daynum/monthnum/year, dayname",
-  	  callback: "TimeIs"
-  	},
-	});
-</script>
+    function wsWrite(data) {
+      if (ws.readyState == 3 || retries++ > 5)
+        wsOpen();
+      else if (ws.readyState == 1)
+        ws.send(data);
+    }
+    function gpio() {
+      if (document.getElementById('led-switch').checked)
+        wsWrite('E');
+      else
+        wsWrite('D');
+    }
 
-<!-- End Document
+    function startEvents() {
+      var es = new EventSource('/events');
+      es.onopen = function (e) {
+        console.log("Events Opened");
+      };
+      es.onerror = function (e) {
+        if (e.target.readyState != EventSource.OPEN) {
+          console.log("Events Closed");
+        }
+      };
+      es.onmessage = function (e) {
+        console.log("Event: " + e.data);
+        if (isJSON(e.data)) {
+          var json = JSON.parse(e.data);
+          var dt = new Date((json.utc) * 1000);
+
+          var options =
+          {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          };
+
+          document.getElementById("timeSystem").textContent = dt.toLocaleTimeString('it-IT');
+          document.getElementById("dateSystem").textContent = dt.toLocaleDateString('id-ID', options);
+          document.getElementById("timeSystem2").textContent = dt.toLocaleTimeString('it-IT');
+          document.getElementById("dateSystem2").textContent = dt.toLocaleDateString('id-ID', options);
+        }
+      };
+      es.addEventListener('ota', function (e) {
+      }, false);
+      es.addEventListener('timeDate', function (e) {
+      }, false);
+    }
+  </script>
+  <script src="//widget.time.is/id.js"></script>
+  <script>
+    time_is_widget.init({
+      timeisUTC_time: {
+        id: "UTC_za00",
+        template: "TIME",
+        //callback: "TimeIs"
+      },
+      timeisUTC_date: {
+        id: "UTC_za00",
+        template: "DATE",
+        date_format: "daynum/monthnum/year, dayname",
+        callback: "TimeIs"
+      },
+    });
+  </script>
+
+  <!-- End Document
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
 </body>
+
 </html>

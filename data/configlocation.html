@@ -64,6 +64,12 @@
               <a class="navbar-item" href="configsholat.html">
                 Sholat Settings
               </a>
+              <a class="navbar-item" href="configledmatrix.html">
+                Led Matrix
+              </a>
+              <a class="navbar-item" href="configmqtt.html">
+                MQTT
+              </a>
               <a class="navbar-item" href="confignetwork.html">
                 Network
               </a>
@@ -309,16 +315,7 @@
                   </div>
                 </div>
 
-
-
-
-                <div>
-                  <div class="siimple-grid-row">
-                    <div class="siimple-grid-col siimple-grid-col--9 siimple-grid-col-sm--12">
-                      <div id="map" style="width:100%;height:400px;background:yellow"></div>
-                    </div>
-                  </div>
-                </div>
+                <div id="map" style="width:100%;height:400px;"></div>
 
 
               </div>
@@ -329,20 +326,8 @@
         </div>
       </div>
 
-
-
-
-
     </div>
   </section>
-
-
-
-
-
-
-
-
 
   <!--<script id='papaparse' src="papaparse.min.js" type="text/javascript" charset="utf-8"></script>-->
 
@@ -364,16 +349,6 @@
       getConfigValues("config/location");
       startSocket();
     }
-
-    // function loadScript() {
-    //   var script = document.createElement('script');
-    //   var key = document.getElementById("apikey").value;
-    //   script.type = 'text/javascript';
-    //   // script.src = 'https://maps.googleapis.com/maps/api/js?v=3' +'&key=' + key + '&callback=myMap'; //& needed
-    //   script.src = 'https://maps.googleapis.com/maps/api/js?v=3' +'&key=' + key; //& needed
-    //   document.body.appendChild(script);
-    // }
-
 
     function getConfigValues(url) {
       var req = new XMLHttpRequest();
@@ -779,9 +754,7 @@
       return tzStr;
     }
 
-
-
   </script>
-
 </body>
+
 </html>

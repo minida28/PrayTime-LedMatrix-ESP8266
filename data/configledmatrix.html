@@ -183,6 +183,9 @@
               <a class="navbar-item is-active" href="configledmatrix.html">
                 Led Matrix
               </a>
+              <a class="navbar-item" href="configmqtt.html">
+                MQTT
+              </a>
               <a class="navbar-item" href="confignetwork.html">
                 Network
               </a>
@@ -425,7 +428,8 @@
                     <label class="label">Long Text</label>
                     <div class="control">
                       <!--<textarea class="textarea" type="text" placeholder="Normal textarea" id="longtext" name="longtext" rows="10" maxlength="461" onkeypress="process(event, this); auto_grow(this)"></textarea>-->
-                      <textarea class="textarea" type="text" placeholder="Normal textarea" id="longtext" name="longtext" rows="10" maxlength="461" onkeypress="process(event, this);"></textarea>
+                      <textarea class="textarea" type="text" placeholder="Normal textarea" id="longtext" name="longtext" rows="10" maxlength="461"
+                        onkeypress="process(event, this);"></textarea>
                     </div>
                     <p id="charLeft" class="help is-danger is-italic"></p>
                   </div>
@@ -441,63 +445,27 @@
               </div>
 
             </div>
-          </div>
 
+            <div class="column" style="display:none">
+              <div class="box">
+
+                <div class="buttons">
+                  <button type="button" id="btntesttone0" name="btntesttone0" class="button is-warning is-block" onclick="sendFastConfig(this)">Tone 0</button>
+                  <button type="button" id="btntesttone1" name="btntesttone1" class="button is-warning is-block" onclick="sendFastConfig(this)">Tone 1</button>
+                  <button type="button" id="btntesttone2" name="btntesttone2" class="button is-warning is-block" onclick="sendFastConfig(this)">Tone 2</button>
+                  <button type="button" id="btntesttone10" name="btntesttone10" class="button is-warning is-block" onclick="sendFastConfig(this)">Tone 10</button>
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
         </div>
       </div>
 
-
     </div>
   </section>
-
-  <form>
-
-
-    <div class="siimple-grid-row" style="display:none">
-      <div class="siimple-grid-col siimple-grid-col--3 siimple-grid-col-lg--12">
-        <label class="siimple-label">Tone 0</label>
-        <br>
-      </div>
-      <div class="siimple-grid-col siimple-grid-col--9 siimple-grid-col-lg--12">
-        <label for="btntesttone0"></label>
-        <button type="button" id="btntesttone0" name="btntesttone0" class="siimple-btn siimple-btn--navy" onclick="sendFastConfig(this)">Tone0</button>
-      </div>
-    </div>
-
-    <div class="siimple-grid-row" style="display:none">
-      <div class="siimple-grid-col siimple-grid-col--3 siimple-grid-col-lg--12">
-        <label class="siimple-label">Tone 1</label>
-        <br>
-      </div>
-      <div class="siimple-grid-col siimple-grid-col--9 siimple-grid-col-lg--12">
-        <label for="btntesttone1"></label>
-        <button type="button" id="btntesttone1" name="btntesttone1" class="siimple-btn siimple-btn--navy" onclick="sendFastConfig(this)">Tone1</button>
-      </div>
-    </div>
-
-    <div class="siimple-grid-row" style="display:none">
-      <div class="siimple-grid-col siimple-grid-col--3 siimple-grid-col-lg--12">
-        <label class="siimple-label">Tone 2</label>
-        <br>
-      </div>
-      <div class="siimple-grid-col siimple-grid-col--9 siimple-grid-col-lg--12">
-        <label for="btntesttone2"></label>
-        <button type="button" id="btntesttone2" name="btntesttone2" class="siimple-btn siimple-btn--navy" onclick="sendFastConfig(this)">Tone2</button>
-      </div>
-    </div>
-
-    <div class="siimple-grid-row" style="display:none">
-      <div class="siimple-grid-col siimple-grid-col--3 siimple-grid-col-lg--12">
-        <label class="siimple-label">Tone 10</label>
-        <br>
-      </div>
-      <div class="siimple-grid-col siimple-grid-col--9 siimple-grid-col-lg--12">
-        <label for="btntesttone10"></label>
-        <button type="button" id="btntesttone10" name="btntesttone10" class="siimple-btn siimple-btn--navy" onclick="sendFastConfig(this)">Tone10</button>
-      </div>
-    </div>
-
-  </form>
 
   <script src="bulma-ui.js"></script>
   <script language="javascript" type="text/javascript">
@@ -810,7 +778,7 @@
         document.querySelector('#brightnessValue').value = element.value;
       }
     }
-    
+
     function charLeft() {
       document.getElementById('charLeft').textContent = "Characters left: " + (461 - document.getElementById('longtext').value.length);
     };

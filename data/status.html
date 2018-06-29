@@ -64,10 +64,16 @@
               <a class="navbar-item" href="configsholat.html">
                 Sholat Settings
               </a>
+              <a class="navbar-item" href="configledmatrix.html">
+                Led Matrix
+              </a>
+              <a class="navbar-item" href="configledmatrix.html">
+                MQTT
+              </a>
               <a class="navbar-item" href="confignetwork.html">
                 Network
               </a>
-              <a class="navbar-item is-active" href="status.html">
+              <a class="navbar-item" href="configmqtt.html">
                 Status
               </a>
               <a class="navbar-item" href="menu.html">
@@ -117,196 +123,196 @@
             <div class="column">
               <!-- Column 2 content -->
               <div class="box">
-              <div class="content is-small">
-                <table class="table is-narrow">
-                  <tbody>
-                    <tr class="is-selected">
-                      <td>
-                        <p class="has-text-weight-bold">HEAP MEMORY</p>
-                      </td>
-                      <td>
-                      </td>
-                    </tr>
-                    <tr>
-                    	<td class="has-text-weight-semibold">Free heap (byte)</td>
-                    	<td>
-                    		<span id="heap" class="has-text-danger"></span>
-                    	</td>
-                    </tr>
-                  </tbody>
-                </table>
+                <div class="content is-small">
+                  <table class="table is-narrow">
+                    <tbody>
+                      <tr class="is-selected">
+                        <td>
+                          <p class="has-text-weight-bold">HEAP MEMORY</p>
+                        </td>
+                        <td>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="has-text-weight-semibold">Free heap (byte)</td>
+                        <td>
+                          <span id="heap" class="has-text-danger"></span>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
 
-              
-                <table class="table is-narrow">
-                  <tbody>
-                    <tr class="is-selected">
-                      <td>
-                        <p class="has-text-weight-bold">SYSTEM</p>
-                      </td>
-                      <td>
-                      </td>
-                    </tr>
-                    <tr>
-                    	<td class="has-text-weight-bold">Date</td>
-                    	<td>
-                    		<span id="date"></span>
-                    	</td>
-                    </tr>
-                    <tr>
-                      <td class="has-text-weight-bold">Time</td>
-                      <td>
-                        <span id="time"></span>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td class="has-text-weight-bold">Uptime</td>
-                      <td>
-                         <span id="uptime"></span>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td class="has-text-weight-bold">Last sync</td>
-                      <td>
-                        <span id="lastsync"></span>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td class="has-text-weight-bold">Next sync</td>
-                      <td>
-                        <span id="nextsync"></span>
-                      </td>
-                    </tr>
-                    <tr>
-                    	<td class="has-text-weight-bold">Ping send</td>
-                    	<td>
-                    		<span id="ping_seq_num_send"></span>
-                    	</td>
-                    </tr>
-                    <tr>
-                    	<td class="has-text-weight-bold">Ping received</td>
-                    	<td>
-                    		<span id="ping_seq_num_recv"></span>
-                    	</td>
-                    </tr>
-                    <tr>
-                    	<td class="has-text-weight-bold">File name</td>
-                    	<td>
-                    		<p id="filename"></p>
-                    	</td>
-                    </tr>
-                    <tr>
-                    	<td class="has-text-weight-bold">Compile date/time</td>
-                    	<td>
-                    		<p id="compiledate"></p>
-                    	</td>
-                    </tr>
-                    <!--<tr>-->
-                    <!--	<td class="has-text-weight-bold">Compile time</td>-->
-                    <!--	<td>-->
-                    <!--		<p id="compiletime"></p>-->
-                    <!--	</td>-->
-                    <!--</tr>-->
-                    <tr>
-                    	<td class="has-text-weight-bold">Last boot</td>
-                    	<td>
-                    		<p id="lastboot"></p>
-                    	</td>
-                    </tr>
-                    <tr>
-                      <td class="has-text-weight-bold">Chip Id</td>
-                      <td>
-                        <p id="chipid"></p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td class="has-text-weight-bold">CPU freq</td>
-                      <td>
-                         <p id="cpufreq"></p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td class="has-text-weight-bold">Sketch size</td>
-                      <td>
-                        <p id="sketchsize"></p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td class="has-text-weight-bold">Free sketch space</td>
-                      <td>
-                        <p id="freesketchspace"></p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td class="has-text-weight-bold">Flash Chip ID</td>
-                      <td>
-                        <p id="flashchipid"></p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td class="has-text-weight-bold">Flash Chip Mode</td>
-                      <td>
-                        <p id="flashchipmode"></p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td class="has-text-weight-bold">Flash chip size</td>
-                      <td>
-                        <p id="flashchipsize"></p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td class="has-text-weight-bold">Flash chip real size</td>
-                      <td>
-                        <p id="flashchiprealsize"></p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td class="has-text-weight-bold">Flash chip speed</td>
-                      <td>
-                        <p id="flashchipspeed"></p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td class="has-text-weight-bold">Cycle count</td>
-                      <td>
-                        <p id="cyclecount"></p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td class="has-text-weight-bold">Core version</td>
-                      <td>
-                        <p id="corever"></p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td class="has-text-weight-bold">SDK version</td>
-                      <td>
-                        <p id="sdkver"></p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td class="has-text-weight-bold">Boot mode</td>
-                      <td>
-                        <p id="bootmode"></p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td class="has-text-weight-bold">Boot version</td>
-                      <td>
-                        <p id="bootversion"></p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td class="has-text-weight-bold">Last Reset due to</td>
-                      <td>
-                        <p id="resetreason"></p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-                
-                
-              </div>
+
+                  <table class="table is-narrow">
+                    <tbody>
+                      <tr class="is-selected">
+                        <td>
+                          <p class="has-text-weight-bold">SYSTEM</p>
+                        </td>
+                        <td>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="has-text-weight-bold">Date</td>
+                        <td>
+                          <span id="date"></span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="has-text-weight-bold">Time</td>
+                        <td>
+                          <span id="time"></span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="has-text-weight-bold">Uptime</td>
+                        <td>
+                          <span id="uptime"></span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="has-text-weight-bold">Last sync</td>
+                        <td>
+                          <span id="lastsync"></span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="has-text-weight-bold">Next sync</td>
+                        <td>
+                          <span id="nextsync"></span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="has-text-weight-bold">Ping send</td>
+                        <td>
+                          <span id="ping_seq_num_send"></span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="has-text-weight-bold">Ping received</td>
+                        <td>
+                          <span id="ping_seq_num_recv"></span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="has-text-weight-bold">File name</td>
+                        <td>
+                          <p id="filename"></p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="has-text-weight-bold">Compile date/time</td>
+                        <td>
+                          <p id="compiledate"></p>
+                        </td>
+                      </tr>
+                      <!--<tr>-->
+                      <!--	<td class="has-text-weight-bold">Compile time</td>-->
+                      <!--	<td>-->
+                      <!--		<p id="compiletime"></p>-->
+                      <!--	</td>-->
+                      <!--</tr>-->
+                      <tr>
+                        <td class="has-text-weight-bold">Last boot</td>
+                        <td>
+                          <p id="lastboot"></p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="has-text-weight-bold">Chip Id</td>
+                        <td>
+                          <p id="chipid"></p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="has-text-weight-bold">CPU freq</td>
+                        <td>
+                          <p id="cpufreq"></p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="has-text-weight-bold">Sketch size</td>
+                        <td>
+                          <p id="sketchsize"></p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="has-text-weight-bold">Free sketch space</td>
+                        <td>
+                          <p id="freesketchspace"></p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="has-text-weight-bold">Flash Chip ID</td>
+                        <td>
+                          <p id="flashchipid"></p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="has-text-weight-bold">Flash Chip Mode</td>
+                        <td>
+                          <p id="flashchipmode"></p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="has-text-weight-bold">Flash chip size</td>
+                        <td>
+                          <p id="flashchipsize"></p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="has-text-weight-bold">Flash chip real size</td>
+                        <td>
+                          <p id="flashchiprealsize"></p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="has-text-weight-bold">Flash chip speed</td>
+                        <td>
+                          <p id="flashchipspeed"></p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="has-text-weight-bold">Cycle count</td>
+                        <td>
+                          <p id="cyclecount"></p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="has-text-weight-bold">Core version</td>
+                        <td>
+                          <p id="corever"></p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="has-text-weight-bold">SDK version</td>
+                        <td>
+                          <p id="sdkver"></p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="has-text-weight-bold">Boot mode</td>
+                        <td>
+                          <p id="bootmode"></p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="has-text-weight-bold">Boot version</td>
+                        <td>
+                          <p id="bootversion"></p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="has-text-weight-bold">Last Reset due to</td>
+                        <td>
+                          <p id="resetreason"></p>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+
+
+                </div>
               </div>
             </div>
 
@@ -314,55 +320,55 @@
               <!-- Column 3 content -->
               <div class="box">
                 <div class="content is-small">
-                  
-                <table class="table is-narrow">
-                  <tbody>
-                    <tr class="is-selected">
-                      <td>
-                        <p class="has-text-weight-bold">FILE SYSTEM</p>
-                      </td>
-                      <td>
-                      </td>
-                    </tr>
-                    <tr>
-                    	<td class="has-text-weight-bold">Total size (byte)</td>
-                    	<td>
-                    		<span id="totalbytes"></span>
-                    	</td>
-                    </tr>
-                    <tr>
-                    	<td class="has-text-weight-bold">Used size (byte)</td>
-                    	<td>
-                    		<span id="usedbytes"></span>
-                    	</td>
-                    </tr>
-                    <tr>
-                    	<td class="has-text-weight-bold">Block size (byte)</td>
-                    	<td>
-                    		<span id="blocksize"></span>
-                    	</td>
-                    </tr>
-                    <tr>
-                    	<td class="has-text-weight-bold">Page size (byte)</td>
-                    	<td>
-                    		<span id="pagesize"></span>
-                    	</td>
-                    </tr>
-                    <tr>
-                    	<td class="has-text-weight-bold">Max Open Files</td>
-                    	<td>
-                    		<p id="maxopenfiles"></p>
-                    	</td>
-                    </tr>
-                    <tr>
-                    	<td class="has-text-weight-bold">Max Path Length</td>
-                    	<td>
-                    		<p id="maxpathlength"></p>
-                    	</td>
-                    </tr>
-                  </tbody>
-                </table>
-                  
+
+                  <table class="table is-narrow">
+                    <tbody>
+                      <tr class="is-selected">
+                        <td>
+                          <p class="has-text-weight-bold">FILE SYSTEM</p>
+                        </td>
+                        <td>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="has-text-weight-bold">Total size (byte)</td>
+                        <td>
+                          <span id="totalbytes"></span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="has-text-weight-bold">Used size (byte)</td>
+                        <td>
+                          <span id="usedbytes"></span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="has-text-weight-bold">Block size (byte)</td>
+                        <td>
+                          <span id="blocksize"></span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="has-text-weight-bold">Page size (byte)</td>
+                        <td>
+                          <span id="pagesize"></span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="has-text-weight-bold">Max Open Files</td>
+                        <td>
+                          <p id="maxopenfiles"></p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="has-text-weight-bold">Max Path Length</td>
+                        <td>
+                          <p id="maxpathlength"></p>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+
                 </div>
               </div>
             </div>
@@ -376,105 +382,102 @@
 
   <script src="bulma-ui.js"></script>
   <script language="javascript" type="text/javascript">
-var ws = null;
+    var ws = null;
 
-window.onload = function () {
-  getConfigValues("/systeminfo.json");
-  startSocket();
-  //startEvents();
-}
-function startSocket(){
-  ws = new WebSocket('ws://'+document.location.host+'/ws',['arduino']);
-  ws.binaryType = "arraybuffer";
-  ws.onopen = function(e){
-		var obj = new Object();
-    obj.url = window.location.pathname;
-    var myJSON = JSON.stringify(obj);
-    ws.send(myJSON);
-  };
-  ws.onclose = function(e){
-    console.log("WebSocket error. Code: " + e.code + ", Reason: " + e.reason + ", wasClean?: " + e.wasClean);
-  };
-  ws.onerror = function(e){
-    // console.log("ws error", e);
-    console.log("WebSocket error. Code: " + e.code + ", Reason: " + e.reason + ", wasClean?: " + e.wasClean);
-  };
-  ws.onmessage = function(e){
-    var msg = "";
-    if(e.data instanceof ArrayBuffer){
-      msg = "BIN:";
-      var bytes = new Uint8Array(e.data);
-      for (var i = 0; i < bytes.length; i++) {
-        msg += String.fromCharCode(bytes[i]);
-      }
-    } else {
-      msg = "TXT:"+e.data;
-      console.log(msg);
-      if (e.data == "suicide") {
-        ws.close();
-      }
-      else if (isJSON(e.data)) {
-        var json = JSON.parse(e.data);
-        if (json.hasOwnProperty('cpufreq')) {
-          document.getElementById("heap").textContent = json.heap.toLocaleString("en");
-          document.getElementById("filename").textContent = json.filename;
-          document.getElementById("lastboot").textContent = json.lastboot;
-          document.getElementById("chipid").textContent = json.chipid;
-          document.getElementById("cpufreq").textContent = json.cpufreq.toLocaleString("en");
-          document.getElementById("sketchsize").textContent = json.sketchsize.toLocaleString("en");
-          document.getElementById("freesketchspace").textContent = json.freesketchspace.toLocaleString("en");
-          document.getElementById("flashchipid").textContent = json.flashchipid;
-          document.getElementById("flashchipsize").textContent = json.flashchipsize.toLocaleString("en");
-          document.getElementById("flashchiprealsize").textContent = json.flashchiprealsize.toLocaleString("en");
-          document.getElementById("flashchipspeed").textContent = json.flashchipspeed.toLocaleString("en");
-          document.getElementById("cyclecount").textContent = json.cyclecount.toLocaleString("en");
-          document.getElementById("corever").textContent = json.corever;
-          document.getElementById("sdkver").textContent = json.sdkver;
-          document.getElementById("resetreason").textContent = json.resetreason;
-        }
-        else if (json.hasOwnProperty('heap'))
-        {
-          document.getElementById("heap").textContent = json.heap.toLocaleString("en");
-        }
-        else if (json.hasOwnProperty('totalBytes'))
-        {
-          document.getElementById("totalBytes").textContent = json.totalBytes.toLocaleString("en");
-          document.getElementById("usedBytes").textContent = json.usedBytes.toLocaleString("en");
-          document.getElementById("blockSize").textContent = json.blockSize.toLocaleString("en");
-          document.getElementById("pageSize").textContent = json.pageSize.toLocaleString("en");
-          document.getElementById("maxOpenFiles").textContent = json.maxOpenFiles.toLocaleString("en");
-          document.getElementById("maxPathLength").textContent = json.maxPathLength.toLocaleString("en");
-        }
-        else if (json.hasOwnProperty('uptime'))
-        {
-          document.getElementById("date").textContent = json.date;
-          document.getElementById("time").textContent = json.time;
-          document.getElementById("uptime").textContent = json.uptime;
-          document.getElementById("lastsync").textContent = json.lastsync;
-          document.getElementById("nextsync").textContent = json.nextsync;
-          document.getElementById("ping_seq_num_recv").textContent = json.ping_seq_num_recv;
-          document.getElementById("ping_seq_num_send").textContent = json.ping_seq_num_send;
-        }
-      }
+    window.onload = function () {
+      getConfigValues("/systeminfo.json");
+      startSocket();
+      //startEvents();
     }
-  };
-}
-function startEvents(){
-  var es = new EventSource('/events');
-  console.log(es.readyState);
-  es.onopen = function(e) {
-    console.log("Events Opened");
-  };
-  es.onerror = function(e) {
-    console.log("Events Error.", e);
-    if (e.target.readyState != EventSource.OPEN) {
-      console.log("Events Closed");
+    function startSocket() {
+      ws = new WebSocket('ws://' + document.location.host + '/ws', ['arduino']);
+      ws.binaryType = "arraybuffer";
+      ws.onopen = function (e) {
+        var obj = new Object();
+        obj.url = window.location.pathname;
+        var myJSON = JSON.stringify(obj);
+        ws.send(myJSON);
+      };
+      ws.onclose = function (e) {
+        console.log("WebSocket error. Code: " + e.code + ", Reason: " + e.reason + ", wasClean?: " + e.wasClean);
+      };
+      ws.onerror = function (e) {
+        // console.log("ws error", e);
+        console.log("WebSocket error. Code: " + e.code + ", Reason: " + e.reason + ", wasClean?: " + e.wasClean);
+      };
+      ws.onmessage = function (e) {
+        var msg = "";
+        if (e.data instanceof ArrayBuffer) {
+          msg = "BIN:";
+          var bytes = new Uint8Array(e.data);
+          for (var i = 0; i < bytes.length; i++) {
+            msg += String.fromCharCode(bytes[i]);
+          }
+        } else {
+          msg = "TXT:" + e.data;
+          console.log(msg);
+          if (e.data == "suicide") {
+            ws.close();
+          }
+          else if (isJSON(e.data)) {
+            var json = JSON.parse(e.data);
+            if (json.hasOwnProperty('cpufreq')) {
+              document.getElementById("heap").textContent = json.heap.toLocaleString("en");
+              document.getElementById("filename").textContent = json.filename;
+              document.getElementById("lastboot").textContent = json.lastboot;
+              document.getElementById("chipid").textContent = json.chipid;
+              document.getElementById("cpufreq").textContent = json.cpufreq.toLocaleString("en");
+              document.getElementById("sketchsize").textContent = json.sketchsize.toLocaleString("en");
+              document.getElementById("freesketchspace").textContent = json.freesketchspace.toLocaleString("en");
+              document.getElementById("flashchipid").textContent = json.flashchipid;
+              document.getElementById("flashchipsize").textContent = json.flashchipsize.toLocaleString("en");
+              document.getElementById("flashchiprealsize").textContent = json.flashchiprealsize.toLocaleString("en");
+              document.getElementById("flashchipspeed").textContent = json.flashchipspeed.toLocaleString("en");
+              document.getElementById("cyclecount").textContent = json.cyclecount.toLocaleString("en");
+              document.getElementById("corever").textContent = json.corever;
+              document.getElementById("sdkver").textContent = json.sdkver;
+              document.getElementById("resetreason").textContent = json.resetreason;
+            }
+            else if (json.hasOwnProperty('heap')) {
+              document.getElementById("heap").textContent = json.heap.toLocaleString("en");
+            }
+            else if (json.hasOwnProperty('totalBytes')) {
+              document.getElementById("totalBytes").textContent = json.totalBytes.toLocaleString("en");
+              document.getElementById("usedBytes").textContent = json.usedBytes.toLocaleString("en");
+              document.getElementById("blockSize").textContent = json.blockSize.toLocaleString("en");
+              document.getElementById("pageSize").textContent = json.pageSize.toLocaleString("en");
+              document.getElementById("maxOpenFiles").textContent = json.maxOpenFiles.toLocaleString("en");
+              document.getElementById("maxPathLength").textContent = json.maxPathLength.toLocaleString("en");
+            }
+            else if (json.hasOwnProperty('uptime')) {
+              document.getElementById("date").textContent = json.date;
+              document.getElementById("time").textContent = json.time;
+              document.getElementById("uptime").textContent = json.uptime;
+              document.getElementById("lastsync").textContent = json.lastsync;
+              document.getElementById("nextsync").textContent = json.nextsync;
+              document.getElementById("ping_seq_num_recv").textContent = json.ping_seq_num_recv;
+              document.getElementById("ping_seq_num_send").textContent = json.ping_seq_num_send;
+            }
+          }
+        }
+      };
     }
-  };
-  es.onmessage = function(e) {
-    console.log("Event: " + e.data);
-    if (isJSON(e.data)) {
-    var json = JSON.parse(e.data);
+    function startEvents() {
+      var es = new EventSource('/events');
+      console.log(es.readyState);
+      es.onopen = function (e) {
+        console.log("Events Opened");
+      };
+      es.onerror = function (e) {
+        console.log("Events Error.", e);
+        if (e.target.readyState != EventSource.OPEN) {
+          console.log("Events Closed");
+        }
+      };
+      es.onmessage = function (e) {
+        console.log("Event: " + e.data);
+        if (isJSON(e.data)) {
+          var json = JSON.parse(e.data);
           // document.getElementById("heap").textContent = json.heap;
           document.getElementById("filename").textContent = json.filename;
           document.getElementById("lastboot").textContent = json.lastboot;
@@ -490,70 +493,71 @@ function startEvents(){
           document.getElementById("corever").textContent = json.corever;
           document.getElementById("sdkver").textContent = json.sdkver;
           document.getElementById("resetreason").textContent = json.resetreason;
+        }
+      };
+      // es.addEventListener('ota', function(e) {
+      // }, false);
+      es.addEventListener('heap', function (e) {
+        console.log("Event: " + e.data);
+        if (isJSON(e.data)) {
+          var json = JSON.parse(e.data);
+          document.getElementById("heap").textContent = json.heap;
+        }
+      }, false);
     }
-  };
-  // es.addEventListener('ota', function(e) {
-  // }, false);
-  es.addEventListener('heap', function(e) {
-    console.log("Event: " + e.data);
-    if (isJSON(e.data)) {
-    var json = JSON.parse(e.data);
-      document.getElementById("heap").textContent = json.heap;
+    // https://stackoverflow.com/questions/3710204/how-to-check-if-a-string-is-a-valid-json-string-in-javascript-without-using-try
+    function isJSON(str) {
+      try {
+        return (JSON.parse(str) && !!str);
+      } catch (e) {
+        return false;
+      }
     }
-  }, false);
-}
-// https://stackoverflow.com/questions/3710204/how-to-check-if-a-string-is-a-valid-json-string-in-javascript-without-using-try
-function isJSON(str) {
-  try {
-      return (JSON.parse(str) && !!str);
-  } catch (e) {
-      return false;
-  }
-}
-function getConfigValues(address) {
-  var req = new XMLHttpRequest();
-  if (req) {
-    req.open("GET", address, true);
-    req.addEventListener("load", reqListener);
-    req.send();
-  }
-}
+    function getConfigValues(address) {
+      var req = new XMLHttpRequest();
+      if (req) {
+        req.open("GET", address, true);
+        req.addEventListener("load", reqListener);
+        req.send();
+      }
+    }
 
-function reqListener () {
-  console.log(this.responseText);
-  if (isJSON(this.responseText)) {
-    json = JSON.parse(this.responseText);
-    console.log(json);
-    // document.getElementById("heap").textContent = json.heap;
-    
-    document.getElementById("totalbytes").textContent = json.totalbytes.toLocaleString("en");
-    document.getElementById("usedbytes").textContent = json.usedbytes.toLocaleString("en");
-    document.getElementById("blocksize").textContent = json.blocksize.toLocaleString("en");
-    document.getElementById("pagesize").textContent = json.pagesize.toLocaleString("en");
-    document.getElementById("maxopenfiles").textContent = json.maxopenfiles.toLocaleString("en");
-    document.getElementById("maxpathlength").textContent = json.maxpathlength.toLocaleString("en");
-    
-    document.getElementById("filename").textContent = json.filename;
-    document.getElementById("compiledate").textContent = json.compiledate + " " + json.compiletime;
-    // document.getElementById("compiletime").textContent = json.compiletime;
-    document.getElementById("lastboot").textContent = json.lastboot;
-    document.getElementById("chipid").textContent = json.chipid;
-    document.getElementById("cpufreq").textContent = json.cpufreq.toLocaleString("en"); + " MHz";
-    document.getElementById("sketchsize").textContent = json.sketchsize.toLocaleString("en"); + " bytes";
-    document.getElementById("freesketchspace").textContent = json.freesketchspace.toLocaleString("en"); + " bytes";
-    document.getElementById("flashchipid").textContent = json.flashchipid;
-    document.getElementById("flashchipmode").textContent = json.flashchipmode;
-    document.getElementById("flashchipsize").textContent = json.flashchipsize.toLocaleString("en"); + " bytes";
-    document.getElementById("flashchiprealsize").textContent = json.flashchiprealsize.toLocaleString("en"); + " bytes";
-    document.getElementById("flashchipspeed").textContent = json.flashchipspeed.toLocaleString("en"); + " Hz";
-    document.getElementById("cyclecount").textContent = json.cyclecount.toLocaleString("en");;
-    document.getElementById("corever").textContent = json.corever;
-    document.getElementById("sdkver").textContent = json.sdkver;
-    document.getElementById("bootmode").textContent = json.bootmode;
-    document.getElementById("bootversion").textContent = json.bootversion;
-    document.getElementById("resetreason").textContent = json.resetreason;
-  }
-}
-</script>
+    function reqListener() {
+      console.log(this.responseText);
+      if (isJSON(this.responseText)) {
+        json = JSON.parse(this.responseText);
+        console.log(json);
+        // document.getElementById("heap").textContent = json.heap;
+
+        document.getElementById("totalbytes").textContent = json.totalbytes.toLocaleString("en");
+        document.getElementById("usedbytes").textContent = json.usedbytes.toLocaleString("en");
+        document.getElementById("blocksize").textContent = json.blocksize.toLocaleString("en");
+        document.getElementById("pagesize").textContent = json.pagesize.toLocaleString("en");
+        document.getElementById("maxopenfiles").textContent = json.maxopenfiles.toLocaleString("en");
+        document.getElementById("maxpathlength").textContent = json.maxpathlength.toLocaleString("en");
+
+        document.getElementById("filename").textContent = json.filename;
+        document.getElementById("compiledate").textContent = json.compiledate + " " + json.compiletime;
+        // document.getElementById("compiletime").textContent = json.compiletime;
+        document.getElementById("lastboot").textContent = json.lastboot;
+        document.getElementById("chipid").textContent = json.chipid;
+        document.getElementById("cpufreq").textContent = json.cpufreq.toLocaleString("en"); + " MHz";
+        document.getElementById("sketchsize").textContent = json.sketchsize.toLocaleString("en"); + " bytes";
+        document.getElementById("freesketchspace").textContent = json.freesketchspace.toLocaleString("en"); + " bytes";
+        document.getElementById("flashchipid").textContent = json.flashchipid;
+        document.getElementById("flashchipmode").textContent = json.flashchipmode;
+        document.getElementById("flashchipsize").textContent = json.flashchipsize.toLocaleString("en"); + " bytes";
+        document.getElementById("flashchiprealsize").textContent = json.flashchiprealsize.toLocaleString("en"); + " bytes";
+        document.getElementById("flashchipspeed").textContent = json.flashchipspeed.toLocaleString("en"); + " Hz";
+        document.getElementById("cyclecount").textContent = json.cyclecount.toLocaleString("en");;
+        document.getElementById("corever").textContent = json.corever;
+        document.getElementById("sdkver").textContent = json.sdkver;
+        document.getElementById("bootmode").textContent = json.bootmode;
+        document.getElementById("bootversion").textContent = json.bootversion;
+        document.getElementById("resetreason").textContent = json.resetreason;
+      }
+    }
+  </script>
 </body>
+
 </html>

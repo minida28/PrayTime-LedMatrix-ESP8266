@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 
   <!-- Basic Page Needs
@@ -22,95 +23,101 @@
   <link rel="stylesheet" href="bulma.min.css">
 
   <style>
-  
-  #messages{
-      position:absolute;
+    #messages {
+      position: absolute;
       /*left:25%;*/
-      width:100%;
-      top:10;
-      z-index:200;
-      font-size:110%;
-      text-align:center
-  }
-  #warning{
-      background-color:#933;
-      color:#fcc;
-      padding:.1em .4em
-  }
-  #notification{
+      width: 100%;
+      top: 10;
+      z-index: 200;
+      font-size: 110%;
+      text-align: center
+    }
+
+    #warning {
+      background-color: #933;
+      color: #fcc;
+      padding: .1em .4em
+    }
+
+    #notification {
       /*background-color:#693;*/
       /*color:#cfc;*/
       /*padding:.1em .4em*/
-      padding:.1em .4em
-  }
-  #spinner{
-      position:absolute;
-      right:10%;
-      top:20;
-      z-index:1000
-  }
-  .spinner{
-      height:50px;
-      width:50px;
-      -webkit-animation:rotation 1s infinite linear;
-      animation:rotation 1s infinite linear;
-      border-left:10px solid rgba( 9, 112, 84,0.15);
-      border-right:10px solid rgba( 9, 112, 84,0.15);
-      border-bottom:10px solid rgba( 9, 112, 84,0.15);
-      border-top:10px solid rgba( 9, 112, 84,0.8);
-      border-radius:100%
-  }
-  .spinner-small{
-      display:inline-block;
-      height:1em;
-      width:1em;
-      border-width:4px
-  }
-  @-webkit-keyframes rotation{
-      from{
-          -webkit-transform:rotate(0)
-      }
-      to{
-          -webkit-transform:rotate(359deg)
-      }
-  }
-  @keyframes rotation{
-      from{
-          -webkit-transform:rotate(0);
-          transform:rotate(0)
-      }
-      to{
-          -webkit-transform:rotate(359deg);
-          transform:rotate(359deg)
-      }
-  }
+      padding: .1em .4em
+    }
 
+    #spinner {
+      position: absolute;
+      right: 10%;
+      top: 20;
+      z-index: 1000
+    }
+
+    .spinner {
+      height: 50px;
+      width: 50px;
+      -webkit-animation: rotation 1s infinite linear;
+      animation: rotation 1s infinite linear;
+      border-left: 10px solid rgba( 9, 112, 84, 0.15);
+      border-right: 10px solid rgba( 9, 112, 84, 0.15);
+      border-bottom: 10px solid rgba( 9, 112, 84, 0.15);
+      border-top: 10px solid rgba( 9, 112, 84, 0.8);
+      border-radius: 100%
+    }
+
+    .spinner-small {
+      display: inline-block;
+      height: 1em;
+      width: 1em;
+      border-width: 4px
+    }
+
+    @-webkit-keyframes rotation {
+      from {
+        -webkit-transform: rotate(0)
+      }
+      to {
+        -webkit-transform: rotate(359deg)
+      }
+    }
+
+    @keyframes rotation {
+      from {
+        -webkit-transform: rotate(0);
+        transform: rotate(0)
+      }
+      to {
+        -webkit-transform: rotate(359deg);
+        transform: rotate(359deg)
+      }
+    }
   </style>
 
 
   <!-- Favicon
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
   <link rel="icon" type="image/png" href="favicon.png">
-  
+
 </head>
+
 <body>
-  
-  
-<section class="hero is-info is-bold">
-  <!-- Hero head: will stick at the top -->
-  <div class="hero-head">
-    <nav class="navbar">
-      <div class="container">
-        <div class="navbar-brand">
-          <!--<a class="navbar-item">-->
-          <!--  <img src="https://bulma.io/images/bulma-type-white.png" alt="Logo">-->
-          <!--</a>-->
-          <span class="navbar-burger burger" data-target="navbarMenuHeroA">
-            <span></span>
-            <span></span>
-            <span></span>
-          </span>
-        </div>
+
+
+  <section class="hero is-info is-bold">
+    <!-- Hero head: will stick at the top -->
+    <div class="hero-head">
+      <nav class="navbar">
+        <div class="container">
+          <div class="navbar-brand">
+            <!--<a class="navbar-item">-->
+            <!--  <img src="https://bulma.io/images/bulma-type-white.png" alt="Logo">-->
+            <!--</a>-->
+            <span class="navbar-burger burger" data-target="navbarMenuHeroA">
+              <span></span>
+              <span></span>
+              <span></span>
+            </span>
+          </div>
           <div id="navbarMenuHeroA" class="navbar-menu">
             <div class="navbar-end">
               <a class="navbar-item" href="/">
@@ -125,6 +132,12 @@
               <a class="navbar-item" href="configsholat.html">
                 Sholat Settings
               </a>
+              <a class="navbar-item" href="configledmatrix.html">
+                Led Matrix
+              </a>
+              <a class="navbar-item" href="configmqtt.html">
+                MQTT
+              </a>
               <a class="navbar-item is-active" href="confignetwork.html">
                 Network
               </a>
@@ -136,347 +149,385 @@
               </a>
             </div>
           </div>
+        </div>
+      </nav>
+    </div>
+
+    <!-- Hero content: will be in the middle -->
+    <div class="hero-body">
+      <div class="container has-text-centered">
+        <h1 id="jumboCountdown" class="title is-size-3">
+          Network Settings
+        </h1>
       </div>
-    </nav>
-  </div>
-
-  <!-- Hero content: will be in the middle -->
-  <div class="hero-body">
-    <div class="container has-text-centered">
-      <h1 id="jumboCountdown" class="title is-size-3">
-        WiFi Settings
-      </h1>
     </div>
+
+  </section>
+
+  <div id="modalDisconnected" class="modal">
+    <div class="modal-background"></div>
+    <div class="modal-content">
+      <!-- Any other Bulma elements you want -->
+      <article id="status_box" class="tile has-text-centered is-child notification is-danger is-marginless">
+        <p class="subtitle is-5 is-marginless">DISCONNECTED</p>
+        <p>Refresh the browser to reconnect.</p>
+      </article>
+    </div>
+    <button class="modal-close is-large" aria-label="close"></button>
   </div>
 
-</section>
-        
-<div id="modalDisconnected" class="modal">
-  <div class="modal-background"></div>
-  <div class="modal-content">
-    <!-- Any other Bulma elements you want -->
-        <article id="status_box" class="tile has-text-centered is-child notification is-danger is-marginless">
-          <p class="subtitle is-5 is-marginless">DISCONNECTED</p>
-          <p>Refresh the browser to reconnect.</p>
-        </article>
+  <div class="modal">
+    <div class="modal-background"></div>
+    <div class="modal-content">
+      <!-- Any other Bulma elements you want -->
+      <!--<div id="messages">-->
+      <!--  <div id="warning" hidden=""></div>-->
+      <!--  <div id="notification" class="notification is-success" hidden="">Wifi scan started</div>-->
+      <!--</div>-->
+    </div>
+    <button class="modal-close is-large" aria-label="close"></button>
   </div>
-  <button class="modal-close is-large" aria-label="close"></button>
-</div>
 
-<div class="modal">
-  <div class="modal-background"></div>
-  <div class="modal-content">
-    <!-- Any other Bulma elements you want -->
-    <!--<div id="messages">-->
-    <!--  <div id="warning" hidden=""></div>-->
-    <!--  <div id="notification" class="notification is-success" hidden="">Wifi scan started</div>-->
+  <!--<div class="notification is-success">-->
+  <!--  <button class="delete"></button>-->
+  <!--  Primar lorem ipsum dolor sit amet, consectetur-->
+  <!--  adipiscing elit lorem ipsum dolor. <strong>Pellentesque risus mi</strong>, tempus quis placerat ut, porta nec nulla. Vestibulum rhoncus ac ex sit amet fringilla. Nullam gravida purus diam, et dictum <a>felis venenatis</a> efficitur. Sit amet,-->
+  <!--  consectetur adipiscing elit-->
+  <!--</div>-->
+
+  <div id="messages">
+    <div id="warning" hidden=""></div>
+    <div id="notification" class="notification is-warning has-text-semibold" hidden=""></div>
+  </div>
+
+
+
+
+
+  <section class="section">
+
+    <!--<div class="content">-->
+
     <!--</div>-->
-  </div>
-  <button class="modal-close is-large" aria-label="close"></button>
-</div>
 
-<!--<div class="notification is-success">-->
-<!--  <button class="delete"></button>-->
-<!--  Primar lorem ipsum dolor sit amet, consectetur-->
-<!--  adipiscing elit lorem ipsum dolor. <strong>Pellentesque risus mi</strong>, tempus quis placerat ut, porta nec nulla. Vestibulum rhoncus ac ex sit amet fringilla. Nullam gravida purus diam, et dictum <a>felis venenatis</a> efficitur. Sit amet,-->
-<!--  consectetur adipiscing elit-->
-<!--</div>-->
+    <div class="container">
 
-    <div id="messages">
-      <div id="warning" hidden=""></div>
-      <div id="notification" class="notification is-warning has-text-semibold" hidden=""></div>
-    </div>
-    
+      <div class="columns">
+        <div class="column">
+          <!-- Column 1 content -->
 
-  
+        </div>
+        <div class="column is-one-quarter">
+          <!-- Column 2 content -->
+          <div class="box">
 
-  
-<section class="section">
-  
-<!--<div class="content">-->
+            <p class="title is-4 has-text-weight-semibold">WiFi Status</p>
 
-<!--</div>-->
+            <div class="content">
 
-  <div class="container">
-    
-<div class="columns">
-  <div class="column">
-<!-- Column 1 content -->  
-  
-  </div>
-  <div class="column is-one-quarter">
-    <!-- Column 2 content -->
-  <div class="box">
-    
-    <p class="title is-4 has-text-weight-semibold">WiFi Status</p>
-    
-    <div class="content">
-  
-      <table class="table is-narrow is-size-7-mobile">
-        <thead>
-          <tr>
-            <th>Parameter</th>
-            <th>Values</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>chipid</td>
-            <td><span id="s_chipid"></span></td>
-          </tr>
-          <tr>
-            <td>hostname</td>
-            <td><span id="s_hostname"></span></td>
-          </tr>
-          <tr>
-            <td>status</td>
-            <td><span id="s_status"></span></td>
-          </tr>
-          <tr>
-            <td>mode</td>
-            <td><span id="s_mode"></span></td>
-          </tr>
-          <tr>
-            <td>phymode</td>
-            <td><span id="s_phymode"></span></td>
-          </tr>
-          <tr>
-            <td>channel</td>
-            <td><span id="s_channel"></span></td>
-          </tr>
-          <tr>
-            <td>ssid</td>
-            <td><span id="s_ssid"></span></td>
-          </tr>
-          <tr>
-            <td>password</td>
-            <td><span id="s_password"></span></td>
-          </tr>
-          <tr>
-            <td>isconnected</td>
-            <td><span id="s_isconnected"></span></td>
-          </tr>
-          <tr>
-            <td>encryption</td>
-            <td><span id="s_encryption"></span></td>
-          </tr>
-          <tr>
-            <td>autoconnect</td>
-            <td><span id="s_autoconnect"></span></td>
-          </tr>
-          <tr>
-            <td>persistent</td>
-            <td><span id="s_persistent"></span></td>
-          </tr>
-          <tr>
-            <td>bssid</td>
-            <td><span id="s_bssid"></span></td>
-          </tr>
-          <tr>
-            <td>rssi</td>
-            <td><span id="s_rssi"></span></td>
-          </tr>
-          <tr>
-            <td>sta_ip</td>
-            <td><span id="s_sta_ip"></span></td>
-          </tr>
-          <tr>
-            <td>sta_mac</td>
-            <td><span id="s_sta_mac"></span></td>
-          </tr>
-          <tr>
-            <td>ap_ip</td>
-            <td><span id="s_ap_ip"></span></td>
-          </tr>
-          <tr>
-            <td>ap_mac</td>
-            <td><span id="s_ap_mac"></span></td>
-          </tr>
-          <tr>
-            <td>gateway</td>
-            <td><span id="s_gateway"></span></td>
-          </tr>
-          <tr>
-            <td>netmask</td>
-            <td><span id="s_netmask"></span></td>
-          </tr>
-          <tr>
-            <td>dns0</td>
-            <td><span id="s_dns0"></span></td>
-          </tr>
-          <tr>
-            <td>dns1</td>
-            <td><span id="s_dns1"></span></td>
-          </tr>
-        </tbody>
-      </table>
-                
-  
-    </div>
-  </div>
-  
-  
-  </div>
-  <div class="column is-one-quarter">
-  <!-- 3rd column content -->
-  <div class="box">
-    
-    <p class="title is-4 has-text-weight-semibold">WiFi Settings</p>
-    
-<div id="aps">Scanning...
-  <div class="spinner spinner-small"></div>
-</div>
-  
-  <form id="formA">  
-    <table id="tableAP" class="table is-narrow is-size-7" style="display:none">
-      <thead>
-        <tr>
-          <th></th>
-          <th>SSID</th>
-          <th>RSSI</th>
-          <th>Secure</th>
-        </tr>
-      </thead>
-      <tbody id="foundAP">
-        <tr>
-          <td>
-            <input id="radio1" type="radio" name="answer">
-          </td>
-          <td>
-            <label for="radio1" class="radio">Yes</label>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    
-  <div>
-    <button type="submit">Submit</button>
-  </div>
-    
-  </form>
-  
-  <pre id="log"></pre>
+              <table class="table is-narrow is-size-7-mobile">
+                <thead>
+                  <tr>
+                    <th>Parameter</th>
+                    <th>Values</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>chipid</td>
+                    <td>
+                      <span id="s_chipid"></span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>hostname</td>
+                    <td>
+                      <span id="s_hostname"></span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>status</td>
+                    <td>
+                      <span id="s_status"></span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>mode</td>
+                    <td>
+                      <span id="s_mode"></span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>phymode</td>
+                    <td>
+                      <span id="s_phymode"></span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>channel</td>
+                    <td>
+                      <span id="s_channel"></span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>ssid</td>
+                    <td>
+                      <span id="s_ssid"></span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>password</td>
+                    <td>
+                      <span id="s_password"></span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>isconnected</td>
+                    <td>
+                      <span id="s_isconnected"></span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>encryption</td>
+                    <td>
+                      <span id="s_encryption"></span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>autoconnect</td>
+                    <td>
+                      <span id="s_autoconnect"></span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>persistent</td>
+                    <td>
+                      <span id="s_persistent"></span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>bssid</td>
+                    <td>
+                      <span id="s_bssid"></span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>rssi</td>
+                    <td>
+                      <span id="s_rssi"></span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>sta_ip</td>
+                    <td>
+                      <span id="s_sta_ip"></span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>sta_mac</td>
+                    <td>
+                      <span id="s_sta_mac"></span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>ap_ip</td>
+                    <td>
+                      <span id="s_ap_ip"></span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>ap_mac</td>
+                    <td>
+                      <span id="s_ap_mac"></span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>gateway</td>
+                    <td>
+                      <span id="s_gateway"></span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>netmask</td>
+                    <td>
+                      <span id="s_netmask"></span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>dns0</td>
+                    <td>
+                      <span id="s_dns0"></span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>dns1</td>
+                    <td>
+                      <span id="s_dns1"></span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
 
-    
-    <div class="content">
 
-      
-<form>
+            </div>
+          </div>
 
-  <div class="field">
-    <label class="label">WiFi SSID</label>
-    <div class="control">
-          <input id="ssid" class="input" type="text">
-    </div>
-  </div>
-  
-  <div class="field">
-    <label class="label">WiFi Password</label>
-    <div class="control">
-       <input id="password" class="input" type="password">
-    </div>
-  </div>
-  
-  <div class="field">
-    <label class="label">DHCP</label>
-    <div class="control">
-      <input type="checkbox" id="dhcp" name="dhcp" onchange="something(this.value)">
-    </div>
-  </div>
-  
-  <div class="field">
-    <label class="label">Static IP</label>
-    <div class="control">
-       <input id="static_ip" class="input" type="text">
-    </div>
-  </div>
-  
-  <div class="field">
-    <label class="label">Netmask</label>
-    <div class="control">
-       <input id="netmask" class="input" type="text">
-    </div>
-  </div>
-  
-  <div class="field">
-    <label class="label">Gateway</label>
-    <div class="control">
-       <input id="gateway" class="input" type="text">
-    </div>
-  </div>
-  
-  <div class="field">
-    <label class="label">DNS 0</label>
-    <div class="control">
-      <input id="dns0" class="input" type="text">
-    </div>
-  </div>
-  
-  <div class="field">
-    <label class="label">DNS 1</label>
-    <div class="control">
-      <input id="dns1" class="input" type="text">
-    </div>
-  </div>
-  
-  <div class="field">
-    <div class="field-label">
-      <label class="label"></label>
-    </div>
-    <div class="field-body">
-      <div class="field">
-        <div class="control">
-          <input class="button is-info" type="submit" value="Save settings">
-          <!--id="btnSaveConfig" class="button" onclick="sendConfig()"-->
+
+        </div>
+        <div class="column is-one-quarter">
+          <!-- 3rd column content -->
+          <div class="box">
+
+            <p class="title is-4 has-text-weight-semibold">Network Settings</p>
+
+            <div id="aps">Scanning...
+              <div class="spinner spinner-small"></div>
+            </div>
+
+            <form id="formA">
+              <table id="tableAP" class="table is-narrow is-size-7" style="display:none">
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th>SSID</th>
+                    <th>RSSI</th>
+                    <th>Secure</th>
+                  </tr>
+                </thead>
+                <tbody id="foundAP">
+                  <tr>
+                    <td>
+                      <input id="radio1" type="radio" name="answer">
+                    </td>
+                    <td>
+                      <label for="radio1" class="radio">Yes</label>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <div>
+                <button type="submit">Submit</button>
+              </div>
+
+            </form>
+
+            <pre id="log"></pre>
+
+
+            <div class="content">
+
+
+              <form>
+
+                <div class="field">
+                  <label class="label">WiFi SSID</label>
+                  <div class="control">
+                    <input id="ssid" class="input" type="text">
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label class="label">WiFi Password</label>
+                  <div class="control">
+                    <input id="password" class="input" type="password">
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label class="label">DHCP</label>
+                  <div class="control">
+                    <input type="checkbox" id="dhcp" name="dhcp" onchange="something(this.value)">
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label class="label">Static IP</label>
+                  <div class="control">
+                    <input id="static_ip" class="input" type="text">
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label class="label">Netmask</label>
+                  <div class="control">
+                    <input id="netmask" class="input" type="text">
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label class="label">Gateway</label>
+                  <div class="control">
+                    <input id="gateway" class="input" type="text">
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label class="label">DNS 0</label>
+                  <div class="control">
+                    <input id="dns0" class="input" type="text">
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label class="label">DNS 1</label>
+                  <div class="control">
+                    <input id="dns1" class="input" type="text">
+                  </div>
+                </div>
+
+                <div class="field">
+                  <div class="field-label">
+                    <label class="label"></label>
+                  </div>
+                  <div class="field-body">
+                    <div class="field">
+                      <div class="control">
+                        <input class="button is-info" type="submit" value="Save settings">
+                        <!--id="btnSaveConfig" class="button" onclick="sendConfig()"-->
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </form>
+
+            </div>
+
+          </div>
+
+        </div>
+        <div class="column">
+          <!-- Column 4 content -->
+
         </div>
       </div>
+
+
+      <hr>
+      <strong>SCAN WIFI</strong>
+      <br>
+      <span id="numNets">Scanning for wifi...</span>
+      <br>
+
+      <table class="table is-narrow">
+        <thead>
+          <tr>
+            <th>SSID</th>
+            <th>Channel</th>
+            <th>Secure</th>
+            <th>RSSI</th>
+          </tr>
+        </thead>
+        <tbody id="networks"></tbody>
+        <tr>
+          <td colspan="3">
+            <a class="button is-info" href="javascript:getNetwork();">Refresh</a>
+          </td>
+        </tr>
+      </table>
+
     </div>
-  </div>
-</form>
-      
-      
-    </div>
-
-  
-
-
-</div>
-  
-  </div>
-  <div class="column">
-<!-- Column 4 content -->    
-  
-  </div>
-</div>
-
-
-
-
-<hr>
-<strong>SCAN WIFI</strong>
-<br>
-<span id="numNets">Scanning for wifi...</span>
-<br>
-
-  <table class="table is-narrow">
-    <thead>
-      <tr>
-      <th>SSID</th>
-      <th>Channel</th>
-      <th>Secure</th>
-      <th>RSSI</th>
-      </tr>
-    </thead>
-    <tbody id="networks"></tbody>
-      <tr>
-        <td colspan="3">
-          <a class="button is-info" href="javascript:getNetwork();">Refresh</a>
-        </td>
-      </tr>
-  </table>
-
-  </div>
-</section>
+  </section>
 
 
 
@@ -484,324 +535,320 @@
 
   <!-- Javascript section
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
-<script language="javascript" type="text/javascript">
+  <script language="javascript" type="text/javascript">
 
-var ws = null;
+    var ws = null;
 
-window.onload = function ()
-{
-  getConfigValues("status/network", reqListenerStatusNetwork);
-  getConfigValues("config/network", reqListenerConfigNetwork);
-  // setInterval(getConfigValues, 10000, "status/network", reqListenerStatusNetwork);
-  getNetwork();
-  // startSocket();
-  //startEvents();
-  // setTimeout(getNetwork, 1000);
-  // load("bulma-ui.js", "js", function () {
-  //   // Do something after load...
-  // });
-}
-var notifTimeout = null;
-function showNotification(b) {
-    // var a = $("#notification");
-    var a = document.getElementById("notification");
-    a.innerHTML = b;
-    a.removeAttribute("hidden");
-    if (notifTimeout != null) {
+    window.onload = function () {
+      getConfigValues("status/network", reqListenerStatusNetwork);
+      getConfigValues("config/network", reqListenerConfigNetwork);
+      // setInterval(getConfigValues, 10000, "status/network", reqListenerStatusNetwork);
+      getNetwork();
+      // startSocket();
+      //startEvents();
+      // setTimeout(getNetwork, 1000);
+      // load("bulma-ui.js", "js", function () {
+      //   // Do something after load...
+      // });
+    }
+    var notifTimeout = null;
+    function showNotification(b) {
+      // var a = $("#notification");
+      var a = document.getElementById("notification");
+      a.innerHTML = b;
+      a.removeAttribute("hidden");
+      if (notifTimeout != null) {
         clearTimeout(notifTimeout)
-    } notifTimout = setTimeout(function () {
+      } notifTimout = setTimeout(function () {
         a.setAttribute("hidden", "");
         notifTimout = null
-    }, 4000)
-}
+      }, 4000)
+    }
 
-document.addEventListener('DOMContentLoaded', function ()
-{
-  // Get all "navbar-burger" elements
-  var $navbarBurgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
-  // Check if there are any navbar burgers
-  if ($navbarBurgers.length > 0)
-  {
-    // Add a click event on each of them
-    $navbarBurgers.forEach(function ($el) {
-      $el.addEventListener('click', function ()
-      {
-        // Get the target from the "data-target" attribute
-        var target = $el.dataset.target;
-        var $target = document.getElementById(target);
-        // Toggle the class on both the "navbar-burger" and the "navbar-menu"
-        $el.classList.toggle('is-active');
-        $target.classList.toggle('is-active');
-      });
-    });
-  }
-});
-
-function startSocket(){
-  ws = new WebSocket('ws://'+document.location.host+'/ws',['arduino']);
-  ws.binaryType = "arraybuffer";
-  ws.onopen = function(e){
-		var obj = new Object();
-    obj.url = window.location.pathname;
-    var myJSON = JSON.stringify(obj);
-    ws.send(myJSON);
-  };
-  ws.onclose = function(e){
-  };
-  ws.onerror = function(e){
-    console.log("ws error", e);
-  };
-  ws.onmessage = function(e){
-    var msg = "";
-    if(e.data instanceof ArrayBuffer){
-      msg = "BIN:";
-      var bytes = new Uint8Array(e.data);
-      for (var i = 0; i < bytes.length; i++) {
-        msg += String.fromCharCode(bytes[i]);
+    document.addEventListener('DOMContentLoaded', function () {
+      // Get all "navbar-burger" elements
+      var $navbarBurgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
+      // Check if there are any navbar burgers
+      if ($navbarBurgers.length > 0) {
+        // Add a click event on each of them
+        $navbarBurgers.forEach(function ($el) {
+          $el.addEventListener('click', function () {
+            // Get the target from the "data-target" attribute
+            var target = $el.dataset.target;
+            var $target = document.getElementById(target);
+            // Toggle the class on both the "navbar-burger" and the "navbar-menu"
+            $el.classList.toggle('is-active');
+            $target.classList.toggle('is-active');
+          });
+        });
       }
-    } else {
-      msg = "TXT:"+e.data;
-      console.log(msg);
-      if (isJSON(e.data)) {
-        var json = JSON.parse(e.data);
+    });
+
+    function startSocket() {
+      ws = new WebSocket('ws://' + document.location.host + '/ws', ['arduino']);
+      ws.binaryType = "arraybuffer";
+      ws.onopen = function (e) {
+        var obj = new Object();
+        obj.url = window.location.pathname;
+        var myJSON = JSON.stringify(obj);
+        ws.send(myJSON);
+      };
+      ws.onclose = function (e) {
+      };
+      ws.onerror = function (e) {
+        console.log("ws error", e);
+      };
+      ws.onmessage = function (e) {
+        var msg = "";
+        if (e.data instanceof ArrayBuffer) {
+          msg = "BIN:";
+          var bytes = new Uint8Array(e.data);
+          for (var i = 0; i < bytes.length; i++) {
+            msg += String.fromCharCode(bytes[i]);
+          }
+        } else {
+          msg = "TXT:" + e.data;
+          console.log(msg);
+          if (isJSON(e.data)) {
+            var json = JSON.parse(e.data);
+          }
+        }
+      };
+    }
+    // https://stackoverflow.com/questions/3710204/how-to-check-if-a-string-is-a-valid-json-string-in-javascript-without-using-try
+    function isJSON(str) {
+      try {
+        return (JSON.parse(str) && !!str);
+      } catch (e) {
+        return false;
       }
     }
-  };
-}
-// https://stackoverflow.com/questions/3710204/how-to-check-if-a-string-is-a-valid-json-string-in-javascript-without-using-try
-function isJSON(str) {
-  try {
-      return (JSON.parse(str) && !!str);
-  } catch (e) {
-      return false;
-  }
-}
-function securityStr(security) {
-  if (security == 7) {
-    return 'Open';
-  }
-  else if (security == 5) {
-    return 'WEP';
-  }
-  else if (security == 2) {
-    return 'WPA';
-  }
-  else if (security == 4) {
-    return 'WPA2';
-  }
-  else if (security == 8) {
-    return 'WPA/WPA2';
-  }
-}
-function wifiScan(res) {
-  // console.log(this.responseText);
-  // var res = this.responseText;
-  // console.log(res);
-  if (!res || (res.target.responseText == '[]')) {
-    setTimeout(function () { getNetwork(); }, 1000);
-    console.log(res.target.responseText);
-    return;
-  }
-  console.log(res.target.responseText);
-  var array;
-  array = JSON.parse(res.target.responseText);
-  array.sort(function (a, b) { return a.rssi - b.rssi });
-  array.reverse();
-  document.getElementById("numNets").innerHTML = array.length + " networks found";
-  showNotification(array.length + " networks found");
-  
-  
-  // classList.toggle('is-active');
-  var table = document.getElementById("tableAP");
-  // table.classList.toggle('is-active');
-  table.style.display = "block";
-  var body = document.getElementById("foundAP");
-  body.innerHTML = "";
-  for (var i = 0; i < array.length; i++)
-  {
-    var row = document.createElement("tr");
-    // row.innerHTML = "<td><input id=\"radio\" type=\"radio\" name=\"answer\"></td>" + "<td><label for=\"radio1\" class=\"radio\">Yes</label></td>";
-    row.innerHTML = "<td><input id=\"radio" + i + "\"" + " type=\"radio\" name=\"selected-ssid\" value=\"" + array[i].ssid + "\"></td>" + "<td><label for=\"radio" + i + "\"" + " class=\"radio\">" + array[i].ssid + "</label></td>" + "<td>" + array[i].rssi + "</td>" + "<td>" + securityStr(array[i].secure) + "</td>";
-    body.appendChild(row);
-  }
+    function securityStr(security) {
+      if (security == 7) {
+        return 'Open';
+      }
+      else if (security == 5) {
+        return 'WEP';
+      }
+      else if (security == 2) {
+        return 'WPA';
+      }
+      else if (security == 4) {
+        return 'WPA2';
+      }
+      else if (security == 8) {
+        return 'WPA/WPA2';
+      }
+    }
+    function wifiScan(res) {
+      // console.log(this.responseText);
+      // var res = this.responseText;
+      // console.log(res);
+      if (!res || (res.target.responseText == '[]')) {
+        setTimeout(function () { getNetwork(); }, 1000);
+        console.log(res.target.responseText);
+        return;
+      }
+      console.log(res.target.responseText);
+      var array;
+      array = JSON.parse(res.target.responseText);
+      array.sort(function (a, b) { return a.rssi - b.rssi });
+      array.reverse();
+      document.getElementById("numNets").innerHTML = array.length + " networks found";
+      showNotification(array.length + " networks found");
 
 
-  // var table = document.getElementById("networks");
-  // table.innerHTML = "";
-  // for (var i = 0; i < array.length; i++) {
-  //   var row = document.createElement("tr");
-  //   row.innerHTML = "<td><a href='javascript:selssid(\"" + array[i].ssid + "\")'>" + array[i].ssid + "</td><td>" + array[i].channel + "</td><td>" + securityStr(array[i].secure) + "</td><td>" + array[i].rssi + "</td>";
-  //   table.appendChild(row);
-  // }
-  
-  
-  // var aps = document.getElementById("aps");
-  // aps.textContent = "";
-  // for (var i = 0; i < array.length; i++)
-  // {
-  //   var control = document.createElement("div");
-  //   control.setAttribute("class", "control");
-  //   control.setAttribute("id", "control-"+i);
-  //   aps.appendChild(control);
-    
-  //   var label = document.createElement("label");
-  //   label.setAttribute("id", "label-"+i);
-  //   label.setAttribute("class", "radio");
-  //   document.getElementById("control-"+i).appendChild(label);
+      // classList.toggle('is-active');
+      var table = document.getElementById("tableAP");
+      // table.classList.toggle('is-active');
+      table.style.display = "block";
+      var body = document.getElementById("foundAP");
+      body.innerHTML = "";
+      for (var i = 0; i < array.length; i++) {
+        var row = document.createElement("tr");
+        // row.innerHTML = "<td><input id=\"radio\" type=\"radio\" name=\"answer\"></td>" + "<td><label for=\"radio1\" class=\"radio\">Yes</label></td>";
+        row.innerHTML = "<td><input id=\"radio" + i + "\"" + " type=\"radio\" name=\"selected-ssid\" value=\"" + array[i].ssid + "\"></td>" + "<td><label for=\"radio" + i + "\"" + " class=\"radio\">" + array[i].ssid + "</label></td>" + "<td>" + array[i].rssi + "</td>" + "<td>" + securityStr(array[i].secure) + "</td>";
+        body.appendChild(row);
+      }
 
-  //   document.getElementById("label-"+i).innerHTML = "<input type=\"radio\" name=\"answer\"> " + array[i].ssid;
-  // }
-  
-  setTimeout(function () { getNetwork(); }, 20000);
-}
 
-// var radios = document.forms["formA"].elements["selected-ssid"];
-// for(var i = 0, max = radios.length; i < max; i++) {
-//     radios[i].onclick = function() {
-//         alert(this.value);
-//     }
-// }
+      // var table = document.getElementById("networks");
+      // table.innerHTML = "";
+      // for (var i = 0; i < array.length; i++) {
+      //   var row = document.createElement("tr");
+      //   row.innerHTML = "<td><a href='javascript:selssid(\"" + array[i].ssid + "\")'>" + array[i].ssid + "</td><td>" + array[i].channel + "</td><td>" + securityStr(array[i].secure) + "</td><td>" + array[i].rssi + "</td>";
+      //   table.appendChild(row);
+      // }
 
-// var form = document.querySelector("form");
-var form = document.getElementById("formA");
-var log = document.querySelector("#log");
 
-form.addEventListener("submit", function(event) {
-  var data = new FormData(form);
-  var output = "";
-  for (const entry of data) {
-    output = entry[0] + "=" + entry[1] + "\r";
-  };
-  log.innerText = output;
-  event.preventDefault();
-}, false);
+      // var aps = document.getElementById("aps");
+      // aps.textContent = "";
+      // for (var i = 0; i < array.length; i++)
+      // {
+      //   var control = document.createElement("div");
+      //   control.setAttribute("class", "control");
+      //   control.setAttribute("id", "control-"+i);
+      //   aps.appendChild(control);
 
-function getNetwork() {
-  request = new XMLHttpRequest();
-  if (request) {
-    // request.open("GET", "/scan", true);
-    request.open("GET", "/scan", function () {
-        showNotification("Wifi scan started");
-        // window.setTimeout(scanResult, 1000)
-    });
-    request.addEventListener("load", wifiScan);
+      //   var label = document.createElement("label");
+      //   label.setAttribute("id", "label-"+i);
+      //   label.setAttribute("class", "radio");
+      //   document.getElementById("control-"+i).appendChild(label);
 
-    request.send();
-  }
-  // showNotification("Wifi scan started");
-}
+      //   document.getElementById("label-"+i).innerHTML = "<input type=\"radio\" name=\"answer\"> " + array[i].ssid;
+      // }
 
-function scanAPs() {
-    if (blockScan) {
+      setTimeout(function () { getNetwork(); }, 20000);
+    }
+
+    // var radios = document.forms["formA"].elements["selected-ssid"];
+    // for(var i = 0, max = radios.length; i < max; i++) {
+    //     radios[i].onclick = function() {
+    //         alert(this.value);
+    //     }
+    // }
+
+    // var form = document.querySelector("form");
+    var form = document.getElementById("formA");
+    var log = document.querySelector("#log");
+
+    form.addEventListener("submit", function (event) {
+      var data = new FormData(form);
+      var output = "";
+      for (const entry of data) {
+        output = entry[0] + "=" + entry[1] + "\r";
+      };
+      log.innerText = output;
+      event.preventDefault();
+    }, false);
+
+    function getNetwork() {
+      request = new XMLHttpRequest();
+      if (request) {
+        // request.open("GET", "/scan", true);
+        request.open("GET", "/scan", function () {
+          showNotification("Wifi scan started");
+          // window.setTimeout(scanResult, 1000)
+        });
+        request.addEventListener("load", wifiScan);
+
+        request.send();
+      }
+      // showNotification("Wifi scan started");
+    }
+
+    function scanAPs() {
+      if (blockScan) {
         scanTimeout = window.setTimeout(scanAPs, 1000);
         return
-    } scanTimeout = null;
-    scanReqCnt = 0;
-    ajaxReq("POST", "scan", function (a) {
+      } scanTimeout = null;
+      scanReqCnt = 0;
+      ajaxReq("POST", "scan", function (a) {
         showNotification("Wifi scan started");
         window.setTimeout(scanResult, 1000)
-    }, function (b, a) {
+      }, function (b, a) {
         if (b == 400) {
-            showWarning("Cannot scan in AP mode");
-            $("#aps").innerHTML = 'Switch to <a href="#" onclick="changeWifiMode(3)">STA+AP mode</a> to scan.'
+          showWarning("Cannot scan in AP mode");
+          $("#aps").innerHTML = 'Switch to <a href="#" onclick="changeWifiMode(3)">STA+AP mode</a> to scan.'
         } else {
-            showWarning("Failed to scan: " + a)
+          showWarning("Failed to scan: " + a)
         }
-    })
-}
+      })
+    }
 
-function selssid(value) {
-  document.getElementById("ssid").value = value;
-}
-function getConfigValues(url, fCallback) {
-  var req = new XMLHttpRequest();
-  if (req) {
-    req.open("GET", url, true);
-    req.addEventListener("load", fCallback);
-    req.send();
-  }
-}
+    function selssid(value) {
+      document.getElementById("ssid").value = value;
+    }
+    function getConfigValues(url, fCallback) {
+      var req = new XMLHttpRequest();
+      if (req) {
+        req.open("GET", url, true);
+        req.addEventListener("load", fCallback);
+        req.send();
+      }
+    }
 
-function reqListenerConfigNetwork() {
-  console.log(this.responseText);
-  let json = JSON.parse(this.responseText);
-  // console.log(json);
-  // document.getElementById("hostname").value = json.hostname;
-  document.getElementById("ssid").value = json.ssid;
-  document.getElementById("password").value = json.password;
-  document.getElementById("dhcp").checked = json.dhcp;
-  document.getElementById("static_ip").value = json.static_ip;
-  document.getElementById("netmask").value = json.netmask;
-  document.getElementById("gateway").value = json.gateway;
-  document.getElementById("dns0").value = json.dns0;
-  document.getElementById("dns1").value = json.dns1;
-  if (document.getElementById("dhcp").checked == true) {
-    document.getElementById('static_ip').disabled = true;
-    document.getElementById('netmask').disabled = true;
-    document.getElementById('gateway').disabled = true;
-    document.getElementById('dns0').disabled = true;
-    document.getElementById('dns1').disabled = true;
-  }
-}
-function reqListenerStatusNetwork() {
-  console.log(this.responseText);
-  let json = JSON.parse(this.responseText);
-  // console.log(json);
-  document.getElementById("s_chipid").textContent = json.chipid;
-  document.getElementById("s_hostname").textContent = json.hostname;
-  document.getElementById("s_status").textContent = json.status;
-  document.getElementById("s_mode").textContent = json.mode;
-  document.getElementById("s_phymode").textContent = json.phymode;
-  document.getElementById("s_channel").textContent = json.channel;
-  document.getElementById("s_ssid").textContent = json.ssid;
-  document.getElementById("s_password").textContent = json.password;
-  document.getElementById("s_encryption").textContent = json.encryption;
-  document.getElementById("s_isconnected").textContent = json.isconnected;
-  document.getElementById("s_autoconnect").textContent = json.autoconnect;
-  document.getElementById("s_persistent").textContent = json.persistent;
-  document.getElementById("s_bssid").textContent = json.bssid;
-  document.getElementById("s_rssi").textContent = json.rssi;
-  document.getElementById("s_sta_ip").textContent = json.sta_ip;
-  document.getElementById("s_sta_mac").textContent = json.sta_mac;
-  document.getElementById("s_ap_ip").textContent = json.ap_ip;
-  document.getElementById("s_ap_mac").textContent = json.ap_mac;
-  document.getElementById("s_gateway").textContent = json.gateway;
-  document.getElementById("s_netmask").textContent = json.netmask;
-  document.getElementById("s_dns0").textContent = json.dns0;
-  document.getElementById("s_dns1").textContent = json.dns1;
-}
-function something() {
-  var dhcpVal = document.getElementById('dhcp').checked;
-  console.log(dhcpVal);
-  if (dhcpVal) {
-    document.getElementById('static_ip').disabled = true;
-    document.getElementById('netmask').disabled = true;
-    document.getElementById('gateway').disabled = true;
-    document.getElementById('dns0').disabled = true;
-    document.getElementById('dns1').disabled = true;
-  } else {
-    document.getElementById('static_ip').disabled = false;
-    document.getElementById('netmask').disabled = false;
-    document.getElementById('gateway').disabled = false;
-    document.getElementById('dns0').disabled = false;
-    document.getElementById('dns1').disabled = false;
-  }
-}
-function sendConfig(element) {
-  let json = new Object();
-  json.saveconfig = window.location.pathname;
-  json.ssid = document.getElementById("ssid").value;
-  json.password = document.getElementById("password").value;
-  json.dhcp = document.getElementById("dhcp").checked;
-  json.static_ip = document.getElementById("static_ip").value;
-  json.netmask = document.getElementById("netmask").value;
-  json.gateway = document.getElementById("gateway").value;
-  json.dns0 = document.getElementById("dns0").value;
-  json.dns1 = document.getElementById("dns1").value;
-  var myJSON = JSON.stringify(json);
-  ws.send(myJSON);
-  console.log("Data sent: ",myJSON);
-}
-</script>
+    function reqListenerConfigNetwork() {
+      console.log(this.responseText);
+      let json = JSON.parse(this.responseText);
+      // console.log(json);
+      // document.getElementById("hostname").value = json.hostname;
+      document.getElementById("ssid").value = json.ssid;
+      document.getElementById("password").value = json.password;
+      document.getElementById("dhcp").checked = json.dhcp;
+      document.getElementById("static_ip").value = json.static_ip;
+      document.getElementById("netmask").value = json.netmask;
+      document.getElementById("gateway").value = json.gateway;
+      document.getElementById("dns0").value = json.dns0;
+      document.getElementById("dns1").value = json.dns1;
+      if (document.getElementById("dhcp").checked == true) {
+        document.getElementById('static_ip').disabled = true;
+        document.getElementById('netmask').disabled = true;
+        document.getElementById('gateway').disabled = true;
+        document.getElementById('dns0').disabled = true;
+        document.getElementById('dns1').disabled = true;
+      }
+    }
+    function reqListenerStatusNetwork() {
+      console.log(this.responseText);
+      let json = JSON.parse(this.responseText);
+      // console.log(json);
+      document.getElementById("s_chipid").textContent = json.chipid;
+      document.getElementById("s_hostname").textContent = json.hostname;
+      document.getElementById("s_status").textContent = json.status;
+      document.getElementById("s_mode").textContent = json.mode;
+      document.getElementById("s_phymode").textContent = json.phymode;
+      document.getElementById("s_channel").textContent = json.channel;
+      document.getElementById("s_ssid").textContent = json.ssid;
+      document.getElementById("s_password").textContent = json.password;
+      document.getElementById("s_encryption").textContent = json.encryption;
+      document.getElementById("s_isconnected").textContent = json.isconnected;
+      document.getElementById("s_autoconnect").textContent = json.autoconnect;
+      document.getElementById("s_persistent").textContent = json.persistent;
+      document.getElementById("s_bssid").textContent = json.bssid;
+      document.getElementById("s_rssi").textContent = json.rssi;
+      document.getElementById("s_sta_ip").textContent = json.sta_ip;
+      document.getElementById("s_sta_mac").textContent = json.sta_mac;
+      document.getElementById("s_ap_ip").textContent = json.ap_ip;
+      document.getElementById("s_ap_mac").textContent = json.ap_mac;
+      document.getElementById("s_gateway").textContent = json.gateway;
+      document.getElementById("s_netmask").textContent = json.netmask;
+      document.getElementById("s_dns0").textContent = json.dns0;
+      document.getElementById("s_dns1").textContent = json.dns1;
+    }
+    function something() {
+      var dhcpVal = document.getElementById('dhcp').checked;
+      console.log(dhcpVal);
+      if (dhcpVal) {
+        document.getElementById('static_ip').disabled = true;
+        document.getElementById('netmask').disabled = true;
+        document.getElementById('gateway').disabled = true;
+        document.getElementById('dns0').disabled = true;
+        document.getElementById('dns1').disabled = true;
+      } else {
+        document.getElementById('static_ip').disabled = false;
+        document.getElementById('netmask').disabled = false;
+        document.getElementById('gateway').disabled = false;
+        document.getElementById('dns0').disabled = false;
+        document.getElementById('dns1').disabled = false;
+      }
+    }
+    function sendConfig(element) {
+      let json = new Object();
+      json.saveconfig = window.location.pathname;
+      json.ssid = document.getElementById("ssid").value;
+      json.password = document.getElementById("password").value;
+      json.dhcp = document.getElementById("dhcp").checked;
+      json.static_ip = document.getElementById("static_ip").value;
+      json.netmask = document.getElementById("netmask").value;
+      json.gateway = document.getElementById("gateway").value;
+      json.dns0 = document.getElementById("dns0").value;
+      json.dns1 = document.getElementById("dns1").value;
+      var myJSON = JSON.stringify(json);
+      ws.send(myJSON);
+      console.log("Data sent: ", myJSON);
+    }
+  </script>
 </body>
+
 </html>
