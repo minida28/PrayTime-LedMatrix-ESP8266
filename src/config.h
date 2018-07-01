@@ -174,7 +174,7 @@ using namespace placeholders;
 
 #define ESP_PIN_0 0 //D3
 #define ESP_PIN_1 1 //Tx
-#define ESP_PIN_2 2 //D4 -> Led on NodeMcu
+#define ESP_PIN_2 2 //D4 -> Led on ESP8266
 #define ESP_PIN_3 3 //D9(Rx)
 #define ESP_PIN_4 4 //D2
 #define ESP_PIN_5 5 //D1
@@ -184,7 +184,7 @@ using namespace placeholders;
 #define ESP_PIN_13 13 //D7
 #define ESP_PIN_14 14 //D5
 #define ESP_PIN_15 15 //D8
-#define ESP_PIN_16 16 //D0 -> Led on ESP8266
+#define ESP_PIN_16 16 //D0 -> Led on NodeMcu
 
 #define IO_EXPANDER_PIN_0 0
 #define IO_EXPANDER_PIN_1 1

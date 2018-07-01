@@ -535,6 +535,7 @@
 
   <!-- Javascript section
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <script src="bulma-ui.js"></script>
   <script language="javascript" type="text/javascript">
 
     var ws = null;
@@ -543,10 +544,10 @@
       getConfigValues("status/network", reqListenerStatusNetwork);
       getConfigValues("config/network", reqListenerConfigNetwork);
       // setInterval(getConfigValues, 10000, "status/network", reqListenerStatusNetwork);
-      getNetwork();
-      // startSocket();
+      // getNetwork();
+      startSocket();
       //startEvents();
-      // setTimeout(getNetwork, 1000);
+      setTimeout(getNetwork, 5000);
       // load("bulma-ui.js", "js", function () {
       //   // Do something after load...
       // });
@@ -565,52 +566,41 @@
       }, 4000)
     }
 
-    document.addEventListener('DOMContentLoaded', function () {
-      // Get all "navbar-burger" elements
-      var $navbarBurgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
-      // Check if there are any navbar burgers
-      if ($navbarBurgers.length > 0) {
-        // Add a click event on each of them
-        $navbarBurgers.forEach(function ($el) {
-          $el.addEventListener('click', function () {
-            // Get the target from the "data-target" attribute
-            var target = $el.dataset.target;
-            var $target = document.getElementById(target);
-            // Toggle the class on both the "navbar-burger" and the "navbar-menu"
-            $el.classList.toggle('is-active');
-            $target.classList.toggle('is-active');
-          });
-        });
-      }
-    });
-
     function startSocket() {
       ws = new WebSocket('ws://' + document.location.host + '/ws', ['arduino']);
       ws.binaryType = "arraybuffer";
-      ws.onopen = function (e) {
+      ws.onopen = function (evt) {
         var obj = new Object();
         obj.url = window.location.pathname;
         var myJSON = JSON.stringify(obj);
         ws.send(myJSON);
       };
-      ws.onclose = function (e) {
+      ws.onclose = function (evt) {
+        console.log("WebSocket close. Code: " + evt.code + ", Reason: " + evt.reason);
+        // clearInterval(sendPingVar);
+        console.log(clearInterval.name);
+        // setMsg("active", "Disconnected");
+        if (ws.readyState == 3) {
+          // showDisconnected();
+          setTimeout(function () { showDisconnected(); }, 1000);
+        }
       };
-      ws.onerror = function (e) {
-        console.log("ws error", e);
+      ws.onerror = function (evt) {
+        console.log("ws error", evt);
       };
-      ws.onmessage = function (e) {
+      ws.onmessage = function (evt) {
         var msg = "";
-        if (e.data instanceof ArrayBuffer) {
+        if (evt.data instanceof ArrayBuffer) {
           msg = "BIN:";
-          var bytes = new Uint8Array(e.data);
+          var bytes = new Uint8Array(evt.data);
           for (var i = 0; i < bytes.length; i++) {
             msg += String.fromCharCode(bytes[i]);
           }
         } else {
-          msg = "TXT:" + e.data;
+          msg = "TXT:" + evt.data;
           console.log(msg);
-          if (isJSON(e.data)) {
-            var json = JSON.parse(e.data);
+          if (isJSON(evt.data)) {
+            var json = JSON.parse(evt.data);
           }
         }
       };

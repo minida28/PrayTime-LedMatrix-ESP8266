@@ -392,35 +392,42 @@
     function startSocket() {
       ws = new WebSocket('ws://' + document.location.host + '/ws', ['arduino']);
       ws.binaryType = "arraybuffer";
-      ws.onopen = function (e) {
+      ws.onopen = function (evt) {
         var obj = new Object();
         obj.url = window.location.pathname;
         var myJSON = JSON.stringify(obj);
         ws.send(myJSON);
       };
-      ws.onclose = function (e) {
-        console.log("WebSocket error. Code: " + e.code + ", Reason: " + e.reason + ", wasClean?: " + e.wasClean);
+      ws.onclose = function (evt) {
+        console.log("WebSocket close. Code: " + evt.code + ", Reason: " + evt.reason);
+        // clearInterval(sendPingVar);
+        console.log(clearInterval.name);
+        // setMsg("active", "Disconnected");
+        if (ws.readyState == 3) {
+          // showDisconnected();
+          setTimeout(function () { showDisconnected(); }, 1000);
+        }
       };
-      ws.onerror = function (e) {
+      ws.onerror = function (evt) {
         // console.log("ws error", e);
-        console.log("WebSocket error. Code: " + e.code + ", Reason: " + e.reason + ", wasClean?: " + e.wasClean);
+        console.log("WebSocket error. Code: " + evt.code + ", Reason: " + evt.reason + ", wasClean?: " + evt.wasClean);
       };
-      ws.onmessage = function (e) {
+      ws.onmessage = function (evt) {
         var msg = "";
-        if (e.data instanceof ArrayBuffer) {
+        if (evt.data instanceof ArrayBuffer) {
           msg = "BIN:";
           var bytes = new Uint8Array(e.data);
           for (var i = 0; i < bytes.length; i++) {
             msg += String.fromCharCode(bytes[i]);
           }
         } else {
-          msg = "TXT:" + e.data;
+          msg = "TXT:" + evt.data;
           console.log(msg);
-          if (e.data == "suicide") {
+          if (evt.data == "suicide") {
             ws.close();
           }
-          else if (isJSON(e.data)) {
-            var json = JSON.parse(e.data);
+          else if (isJSON(evt.data)) {
+            var json = JSON.parse(evt.data);
             if (json.hasOwnProperty('cpufreq')) {
               document.getElementById("heap").textContent = json.heap.toLocaleString("en");
               document.getElementById("filename").textContent = json.filename;
