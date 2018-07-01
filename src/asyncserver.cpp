@@ -217,7 +217,7 @@ void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventTyp
         // check if start with '{' i.e. data in JSON format
         if (data[0] == '{')
         {
-          DynamicJsonBuffer jsonBuffer;
+          StaticJsonBuffer<1024> jsonBuffer;
           JsonObject &root = jsonBuffer.parseObject(data);
           if (root.success())
           {
@@ -242,7 +242,7 @@ void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventTyp
                 //  //WsSendSholatDynamic(clientID);
                 //  //WsSendRunningLedConfig(clientID);
 
-                WsSendNetworkStatus();
+                sendNetworkStatus(2);
               }
               else if (strcmp_P(url, pgm_statuspagetime) == 0)
               {
@@ -301,7 +301,7 @@ void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventTyp
                 //WsSendInfoStatic(clientID);
                 //WsSendInfoDynamic(clientID);
                 //WsSendSholatStatic(clientID);
-                WsSendSholatDynamic(clientID);
+                sendSholatSchedule(2);
                 //WsSendRunningLedConfig(clientID);
               }
               else if (strcmp_P(url, pgm_settimepage) == 0)
@@ -1012,7 +1012,6 @@ void AsyncWSBegin()
 
   NBNS.begin(_config.hostname);
 
-  
   DEBUGASYNCWS("Starting SSDP...\r\n");
   SSDP.setSchemaURL(FPSTR(pgm_descriptionxml));
   SSDP.setHTTPPort(80);
@@ -1021,7 +1020,6 @@ void AsyncWSBegin()
   //  SSDP.setModelNumber(FPSTR(modelNumber));
   SSDP.begin();
 
-  
   // // SSDP.setSchemaURL("description.xml");
   // SSDP.setSchemaURL(FPSTR(pgm_descriptionxml));
   // SSDP.setHTTPPort(80);
@@ -1122,12 +1120,12 @@ void AsyncWSBegin()
       //convert IP address to char array
       size_t len = strlen(WiFi.localIP().toString().c_str());
       char URLBase[len + 1];
-      strlcpy(URLBase, WiFi.localIP().toString().c_str(), sizeof(URLBase));      
+      strlcpy(URLBase, WiFi.localIP().toString().c_str(), sizeof(URLBase));
 
       // const char *friendlyName = WiFi.hostname().toString().c_str();
       len = strlen(WiFi.hostname().c_str());
       char friendlyName[len + 1];
-      strlcpy(friendlyName, WiFi.hostname().c_str(), sizeof(friendlyName)); 
+      strlcpy(friendlyName, WiFi.hostname().c_str(), sizeof(friendlyName));
 
       char presentationURL[] = "/";
       uint32_t serialNumber = ESP.getChipId();
@@ -1324,10 +1322,6 @@ void AsyncWSBegin()
 
   server.on("/admin/connectionstate", [](AsyncWebServerRequest *request) {
     send_connection_state_values_html(request);
-  });
-
-  server.on("/admin/sholatvalues", [](AsyncWebServerRequest *request) {
-    send_sholat_values_html(request);
   });
 
   // server.on("/settime.html", [](AsyncWebServerRequest *request) {
@@ -1591,53 +1585,7 @@ void send_connection_state_values_html(AsyncWebServerRequest *request)
   DEBUGLOG("%s\r\n", __PRETTY_FUNCTION__);
 }
 
-void EventSendNetworkStatus()
-{
-  DEBUGLOG("%s\r\n", __PRETTY_FUNCTION__);
-
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject &root = jsonBuffer.createObject();
-
-  root[FPSTR(pgm_chipid)] = ESP.getChipId();
-  root[FPSTR(pgm_hostname)] = _config.hostname;
-  uint8_t mode = WiFi.getMode();
-  if (mode == WIFI_AP)
-  {
-    root[FPSTR(pgm_mode)] = FPSTR(pgm_WIFI_AP);
-  }
-  else if (mode == WIFI_STA)
-  {
-    root[FPSTR(pgm_mode)] = FPSTR(pgm_WIFI_STA);
-  }
-  else if (mode == WIFI_AP_STA)
-  {
-    root[FPSTR(pgm_mode)] = FPSTR(pgm_WIFI_AP_STA);
-  }
-  else if (mode == WIFI_OFF)
-  {
-    root[FPSTR(pgm_mode)] = FPSTR(pgm_WIFI_OFF);
-  }
-  else
-  {
-    root[FPSTR(pgm_mode)] = FPSTR(pgm_NA);
-  }
-  root[FPSTR(pgm_ssid)] = WiFi.SSID();
-  root[FPSTR(pgm_sta_ip)] = WiFi.localIP().toString();
-  root[FPSTR(pgm_sta_mac)] = WiFi.macAddress();
-  root[FPSTR(pgm_ap_ip)] = WiFi.softAPIP().toString();
-  root[FPSTR(pgm_ap_mac)] = WiFi.softAPmacAddress();
-  root[FPSTR(pgm_gateway)] = WiFi.gatewayIP().toString();
-  root[FPSTR(pgm_netmask)] = WiFi.subnetMask().toString();
-  root[FPSTR(pgm_dns0)] = WiFi.dnsIP().toString();
-  root[FPSTR(pgm_dns1)] = WiFi.dnsIP(1).toString();
-
-  size_t len = root.measureLength();
-  char buf[len + 1];
-  root.printTo(buf, sizeof(buf));
-  events.send(buf, "timeDate", millis());
-}
-
-void WsSendNetworkStatus()
+void sendNetworkStatus(uint8_t mode)
 {
   DEBUGLOG("%s\r\n", __PRETTY_FUNCTION__);
 
@@ -1646,20 +1594,20 @@ void WsSendNetworkStatus()
 
   root[FPSTR(pgm_chipid)] = ESP.getChipId();
   root[FPSTR(pgm_hostname)] = _config.hostname;
-  uint8_t mode = WiFi.getMode();
-  if (mode == WIFI_AP)
+  uint8_t wifiMode = WiFi.getMode();
+  if (wifiMode == WIFI_AP)
   {
     root[FPSTR(pgm_mode)] = FPSTR(pgm_WIFI_AP);
   }
-  else if (mode == WIFI_STA)
+  else if (wifiMode == WIFI_STA)
   {
     root[FPSTR(pgm_mode)] = FPSTR(pgm_WIFI_STA);
   }
-  else if (mode == WIFI_AP_STA)
+  else if (wifiMode == WIFI_AP_STA)
   {
     root[FPSTR(pgm_mode)] = FPSTR(pgm_WIFI_AP_STA);
   }
-  else if (mode == WIFI_OFF)
+  else if (wifiMode == WIFI_OFF)
   {
     root[FPSTR(pgm_mode)] = FPSTR(pgm_WIFI_OFF);
   }
@@ -1680,34 +1628,19 @@ void WsSendNetworkStatus()
   size_t len = root.measureLength();
   char buf[len + 1];
   root.printTo(buf, sizeof(buf));
-  ws.text(clientID, buf);
-}
 
-void EventSendTimeStatus()
-{
-  DEBUGLOG("%s\r\n", __PRETTY_FUNCTION__);
-
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject &root = jsonBuffer.createObject();
-
-  root[FPSTR(pgm_date)] = getDateStr(localTime);
-  root[FPSTR(pgm_time)] = getTimeStr(localTime);
-  root[FPSTR(pgm_uptime)] = getUptimeStr();
-  if (_lastSyncd != 0)
+  if (mode == 0)
   {
-    root[FPSTR(pgm_lastsync)] = getLastSyncStr();
-    root[FPSTR(pgm_nextsync)] = getNextSyncStr();
+    //
   }
-  else
+  else if (mode == 1)
   {
-    root[FPSTR(pgm_lastsync)] = FPSTR(pgm_never);
-    root[FPSTR(pgm_nextsync)] = getNextSyncStr();
+    events.send(buf);
   }
-
-  size_t len = root.measureLength();
-  char buf[len + 1];
-  root.printTo(buf, sizeof(buf));
-  events.send(buf);
+  else if (mode == 2)
+  {
+    ws.text(clientID, buf);
+  }
 }
 
 void sendTimeStatus(uint8_t mode)
@@ -1767,142 +1700,13 @@ int apgm_lastIndexOf(uint8_t c, const char *p)
   return last_index;
 }
 
-void EventSendSystemStatus()
-{
-  DEBUGLOG("%s\r\n", __PRETTY_FUNCTION__);
-
-  uint32_t heap = ESP.getFreeHeap();
-
-  /*
-    const char *the_path = PSTR(__FILE__);
-
-    int slash_loc = apgm_lastIndexOf('/', the_path); // index of last '/'
-    if (slash_loc < 0) slash_loc = apgm_lastIndexOf('\\', the_path); // or last '\' (windows, ugh)
-
-    int dot_loc = apgm_lastIndexOf('.', the_path);  // index of last '.'
-    if (dot_loc < 0) dot_loc = apgm_lastIndexOf(0, the_path); // if no dot, return end of string
-
-    char sketchname[64];
-    int i;
-    int n;
-    for (i = slash_loc + 1; i < dot_loc; i++) {
-    uint8_t b = pgm_read_byte(&the_path[i]);
-    if (b != 0) {
-      sketchname[n] = (char) b;
-      n++;
-    }
-    else {
-      break;
-    }
-    }
-    sketchname[64] = '\0';
-  */
-
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject &root = jsonBuffer.createObject();
-
-  root[FPSTR(pgm_heap)] = heap;
-  //root[FPSTR(pgm_sketchname)] = sketchname;
-  root[FPSTR(pgm_lastboot)] = getLastBootStr();
-  root[FPSTR(pgm_chipid)] = ESP.getChipId();
-  root[FPSTR(pgm_cpufreq)] = ESP.getCpuFreqMHz();
-  root[FPSTR(pgm_sketchsize)] = ESP.getSketchSize();
-  root[FPSTR(pgm_freesketchspace)] = ESP.getFreeSketchSpace();
-  root[FPSTR(pgm_flashchipid)] = ESP.getFlashChipId();
-  root[FPSTR(pgm_flashchipsize)] = ESP.getFlashChipSize();
-  root[FPSTR(pgm_flashchiprealsize)] = ESP.getFlashChipRealSize();
-  root[FPSTR(pgm_flashchipspeed)] = ESP.getFlashChipSpeed();
-  root[FPSTR(pgm_cyclecount)] = ESP.getCycleCount();
-  root[FPSTR(pgm_corever)] = ESP.getCoreVersion();
-  root[FPSTR(pgm_sdkver)] = ESP.getSdkVersion();
-  root[FPSTR(pgm_resetreason)] = ESP.getResetReason();
-
-  size_t len = root.measureLength();
-  char buf[len + 1];
-  root.printTo(buf, len + 1);
-  events.send(buf);
-}
-
-void WsSendSystemStatus()
-{
-  DEBUGLOG("%s\r\n", __PRETTY_FUNCTION__);
-
-  uint32_t heap = ESP.getFreeHeap();
-
-  /*
-    const char *the_path = PSTR(__FILE__);
-
-    int slash_loc = apgm_lastIndexOf('/', the_path); // index of last '/'
-    if (slash_loc < 0) slash_loc = apgm_lastIndexOf('\\', the_path); // or last '\' (windows, ugh)
-
-    int dot_loc = apgm_lastIndexOf('.', the_path);  // index of last '.'
-    if (dot_loc < 0) dot_loc = apgm_lastIndexOf(0, the_path); // if no dot, return end of string
-
-    char sketchname[64];
-    int i;
-    int n;
-    for (i = slash_loc + 1; i < dot_loc; i++) {
-    uint8_t b = pgm_read_byte(&the_path[i]);
-    if (b != 0) {
-      sketchname[n] = (char) b;
-      n++;
-    }
-    else {
-      break;
-    }
-    }
-    sketchname[64] = '\0';
-  */
-
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject &root = jsonBuffer.createObject();
-
-  root[FPSTR(pgm_heap)] = heap;
-  //root[FPSTR(pgm_sketchname)] = sketchname;
-  root[FPSTR(pgm_lastboot)] = getLastBootStr();
-  root[FPSTR(pgm_chipid)] = ESP.getChipId();
-  root[FPSTR(pgm_cpufreq)] = ESP.getCpuFreqMHz();
-  root[FPSTR(pgm_sketchsize)] = ESP.getSketchSize();
-  root[FPSTR(pgm_freesketchspace)] = ESP.getFreeSketchSpace();
-  root[FPSTR(pgm_flashchipid)] = ESP.getFlashChipId();
-  root[FPSTR(pgm_flashchipsize)] = ESP.getFlashChipSize();
-  root[FPSTR(pgm_flashchiprealsize)] = ESP.getFlashChipRealSize();
-  root[FPSTR(pgm_flashchipspeed)] = ESP.getFlashChipSpeed();
-  root[FPSTR(pgm_cyclecount)] = ESP.getCycleCount();
-  root[FPSTR(pgm_corever)] = ESP.getCoreVersion();
-  root[FPSTR(pgm_sdkver)] = ESP.getSdkVersion();
-  root[FPSTR(pgm_resetreason)] = ESP.getResetReason();
-
-  size_t len = root.measureLength();
-  char buf[len + 1];
-  root.printTo(buf, len + 1);
-  ws.text(clientID, buf);
-}
-
-// void EventSendHeap()
-// {
-//   DEBUGLOG("%s\r\n", __PRETTY_FUNCTION__);
-
-//   uint32_t heap = ESP.getFreeHeap();
-
-//   DynamicJsonBuffer jsonBuffer;
-//   JsonObject &root = jsonBuffer.createObject();
-
-//   root[FPSTR(pgm_heap)] = heap;
-
-//   size_t len = root.measureLength();
-//   char buf[len + 1];
-//   root.printTo(buf, len + 1);
-//   events.send(buf);
-// }
-
 void sendHeap(uint8_t mode)
 {
   DEBUGASYNCWS("%s\r\n", __PRETTY_FUNCTION__);
 
   uint32_t heap = ESP.getFreeHeap();
 
-  DynamicJsonBuffer jsonBuffer;
+  StaticJsonBuffer<128> jsonBuffer;
   JsonObject &root = jsonBuffer.createObject();
 
   root[FPSTR(pgm_heap)] = heap;
@@ -1910,6 +1714,7 @@ void sendHeap(uint8_t mode)
   size_t len = root.measureLength();
   char buf[len + 1];
   root.printTo(buf, len + 1);
+
   if (mode == 0)
   {
     //
@@ -1928,7 +1733,7 @@ void sendDateTime(uint8_t mode)
 {
   DEBUGASYNCWS("%s\r\n", __PRETTY_FUNCTION__);
 
-  DynamicJsonBuffer jsonBuffer;
+  StaticJsonBuffer<512> jsonBuffer;
   JsonObject &root = jsonBuffer.createObject();
 
   root["d"] = day(localTime);
@@ -1958,29 +1763,6 @@ void sendDateTime(uint8_t mode)
   {
     ws.text(clientID, buf);
   }
-}
-
-void WsSendFsInfo()
-{
-  DEBUGASYNCWS("%s\r\n", __PRETTY_FUNCTION__);
-
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject &root = jsonBuffer.createObject();
-
-  SPIFFS.info(fs_info);
-
-  // root[FPSTR(pgm_heap)] = heap;
-  root["totalBytes"] = fs_info.totalBytes;
-  root["usedBytes"] = fs_info.usedBytes;
-  root["blockSize"] = fs_info.blockSize;
-  root["pageSize"] = fs_info.pageSize;
-  root["maxOpenFiles"] = fs_info.maxOpenFiles;
-  root["maxPathLength"] = fs_info.maxPathLength;
-
-  size_t len = root.measureLength();
-  char buf[len + 1];
-  root.printTo(buf, len + 1);
-  ws.text(clientID, buf);
 }
 
 void restart_esp(AsyncWebServerRequest *request)
@@ -2034,20 +1816,20 @@ void send_wwwauth_configuration_values_html(AsyncWebServerRequest *request)
 {
   DEBUGASYNCWS("%s\r\n", __PRETTY_FUNCTION__);
 
-  AsyncResponseStream *response = request->beginResponseStream("text/plain");
-  DynamicJsonBuffer jsonBuffer;
+  StaticJsonBuffer<512> jsonBuffer;
   JsonObject &root = jsonBuffer.createObject();
   if (_httpAuth.auth)
   {
-    root["wwwauth"] = true;
+    root[FPSTR(pgm_wwwauth)] = true;
   }
   else
   {
-    root["wwwauth"] = false;
+    root[FPSTR(pgm_wwwauth)] = false;
   }
-  root["wwwuser"] = _httpAuth.wwwUsername;
-  root["wwwpass"] = _httpAuth.wwwPassword;
+  root[FPSTR(pgm_wwwuser)] = _httpAuth.wwwUsername;
+  root[FPSTR(pgm_wwwpass)] = _httpAuth.wwwPassword;
 
+  AsyncResponseStream *response = request->beginResponseStream("text/plain");
   root.printTo(*response);
   request->send(response);
 }
@@ -2121,12 +1903,12 @@ void send_wwwauth_configuration_html(AsyncWebServerRequest *request)
 bool saveHTTPAuth()
 {
   DEBUGASYNCWS("%s\r\n", __PRETTY_FUNCTION__);
-  DEBUGASYNCWS("Save secret\r\n");
-  DynamicJsonBuffer jsonBuffer;
+
+  StaticJsonBuffer<512> jsonBuffer;
   JsonObject &json = jsonBuffer.createObject();
-  json["wwwauth"] = _httpAuth.auth;
-  json["wwwuser"] = _httpAuth.wwwUsername;
-  json["wwwpass"] = _httpAuth.wwwPassword;
+  json[FPSTR(pgm_wwwauth)] = _httpAuth.auth;
+  json[FPSTR(pgm_wwwuser)] = _httpAuth.wwwUsername;
+  json[FPSTR(pgm_wwwpass)] = _httpAuth.wwwPassword;
 
   //TODO add AP data to html
   File file = SPIFFS.open(SECRET_FILE, "w");
@@ -2303,31 +2085,6 @@ void updateFirmware(AsyncWebServerRequest *request, String filename, size_t inde
   }
 
   //delay(2);
-}
-
-void send_sholat_values_html(AsyncWebServerRequest *request)
-{
-  DEBUGASYNCWS("%s\r\n", __PRETTY_FUNCTION__);
-
-  AsyncResponseStream *response = request->beginResponseStream("application/json");
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject &root = jsonBuffer.createObject();
-
-  root[FPSTR(pgm_day)] = dayNameStr(weekday(local_time()));
-  root[FPSTR(pgm_date)] = getDateStr(local_time());
-  root[FPSTR(pgm_fajr)] = sholatTimeArray[0];
-  root[FPSTR(pgm_syuruq)] = sholatTimeArray[1];
-  root[FPSTR(pgm_dhuhr)] = sholatTimeArray[2];
-  root[FPSTR(pgm_ashr)] = sholatTimeArray[3];
-  root[FPSTR(pgm_maghrib)] = sholatTimeArray[5];
-  root[FPSTR(pgm_isya)] = sholatTimeArray[6];
-  root[FPSTR(pgm_h)] = bufHOUR;
-  root[FPSTR(pgm_m)] = bufMINUTE;
-  root[FPSTR(pgm_s)] = bufSECOND;
-  root[FPSTR(pgm_curr)] = sholatNameStr(CURRENTTIMEID);
-  root[FPSTR(pgm_next)] = sholatNameStr(NEXTTIMEID);
-  root.printTo(*response);
-  request->send(response);
 }
 
 void send_config_network(AsyncWebServerRequest *request)
@@ -2538,80 +2295,104 @@ void send_config_mqtt(AsyncWebServerRequest *request)
   request->send(response);
 }
 
-void WsSendConfigSholat()
+void sendConfigSholat(uint8_t mode)
 {
-  //  DEBUGASYNCWS("%s\r\n", __PRETTY_FUNCTION__);
-  //
-  //  DynamicJsonBuffer jsonBuffer;
-  //  JsonObject &root = jsonBuffer.createObject();
-  //
-  //  root[FPSTR(pgm_location)] = _sholatConfig.citySholat;
-  //  root[FPSTR(pgm_latitude)] = _sholatConfig.latitudeSholat;
-  //  root[FPSTR(pgm_longitude)] = _sholatConfig.longitudeSholat;
-  //  root[FPSTR(pgm_timezone)] = _sholatConfig.timeZoneSholat;
-  //
-  //  // calcMethod
-  //  if (_sholatConfig.calcMethod == Jafari) {
-  //    root[FPSTR(pgm_calcMethod)] = FPSTR(pgm_Jafari);
-  //  }
-  //  else if (_sholatConfig.calcMethod == Karachi) {
-  //    root[FPSTR(pgm_calcMethod)] = FPSTR(pgm_Karachi);
-  //  }
-  //  else if (_sholatConfig.calcMethod == ISNA) {
-  //    root[FPSTR(pgm_calcMethod)] = FPSTR(pgm_ISNA);
-  //  }
-  //  else if (_sholatConfig.calcMethod == MWL) {
-  //    root[FPSTR(pgm_calcMethod)] = FPSTR(pgm_MWL);
-  //  }
-  //  else if (_sholatConfig.calcMethod == Makkah) {
-  //    root[FPSTR(pgm_calcMethod)] = FPSTR(pgm_Makkah);
-  //  }
-  //  else if (_sholatConfig.calcMethod == Egypt) {
-  //    root[FPSTR(pgm_calcMethod)] = FPSTR(pgm_Egypt);
-  //  }
-  //  else if (_sholatConfig.calcMethod == Custom) {
-  //    root[FPSTR(pgm_calcMethod)] = FPSTR(pgm_Custom);
-  //  }
-  //
-  //  //asrMethod
-  //  if (_sholatConfig.asrJuristic == Shafii) {
-  //    root[FPSTR(pgm_asrMethod)] = 0;
-  //  }
-  //  else if (_sholatConfig.asrJuristic == Hanafi) {
-  //    root[FPSTR(pgm_asrMethod)] = 1;
-  //  }
-  //
-  //  // highLatsAdjustMethod
-  //  uint8_t highLatsAdjustMethod = root[FPSTR(pgm_highLatsAdjustMethod)];
-  //  if (_sholatConfig.highLatsAdjustMethod == None) {
-  //    root[FPSTR(pgm_highLatsAdjustMethod)] = 0;
-  //  }
-  //  else if (_sholatConfig.highLatsAdjustMethod == MidNight) {
-  //    root[FPSTR(pgm_highLatsAdjustMethod)] = 1;
-  //  }
-  //  else if (_sholatConfig.highLatsAdjustMethod == OneSeventh) {
-  //    root[FPSTR(pgm_highLatsAdjustMethod)] = 2;
-  //  }
-  //  else if (_sholatConfig.highLatsAdjustMethod == AngleBased) {
-  //    root[FPSTR(pgm_highLatsAdjustMethod)] = 3;
-  //  }
-  //
-  //  root[FPSTR(pgm_fajrAngle)] = _sholatConfig.fajrAngle;
-  //  root[FPSTR(pgm_maghribAngle)] = _sholatConfig.maghribAngle;
-  //  root[FPSTR(pgm_ishaAngle)] = _sholatConfig.ishaAngle;
-  //  root[FPSTR(pgm_offsetImsak)] = _sholatConfig.offsetImsak;
-  //  root[FPSTR(pgm_offsetFajr)] = _sholatConfig.offsetFajr;
-  //  root[FPSTR(pgm_offsetSunrise)] = _sholatConfig.offsetSunrise;
-  //  root[FPSTR(pgm_offsetDhuhr)] = _sholatConfig.offsetDhuhr;
-  //  root[FPSTR(pgm_offsetAsr)] = _sholatConfig.offsetAsr;
-  //  root[FPSTR(pgm_offsetSunset)] = _sholatConfig.offsetSunset;
-  //  root[FPSTR(pgm_offsetMaghrib)] = _sholatConfig.offsetMaghrib;
-  //  root[FPSTR(pgm_offsetIsha)] = _sholatConfig.offsetIsha;
-  //
-  //  size_t len = root.measureLength();
-  //  char buf[len + 1];
-  //  root.printTo(buf, sizeof(buf));
-  //  ws.text(clientID, buf);
+  DEBUGASYNCWS("%s\r\n", __PRETTY_FUNCTION__);
+
+  StaticJsonBuffer<1024> jsonBuffer;
+  JsonObject &root = jsonBuffer.createObject();
+
+  root[FPSTR(pgm_location)] = _configLocation.city;
+  root[FPSTR(pgm_latitude)] = _configLocation.latitude;
+  root[FPSTR(pgm_longitude)] = _configLocation.longitude;
+  root[FPSTR(pgm_timezone)] = _configLocation.timezone;
+
+  // calcMethod
+  if (_sholatConfig.calcMethod == Jafari)
+  {
+    root[FPSTR(pgm_calcMethod)] = FPSTR(pgm_Jafari);
+  }
+  else if (_sholatConfig.calcMethod == Karachi)
+  {
+    root[FPSTR(pgm_calcMethod)] = FPSTR(pgm_Karachi);
+  }
+  else if (_sholatConfig.calcMethod == ISNA)
+  {
+    root[FPSTR(pgm_calcMethod)] = FPSTR(pgm_ISNA);
+  }
+  else if (_sholatConfig.calcMethod == MWL)
+  {
+    root[FPSTR(pgm_calcMethod)] = FPSTR(pgm_MWL);
+  }
+  else if (_sholatConfig.calcMethod == Makkah)
+  {
+    root[FPSTR(pgm_calcMethod)] = FPSTR(pgm_Makkah);
+  }
+  else if (_sholatConfig.calcMethod == Egypt)
+  {
+    root[FPSTR(pgm_calcMethod)] = FPSTR(pgm_Egypt);
+  }
+  else if (_sholatConfig.calcMethod == Custom)
+  {
+    root[FPSTR(pgm_calcMethod)] = FPSTR(pgm_Custom);
+  }
+
+  //asrMethod
+  if (_sholatConfig.asrJuristic == Shafii)
+  {
+    root[FPSTR(pgm_asrJuristic)] = 0;
+  }
+  else if (_sholatConfig.asrJuristic == Hanafi)
+  {
+    root[FPSTR(pgm_asrJuristic)] = 1;
+  }
+
+  // highLatsAdjustMethod
+  if (_sholatConfig.highLatsAdjustMethod == None)
+  {
+    root[FPSTR(pgm_highLatsAdjustMethod)] = 0;
+  }
+  else if (_sholatConfig.highLatsAdjustMethod == MidNight)
+  {
+    root[FPSTR(pgm_highLatsAdjustMethod)] = 1;
+  }
+  else if (_sholatConfig.highLatsAdjustMethod == OneSeventh)
+  {
+    root[FPSTR(pgm_highLatsAdjustMethod)] = 2;
+  }
+  else if (_sholatConfig.highLatsAdjustMethod == AngleBased)
+  {
+    root[FPSTR(pgm_highLatsAdjustMethod)] = 3;
+  }
+
+  root[FPSTR(pgm_fajrAngle)] = _sholatConfig.fajrAngle;
+  root[FPSTR(pgm_maghribAngle)] = _sholatConfig.maghribAngle;
+  root[FPSTR(pgm_ishaAngle)] = _sholatConfig.ishaAngle;
+  root[FPSTR(pgm_offsetImsak)] = _sholatConfig.offsetImsak;
+  root[FPSTR(pgm_offsetFajr)] = _sholatConfig.offsetFajr;
+  root[FPSTR(pgm_offsetSunrise)] = _sholatConfig.offsetSunrise;
+  root[FPSTR(pgm_offsetDhuhr)] = _sholatConfig.offsetDhuhr;
+  root[FPSTR(pgm_offsetAsr)] = _sholatConfig.offsetAsr;
+  root[FPSTR(pgm_offsetSunset)] = _sholatConfig.offsetSunset;
+  root[FPSTR(pgm_offsetMaghrib)] = _sholatConfig.offsetMaghrib;
+  root[FPSTR(pgm_offsetIsha)] = _sholatConfig.offsetIsha;
+
+  size_t len = root.measureLength();
+  char buf[len + 1];
+  root.printTo(buf, sizeof(buf));
+
+  if (mode == 0)
+  {
+    //
+  }
+  else if (mode == 1)
+  {
+    events.send(buf);
+  }
+  else if (mode == 2)
+  {
+    ws.text(clientID, buf);
+  }
 }
 
 void set_time_html(AsyncWebServerRequest *request)
@@ -3115,17 +2896,17 @@ bool load_config_httpauth()
 #endif
 
   if (
-      !root["wwwauth"].success() ||
-      !root["wwwuser"].success() ||
-      !root["wwwpass"].success())
+      !root[FPSTR(pgm_wwwauth)].success() ||
+      !root[FPSTR(pgm_wwwuser)].success() ||
+      !root[FPSTR(pgm_wwwpass)].success())
   {
     DEBUGASYNCWS("Failed to parse httpAuth json file\r\n");
     return false;
   }
 
-  _httpAuth.auth = root["wwwauth"];
-  strlcpy(_httpAuth.wwwUsername, root["wwwuser"], sizeof(_httpAuth.wwwUsername));
-  strlcpy(_httpAuth.wwwPassword, root["wwwpass"], sizeof(_httpAuth.wwwPassword));
+  _httpAuth.auth = root[FPSTR(pgm_wwwauth)];
+  strlcpy(_httpAuth.wwwUsername, root[FPSTR(pgm_wwwuser)], sizeof(_httpAuth.wwwUsername));
+  strlcpy(_httpAuth.wwwPassword, root[FPSTR(pgm_wwwpass)], sizeof(_httpAuth.wwwPassword));
 
   //check
   DEBUGASYNCWS("httpAuth settings loaded successfully.\r\n");
@@ -3408,37 +3189,8 @@ unsigned char h2int(char c)
   return (0);
 }
 
-String urldecode(String input) // (based on https://code.google.com/p/avr-netino/)
-{
-  char c;
-  String ret = "";
-
-  for (byte t = 0; t < input.length(); t++)
-  {
-    c = input[t];
-    if (c == '+')
-      c = ' ';
-    if (c == '%')
-    {
-
-      t++;
-      c = input[t];
-      t++;
-      c = (h2int(c) << 4) | h2int(input[t]);
-    }
-
-    ret.concat(c);
-  }
-  return ret;
-}
-
 void load_running_text()
 {
-
-  //String contents = "fail";
-  //char contents[512];
-
-  //File runningTextFile = _fs->open(RUNNING_TEXT_FILE, "r");
   File runningTextFile = SPIFFS.open(RUNNING_TEXT_FILE, "r");
   if (!runningTextFile)
   {
@@ -3676,9 +3428,10 @@ void AsyncWSLoop()
     {
       if (clientVisitStatusNetworkPage)
       {
-        //WsSendInfoDynamic(clientID);
-        //EventSendNetworkStatus();
-        WsSendNetworkStatus();
+        // WsSendInfoDynamic(clientID);
+        // EventSendNetworkStatus();
+        // WsSendNetworkStatus();
+        sendNetworkStatus(2);
       }
       else if (clientVisitStatusTimePage)
       {
@@ -3695,7 +3448,7 @@ void AsyncWSLoop()
       }
       else if (clientVisitSholatTimePage)
       {
-        WsSendSholatDynamic(clientID);
+        sendSholatSchedule(2);
       }
       else if (clientVisitConfigRunningLedPage)
       {
@@ -3923,108 +3676,7 @@ void AsyncWSLoop()
   }
 }
 
-void WsSendInfoStatic(int clientID)
-{
-  //  DEBUGLOG("%s\r\n", __PRETTY_FUNCTION__);
-  //
-  //  DynamicJsonBuffer jsonBuffer;
-  //  JsonObject &root = jsonBuffer.createObject();
-  //
-  //  root[FPSTR(pgm_type)] = FPSTR(pgm_txt_infoStatic);
-  //  root[FPSTR(pgm_loc)] = _sholatConfig.citySholat.c_str();
-  //  root[FPSTR(pgm_ssid)] = WiFi.SSID();
-  //  root[FPSTR(pgm_sta_ip)] = WiFi.localIP().toString();
-  //  root[FPSTR(pgm_sta_mac)] = WiFi.macAddress();
-  //  root[FPSTR(pgm_ap_ip)] = WiFi.softAPIP().toString();
-  //  root[FPSTR(pgm_ap_mac)] = WiFi.softAPmacAddress();
-  //  root[FPSTR(pgm_gateway)] = WiFi.gatewayIP().toString();
-  //  root[FPSTR(pgm_netmask)] = WiFi.subnetMask().toString();
-  //  root[FPSTR(pgm_dns0)] = WiFi.dnsIP().toString();
-  //  root[FPSTR(pgm_dns1)] = WiFi.dnsIP(1).toString();
-  //  root[FPSTR(pgm_chipid)] = ESP.getChipId();
-  //  root[FPSTR(pgm_cpufreq)] = ESP.getCpuFreqMHz();
-  //  root[FPSTR(pgm_sketchsize)] = ESP.getSketchSize();
-  //  root[FPSTR(pgm_freesketchspace)] = ESP.getFreeSketchSpace();
-  //  root[FPSTR(pgm_flashchipid)] = ESP.getFlashChipId();
-  //  root[FPSTR(pgm_flashchipsize)] = ESP.getFlashChipSize();
-  //  root[FPSTR(pgm_flashchiprealsize)] = ESP.getFlashChipRealSize();
-  //  root[FPSTR(pgm_flashchipspeed)] = ESP.getFlashChipSpeed();
-  //  root[FPSTR(pgm_cyclecount)] = ESP.getCycleCount();
-  //  root[FPSTR(pgm_corever)] = ESP.getCoreVersion();
-  //  root[FPSTR(pgm_sdkver)] = ESP.getSdkVersion();
-  //  root[FPSTR(pgm_resetreason)] = ESP.getResetReason();
-  //  root[FPSTR(pgm_lastboot)] = getLastBootStr();
-  //
-  //  size_t len = root.measureLength();
-  //  char buf[len + 1];
-  //  root.printTo(buf, len + 1);
-  //
-  //  ws.text(clientID, buf);
-}
-
-void WsSendInfoDynamic(int clientID)
-{
-  DEBUGLOG("%s\r\n", __PRETTY_FUNCTION__);
-
-  uint32_t heapstart = ESP.getFreeHeap();
-
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject &root = jsonBuffer.createObject();
-
-  root[FPSTR(pgm_type)] = FPSTR(pgm_infodynamic);
-  root[FPSTR(pgm_date)] = dayShortStr(weekday(local_time()));
-  root[FPSTR(pgm_time)] = getTimeStr(localTime);
-  if (_lastSyncd != 0)
-  {
-    root[FPSTR(pgm_lastsync)] = getLastSyncStr();
-    root[FPSTR(pgm_nextsync)] = getNextSyncStr();
-  }
-  else
-  {
-    root[FPSTR(pgm_lastsync)] = FPSTR(pgm_never);
-    root[FPSTR(pgm_nextsync)] = FPSTR(pgm_never);
-  }
-  root[FPSTR(pgm_uptime)] = getUptimeStr();
-  root[FPSTR(pgm_roomtemp)] = bufTempSensor;
-  root[FPSTR(pgm_rtctemp)] = bufRtcTemp;
-  root[FPSTR(pgm_heapstart)] = heapstart;
-  root[FPSTR(pgm_heapend)] = heapstart;
-  uint32_t heapend = ESP.getFreeHeap();
-  root[FPSTR(pgm_heapend)] = heapend;
-
-  size_t len = root.measureLength();
-  char buf[len + 1];
-  root.printTo(buf, len + 1);
-
-  ws.text(clientID, buf);
-}
-
-void WsSendSholatStatic(int clientID)
-{
-  //  DEBUGLOG("%s\r\n", __PRETTY_FUNCTION__);
-  //
-  //  DynamicJsonBuffer jsonBuffer;
-  //  JsonObject &root = jsonBuffer.createObject();
-  //
-  //  root[FPSTR(pgm_type)] = FPSTR(pgm_sholatstatic);
-  //  root[FPSTR(pgm_loc)] = _sholatConfig.citySholat;
-  //  root[FPSTR(pgm_day)] = dayNameStr(weekday(local_time()));
-  //  root[FPSTR(pgm_date)] = getDateStr(local_time());
-  //  root[FPSTR(pgm_fajr)] = sholatTimeArray[0];
-  //  root[FPSTR(pgm_syuruq)] = sholatTimeArray[1];
-  //  root[FPSTR(pgm_dhuhr)] = sholatTimeArray[2];
-  //  root[FPSTR(pgm_ashr)] = sholatTimeArray[3];
-  //  root[FPSTR(pgm_maghrib)] = sholatTimeArray[5];
-  //  root[FPSTR(pgm_isya)] = sholatTimeArray[6];
-  //
-  //  size_t len = root.measureLength();
-  //  char buf[len + 1];
-  //  root.printTo(buf, len + 1);
-  //
-  //  ws.text(clientID, buf);
-}
-
-void WsSendSholatDynamic(int clientID)
+void sendSholatSchedule(uint8_t mode)
 {
   DEBUGLOG("%s\r\n", __PRETTY_FUNCTION__);
 
@@ -4052,40 +3704,16 @@ void WsSendSholatDynamic(int clientID)
   char buf[len + 1];
   root.printTo(buf, len + 1);
 
-  ws.text(clientID, buf);
-}
-
-void WsSendRunningLedConfig(int clientID)
-{
-  DEBUGLOG("%s\r\n", __PRETTY_FUNCTION__);
-
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject &root = jsonBuffer.createObject();
-
-  root[FPSTR(pgm_type)] = FPSTR(pgm_matrixconfig);
-  root[FPSTR(pgm_pagemode0)] = _ledMatrixSettings.pagemode0;
-  root[FPSTR(pgm_pagemode1)] = _ledMatrixSettings.pagemode1;
-  root[FPSTR(pgm_pagemode2)] = _ledMatrixSettings.pagemode2;
-  root[FPSTR(pgm_scrollrow_0)] = _ledMatrixSettings.scrollrow_0;
-  root[FPSTR(pgm_scrollrow_1)] = _ledMatrixSettings.scrollrow_1;
-  root[FPSTR(pgm_scrollspeedslider)] = _ledMatrixSettings.scrollspeed;
-  root[FPSTR(pgm_scrollspeedvalue)] = _ledMatrixSettings.scrollspeed;
-  root[FPSTR(pgm_brightnessslider)] = _ledMatrixSettings.brightness;
-  root[FPSTR(pgm_brightnessvalue)] = _ledMatrixSettings.brightness;
-  char temp[4];
-  root[FPSTR(pgm_operatingmode)] = itoa(_ledMatrixSettings.operatingmode, temp, 10);
-  if (_ledMatrixSettings.pagemode == Automatic)
+  if (mode == 0)
   {
-    root[FPSTR(pgm_pagemode)] = FPSTR(pgm_automatic);
+    //
   }
-  else if (_ledMatrixSettings.pagemode == Manual)
+  else if (mode == 1)
   {
-    root[FPSTR(pgm_pagemode)] = FPSTR(pgm_manual);
+    events.send(buf);
   }
-
-  size_t len = root.measureLength();
-  char buf[len + 1];
-  root.printTo(buf, len + 1);
-
-  ws.text(clientID, buf);
+  else if (mode == 2)
+  {
+    ws.text(clientID, buf);
+  }
 }

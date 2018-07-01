@@ -7220,7 +7220,7 @@ bool save_system_info()
   root[FPSTR(pgm_flashchiprealsize)] = ESP.getFlashChipRealSize();
   root[FPSTR(pgm_flashchipspeed)] = ESP.getFlashChipSpeed();
   root[FPSTR(pgm_cyclecount)] = ESP.getCycleCount();
-  root[FPSTR(pgm_corever)] = ESP.getCoreVersion();
+  root[FPSTR(pgm_corever)] = ESP.getFullVersion();
   root[FPSTR(pgm_sdkver)] = ESP.getSdkVersion();
   root[FPSTR(pgm_bootmode)] = ESP.getBootMode();
   root[FPSTR(pgm_bootversion)] = ESP.getBootVersion();

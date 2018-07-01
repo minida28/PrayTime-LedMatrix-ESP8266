@@ -287,4 +287,9 @@ const char pgm_rtctemp[] PROGMEM = "rtctemp";
 const char pgm_descriptionxml[] PROGMEM = "description.xml";
 const char pgm_upnprootdevice[] PROGMEM = "upnp:rootdevice";
 
+//HTTP Auth
+const char pgm_wwwauth[] PROGMEM = "wwwauth";
+const char pgm_wwwuser[] PROGMEM = "wwwuser";
+const char pgm_wwwpass[] PROGMEM = "wwwpass";
+
 #endif
