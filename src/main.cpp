@@ -7364,7 +7364,7 @@ void setup()
 
   //Setup interrupt
   pinMode(MCU_INTERRUPT_PIN, INPUT_PULLUP);
-  // attachInterrupt(digitalPinToInterrupt(MCU_INTERRUPT_PIN), PCFInterrupt, FALLING);
+  attachInterrupt(digitalPinToInterrupt(MCU_INTERRUPT_PIN), PCFInterrupt, FALLING);
 #endif
   // -------------------------------------------------------------------
   // Setup LED MATRIX

@@ -2,8 +2,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <meta name="viewport" content="width=device-width, user-scalable=no">
 <title>ESP Editor</title>
+<link rel="stylesheet" href="bulma.min.css">
 <style type="text/css" media="screen">
+
+/*#editor, #preview { */
+/*  position: static;*/
+/*    width: 100%;*/
+/*    height: 100%;*/
+/*  border-left:1px solid #EEE;*/
+/*}*/
+
+
 .cm {
   z-index: 300;
   position: absolute;
@@ -117,9 +128,9 @@
 }
 .loader {
     z-index: 10000;
-    border: 8px solid #b5b5b5; /* Grey */
-    border-top: 8px solid #3498db; /* Blue */
-    border-bottom: 8px solid #3498db; /* Blue */
+    border: 8px solid #b5b5b5;
+    border-top: 8px solid #3498db;
+    border-bottom: 8px solid #3498db;
     border-radius: 50%;
     width: 240px;
     height: 240px;
@@ -131,7 +142,9 @@
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
 </style>
+<!--<link rel="stylesheet" href="bulma.min.css">-->
 <script>
 if (typeof XMLHttpRequest === "undefined") {
   XMLHttpRequest = function () {
@@ -542,6 +555,7 @@ function createEditor(element, file, lang, theme, type){
   }
 
   var editor = ace.edit(element);
+  // editor.resize();
   function httpPostProcessRequest(status, responseText){
     if(status != 200) alert("ERROR["+status+"]: "+responseText);
   }
@@ -613,7 +627,9 @@ function onBodyLoad(){
   createFileUploader("uploader", tree, editor);
   if(typeof vars.file === "undefined") vars.file = "/index.htm";
   editor.loadUrl(vars.file);
+  // editor.resize();
 };
+
 </script>
 <!--<script id='ace' src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.3.1/ace.js" type="text/javascript" charset="utf-8"></script>-->
 <script id='ace' src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.3.3/ace.js" type="text/javascript" charset="utf-8"></script>
@@ -629,11 +645,45 @@ function onBodyLoad(){
 </script>
 </head>
 <body onload="onBodyLoad();">
-  <div id="loader" class="loader"></div>
-  <div id="uploader"></div>
-  <div id="tree"></div>
-  <div id="editor"></div>
-  <div id="preview" style="display:none;"></div>
-  <iframe id=download-frame style='display:none;'></iframe>
+
+  <section class="section">
+    <!--<div class="container">-->
+  <!--<div id="loader" class="loader"></div>-->
+  <!--<div id="uploader"></div>-->
+  <!--<div id="tree"></div>-->
+  <!--<div id="editor"></div>-->
+  <!--<div id="preview" style="display:none;"></div>-->
+  <!--<iframe id=download-frame style='display:none;'></iframe>-->
+    <!--</div>-->
+    <!--<div id="loader" class="loader"></div>-->
+  </section>
+  
+<div class="columns">
+  <div class="column">
+    <div id="loader" class="loader"></div>
+  </div>
+  <div class="column">
+    <div id="uploader"></div>
+  </div>
+  <div class="column">
+    <div id="tree"></div>
+  </div>
+  <div class="column">
+    <div id="editor"></div>
+  </div>
+  <div class="column">
+    <div id="preview" style="display:none;"></div>
+  </div>
+  <div class="column">
+    <iframe id=download-frame style='display:none;'></iframe>
+  </div>
+</div>
+
+  <!--<div id="loader" class="loader"></div>-->
+  <!--<div id="uploader"></div>-->
+  <!--<div id="tree"></div>-->
+  <!--<div id="editor"></div>-->
+  <!--<div id="preview" style="display:none;"></div>-->
+  <!--<iframe id=download-frame style='display:none;'></iframe>-->
 </body>
 </html>
