@@ -32,8 +32,8 @@
 #define PRINTPORT Serial
 #define DEBUGPORT Serial
 
-// #define RELEASE
-//#define RELEASEASYNCWS
+#define RELEASE
+#define RELEASEASYNCWS
 
 #define PROGMEM_T __attribute__((section(".irom.text.template")))
 
@@ -67,7 +67,7 @@
 //#define CONFIG_FILE_MQTT "/configMqtt.json"
 
 Ticker _secondTk;
-Ticker restartESP;
+Ticker tickerResetRestart;
 
 //FS* _fs;
 unsigned long wifiDisconnectedSince = 0;
@@ -88,6 +88,8 @@ bool wifiGotIpFlag = false;
 bool wifiDisconnectedFlag = false;
 bool stationConnectedFlag = false;
 bool stationDisconnectedFlag = false;
+bool resetESP = false;
+bool restartESP = false;
 
 bool firmwareUpdated = false;
 
@@ -791,6 +793,31 @@ void AsyncWSBegin()
 {
   DEBUGASYNCWS("Async WebServer Init...\r\n");
 
+  // Register wifi Event to control connection LED
+  onStationModeConnectedHandler = WiFi.onStationModeConnected([](WiFiEventStationModeConnected data) {
+    onWiFiConnected(data);
+  });
+  onStationModeGotIPHandler = WiFi.onStationModeGotIP([](WiFiEventStationModeGotIP data) {
+    onWifiGotIP(data);
+  });
+  // onStationModeGotIPHandler = WiFi.onStationModeGotIP(onWifiGotIP);
+  onStationModeDisconnectedHandler = WiFi.onStationModeDisconnected([](WiFiEventStationModeDisconnected data) {
+    onWiFiDisconnected(data);
+  });
+
+  // Register event handlers.
+  // Callback functions will be called as long as these handler objects exist.
+  // Call "onStationConnected" each time a station connects
+  stationConnectedHandler = WiFi.onSoftAPModeStationConnected(&onStationConnected);
+  // Call "onStationDisconnected" each time a station disconnects
+  stationDisconnectedHandler = WiFi.onSoftAPModeStationDisconnected(&onStationDisconnected);
+  // Call "onProbeRequestPrint" and "onProbeRequestBlink" each time
+  // a probe request is received.
+  // Former will print MAC address of the station and RSSI to Serial,
+  // latter will blink an LED.
+  probeRequestPrintHandler = WiFi.onSoftAPModeProbeRequestReceived(&onProbeRequestPrint);
+  probeRequestBlinkHandler = WiFi.onSoftAPModeProbeRequestReceived(&onProbeRequestBlink);
+
   int reading = analogRead(A0);
   DEBUGASYNCWS("Analog Read: %d\r\n", reading);
   if (reading >= 768)
@@ -923,41 +950,16 @@ void AsyncWSBegin()
 
   //  loadHTTPAuth();
 
-  // Register wifi Event to control connection LED
-  onStationModeConnectedHandler = WiFi.onStationModeConnected([](WiFiEventStationModeConnected data) {
-    onWiFiConnected(data);
-  });
-  onStationModeGotIPHandler = WiFi.onStationModeGotIP([](WiFiEventStationModeGotIP data) {
-    onWifiGotIP(data);
-  });
-  // onStationModeGotIPHandler = WiFi.onStationModeGotIP(onWifiGotIP);
-  onStationModeDisconnectedHandler = WiFi.onStationModeDisconnected([](WiFiEventStationModeDisconnected data) {
-    onWiFiDisconnected(data);
-  });
-
-  // Register event handlers.
-  // Callback functions will be called as long as these handler objects exist.
-  // Call "onStationConnected" each time a station connects
-  stationConnectedHandler = WiFi.onSoftAPModeStationConnected(&onStationConnected);
-  // Call "onStationDisconnected" each time a station disconnects
-  stationDisconnectedHandler = WiFi.onSoftAPModeStationDisconnected(&onStationDisconnected);
-  // Call "onProbeRequestPrint" and "onProbeRequestBlink" each time
-  // a probe request is received.
-  // Former will print MAC address of the station and RSSI to Serial,
-  // latter will blink an LED.
-  probeRequestPrintHandler = WiFi.onSoftAPModeProbeRequestReceived(&onProbeRequestPrint);
-  probeRequestBlinkHandler = WiFi.onSoftAPModeProbeRequestReceived(&onProbeRequestBlink);
-
   // _configAP.APenable = true;
 
   // WiFi.persistent(true);
   // WiFi.mode(WIFI_OFF);
 
-  bool autoConnect = true;
+  bool autoConnect = false;
   WiFi.setAutoConnect(autoConnect);
 
-  bool autoReconnect = true;
-  WiFi.setAutoReconnect(autoReconnect);
+  // bool autoReconnect = true;
+  // WiFi.setAutoReconnect(autoReconnect);
 
   // WiFi.hostname(_config.hostname);
 
@@ -1064,12 +1066,6 @@ void AsyncWSBegin()
   });
   server.addHandler(&events);
 
-  //  sholattimeevent.onConnect([](AsyncEventSourceClient * client) {
-  //    //client->send("hello!", NULL, millis(), 1000);
-  //    //_secondTk.attach(1.0f, s_secondTick, static_cast<void*>(client)); // Task to run periodic things every second
-  //  });
-  //  server.addHandler(&sholattimeevent);
-
   server.addHandler(new SPIFFSEditor());
 
   server.on("/list", HTTP_GET, [](AsyncWebServerRequest *request) {
@@ -1077,26 +1073,25 @@ void AsyncWSBegin()
     handleFileList(request);
   });
 
-  // server.on("/description.xml", [](AsyncWebServerRequest *request) {
-  //   DEBUGASYNCWS("%s\r\n", __PRETTY_FUNCTION__);
-  //   // SSDP.schema(HTTP.client());
-  // });
-
   server.on("/description.xml", HTTP_GET, [](AsyncWebServerRequest *request) {
     DEBUGASYNCWS("%s\r\n", __PRETTY_FUNCTION__);
 
     File file = SPIFFS.open(DESCRIPTION_XML_FILE, "r");
     if (!file)
     {
-      PRINT("Failed to open config file\r\n");
+      DEBUGASYNCWS("Failed to open config file\r\n");
+      file.close();
       return;
     }
 
     size_t size = file.size();
-    PRINT("DESCRIPTION_XML_FILE file size: %d bytes\r\n", size);
-    if (size > 1024)
+    const uint16_t allocSize = 1024;
+    DEBUGASYNCWS("DESCRIPTION_XML_FILE file size: %d bytes\r\n", size);
+    if (size > allocSize)
     {
-      PRINT("WARNING, file size maybe too large\r\n");
+      DEBUGASYNCWS("DESCRIPTION_XML_FILE size is larger than %d size\r\n");
+      file.close();
+      return;
     }
 
     // Allocate a buffer to store contents of the file
@@ -1111,16 +1106,16 @@ void AsyncWSBegin()
     //close the file, save your memory, keep healthy :-)
     file.close();
 
-    PRINT("%s\r\n", buf);
+    DEBUGASYNCWS("%s\r\n", buf);
 
     StreamString output;
 
-    if (output.reserve(1024))
+    if (output.reserve(allocSize))
     {
       //convert IP address to char array
       size_t len = strlen(WiFi.localIP().toString().c_str());
       char URLBase[len + 1];
-      strlcpy(URLBase, WiFi.localIP().toString().c_str(), sizeof(URLBase));
+      strlcpy(URLBase, WiFi.localIP().toString().c_str(), sizeof(URLBase) / sizeof(URLBase[0]));
 
       // const char *friendlyName = WiFi.hostname().toString().c_str();
       len = strlen(WiFi.hostname().c_str());
@@ -1224,19 +1219,29 @@ void AsyncWSBegin()
 
     request->send(404);
   });
+
   server.onFileUpload([](AsyncWebServerRequest *request, const String &filename, size_t index, uint8_t *data, size_t len, bool final) {
     if (!index)
+    {
       DEBUGLOG("UploadStart: %s\r\n", filename.c_str());
+    }
     DEBUGLOG("%s", (const char *)data);
     if (final)
+    {
       DEBUGLOG("UploadEnd: %s (%u)\r\n", filename.c_str(), index + len);
+    }
   });
+
   server.onRequestBody([](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
     if (!index)
+    {
       DEBUGLOG("BodyStart: %u\r\n", total);
+    }
     DEBUGLOG("%s", (const char *)data);
     if (index + len == total)
+    {
       DEBUGLOG("BodyEnd: %u\r\n", total);
+    }
   });
 
   server.on("/scan", HTTP_GET, [](AsyncWebServerRequest *request) {
@@ -1275,12 +1280,13 @@ void AsyncWSBegin()
 
   server.on("/admin/restart", [](AsyncWebServerRequest *request) {
     DEBUGASYNCWS("%s\r\n", request->url().c_str());
-    restart_esp(request);
+    request->send_P(200, "text/html", Page_WaitAndReload);
+    restartESP = true;
   });
 
   server.on("/reset", [](AsyncWebServerRequest *request) {
-    DEBUGASYNCWS("%s\r\n", request->url().c_str());
-    reset_esp(request);
+    request->send_P(200, "text/html", Page_WaitAndReload);
+    resetESP = true;
   });
 
   server.on("/admin/wwwauth", [](AsyncWebServerRequest *request) {
@@ -1447,14 +1453,15 @@ void onWiFiConnected(WiFiEventStationModeConnected data)
 }
 
 // Start NTP only after IP network is connected
-//void onWifiGotIP (WiFiEventStationModeGotIP ipInfo) {
-void onWifiGotIP(const WiFiEventStationModeGotIP &event)
+void onWifiGotIP(WiFiEventStationModeGotIP ipInfo)
+// void onWifiGotIP(const WiFiEventStationModeGotIP &event)
 {
   wifiGotIpFlag = true;
 
   //Serial.printf_P(PSTR("\r\nWifi Got IP: %s\r\n"), ipInfo.ip.toString().c_str ());
   PRINT("\r\nWifi Got IP\r\n");
-  PRINT("IP Address:\t%s\r\n", WiFi.localIP().toString().c_str());
+  // PRINT("IP Address:\t%s\r\n", WiFi.localIP().toString().c_str());
+  PRINT("IP Address:\t%s\r\n", ipInfo.ip.toString().c_str());
 }
 
 void onWiFiDisconnected(WiFiEventStationModeDisconnected data)
@@ -1765,42 +1772,12 @@ void sendDateTime(uint8_t mode)
   }
 }
 
-void restart_esp(AsyncWebServerRequest *request)
-{
-  request->send_P(200, "text/html", Page_WaitAndReload);
-  DEBUGLOG("%s\r\n", __PRETTY_FUNCTION__);
-  SPIFFS.end(); // SPIFFS.end();
-
-  /*
-    GPIO 0  GPIO 2  GPIO 15
-    UART Download Mode (Programming)  0       1       0
-    Flash Startup (Normal)            1       1       0
-    SD - Card Boot                      0       0       1
-  */
-
-  //WiFi.forceSleepBegin(); wdt_reset(); ESP.restart(); while(1)wdt_reset();
-
-  //ESP.restart();
-
-  restartESP.attach(1.0f, restart_1); // Task to run periodic things every second
-}
-
 void restart_1()
 {
   // digitalWrite(0, HIGH); //GPIO0
   // digitalWrite(2, HIGH); //GPIO2
   // digitalWrite(15, LOW); //GPIO15
   ESP.restart();
-}
-
-void reset_esp(AsyncWebServerRequest *request)
-{
-  request->send_P(200, "text/html", Page_WaitAndReload);
-  DEBUGLOG("%s\r\n", __PRETTY_FUNCTION__);
-  SPIFFS.end(); // SPIFFS.end();
-  //delay(1000);
-  //ESP.reset();
-  restartESP.attach(1.0f, reset_1); // Task to run periodic things every second
 }
 
 void reset_1()
@@ -3412,8 +3389,20 @@ void AsyncWSLoop()
   ArduinoOTA.handle();
   dnsServer.processNextRequest();
 
-  // static time_t oldTime = localTime;
-  //if (localTime != oldTime) {
+  if (resetESP)
+  {
+    resetESP = false;
+    SPIFFS.end();                           // SPIFFS.end();
+    tickerResetRestart.once(1.0f, reset_1); // Task to run periodic things every second
+  }
+
+  if (restartESP)
+  {
+    restartESP = false;
+    SPIFFS.end();                             // SPIFFS.end();
+    tickerResetRestart.once(1.0f, restart_1); // Task to run periodic things every second
+  }
+
   if (tick1000ms)
   {
     if (firmwareUpdated)
@@ -3581,6 +3570,9 @@ void AsyncWSLoop()
   if (wifiGotIpFlag)
   {
     wifiGotIpFlag = false;
+
+    bool autoReconnect = true;
+    WiFi.setAutoReconnect(autoReconnect);
 
     uint8_t mode = WiFi.getMode();
     if (mode == WIFI_AP)

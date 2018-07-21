@@ -7291,7 +7291,7 @@ void setup()
   // -------------------------------------------------------------------
   // Setup MQTT
   // -------------------------------------------------------------------
-  Serial.println(F("//------- SETUP MQTT -------//"));
+  // Serial.println(F("//------- SETUP MQTT -------//"));
 
   mqtt_setup();
 
@@ -7302,7 +7302,7 @@ void setup()
   // -------------------------------------------------------------------
   // Load configuration from EEPROM & Setup Async Server
   // -------------------------------------------------------------------
-  Serial.println(F("Loading settings from EEPROM... "));
+  // Serial.println(F("Loading settings from EEPROM... "));
   //config_load_settings();
 
   //WiFi.setSleepMode(WIFI_NONE_SLEEP);

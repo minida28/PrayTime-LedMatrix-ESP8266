@@ -13,9 +13,9 @@
 <serialNumber>%d</serialNumber>
 <modelName>%s</modelName>
 <modelNumber>%s</modelNumber>
-<modelURL>%d%d%d</modelURL>
+<modelURL>http://www.espressif.com</modelURL>
 <manufacturer>Espressif Systems</manufacturer>
 <manufacturerURL>http://www.espressif.com</manufacturerURL>
-<UDN>uuid:38323636-4558-4dda-9188-cda0e62cd3d6</UDN>
+<UDN>uuid:38323636-4558-4dda-9188-cda0e6%02x%02x%02x</UDN>
 </device>
 </root>
