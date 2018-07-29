@@ -24,6 +24,9 @@ extern char sholatTimeYesterdayArray[TimesCount][6];
 extern char sholatTimeArray[TimesCount][6];
 extern char sholatTimeTomorrowArray[TimesCount][6];
 
+extern uint32_t currentSholatTime;
+extern uint32_t nextSholatTime;
+
 char* sholatNameStr(uint8_t id);
 void process_sholat();
 void process_sholat_2nd_stage();

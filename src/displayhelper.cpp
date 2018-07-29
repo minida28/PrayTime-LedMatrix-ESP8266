@@ -219,7 +219,7 @@ void AlarmTrigger()
 uint8_t PageAutomaticMode()
 {
     // DEBUGLOG("%s\r\n", __PRETTY_FUNCTION__);
-    uint32_t adzanEndTime = sholat.timestampSholatTimesToday[CURRENTTIMEID] + (60 * _ledMatrixSettings.adzanwaittime);
+    uint32_t adzanEndTime = currentSholatTime + (60 * _ledMatrixSettings.adzanwaittime);
     uint32_t iqamahTime = adzanEndTime + (60 * _ledMatrixSettings.iqamahwaittime);
     if (_ledMatrixSettings.pagemode == Automatic)
     {
@@ -229,17 +229,17 @@ uint8_t PageAutomaticMode()
             return 0;
         }
 
-        else if ((sholat.timestampSholatTimesToday[NEXTTIMEID] - now) <= (60 * 50))
+        else if ((nextSholatTime - now) <= (60 * 50))
         {
             currentPageMode0 = 8;
-            // PRINT("%s nextSholatTime= %u now= %u diff= %d\n", "Case A", sholat.timestampSholatTimesToday[NEXTTIMEID], now, sholat.timestampSholatTimesToday[NEXTTIMEID] - now);
+            // PRINT("%s nextSholatTime= %u now= %u diff= %d\r\n", "Case A", nextSholatTime, now, nextSholatTime - now);
             return 1;
         }
 
         else if (now < adzanEndTime)
         {
             currentPageMode0 = 2;
-            // Serial.println("now < adzanEndTime");
+            PRINT("now: %u, adzanEndTime: %u\r\n", now, adzanEndTime);
             return 2;
         }
 
@@ -250,10 +250,10 @@ uint8_t PageAutomaticMode()
             return 3;
         }
 
-        else if (now <= sholat.timestampSholatTimesToday[CURRENTTIMEID] + (60 * 30))
+        else if (now <= currentSholatTime + (60 * 30))
         {
             currentPageMode0 = 2;
-            // PRINT("%s currentSholatTime= %u now= %u diff= %d\n", "Case B", sholat.timestampSholatTimesToday[CURRENTTIMEID], now, now - sholat.timestampSholatTimesToday[CURRENTTIMEID]);
+            // PRINT("%s currentSholatTime= %u now= %u diff= %d\r\n", "Case B", currentSholatTime, now, now - currentSholatTime);
             return 4;
         }
 
@@ -268,7 +268,7 @@ uint8_t PageAutomaticMode()
             return 6;
         }
     }
-    else //_ledMatrixSettings.pagemode is Manual
+    else if (_ledMatrixSettings.pagemode == Manual)
     {
         MODE = _ledMatrixSettings.operatingmode;
         currentPageMode0 = _ledMatrixSettings.pagemode0;

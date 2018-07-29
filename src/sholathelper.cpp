@@ -380,7 +380,7 @@ void process_sholat_2nd_stage()
   else if (NEXTTIMEID < CURRENTTIMEID)
   {
     RtcDateTime dt;
-    dt.InitWithEpoch32Time(now);
+    dt.InitWithEpoch32Time(localTime); // WARNING!! DO NOT SET UTC, IT NEEDS LOCAL TIME
 
     if (dt.Hour() >= 12) // is PM ?
     {
