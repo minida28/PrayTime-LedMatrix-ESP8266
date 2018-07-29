@@ -151,6 +151,7 @@ const char pgm_param[] PROGMEM = "param";
 const char pgm_value[] PROGMEM = "value";
 const char pgm_text[] PROGMEM = "text";
 const char pgm_type[] PROGMEM = "type";
+const char pgm_descriptionxmlfile[] PROGMEM = "/description.xml";
 const char pgm_systeminfofile[] PROGMEM = "/systeminfo.json";
 const char pgm_statuspagesystem[] PROGMEM = "/status.html";
 const char pgm_saveconfig[] PROGMEM = "saveconfig";

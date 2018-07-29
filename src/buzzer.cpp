@@ -293,6 +293,15 @@ void Tone10(uint8_t pinBuzzer, uint16_t duration)
   }
 }
 
+void BuzzerSetup()
+{
+    pinMode(BUZZER, OUTPUT);
+  digitalWrite(BUZZER, LOW);
+
+  pinMode(LED_1, OUTPUT);
+  digitalWrite(LED_1, LOW);
+}
+
 
 
 

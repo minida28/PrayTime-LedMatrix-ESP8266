@@ -325,7 +325,8 @@
           obj.url = '/sholat.html';
           var myJSON = JSON.stringify(obj);
           console.log(myJSON);
-          ws.send(myJSON);
+          // ws.send(myJSON);
+          ws.send(obj.url);
         };
         ws.onclose = function (evt) {
           //console.log("WebSocket CLOSE ", evt);

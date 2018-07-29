@@ -37,7 +37,7 @@
 
   \*--------------------------------------------------------------------------*/
 
-#include "Arduino.h"
+// #include "Arduino.h"
 #include "sholat.h"
 
 #include <cstdio>
@@ -48,68 +48,25 @@
 #include <cstring>
 #include <unistd.h>
 #include <getopt.h>
+#include <RtcDS3231.h> //RTC library
+#include "timehelper.h"
 
-
-/* -------------------- Interface Functions -------------------- */
-/*
-  PrayerTimes(CalculationMethod calc_method = Jafari,
-      JuristicMethod asr_juristic = Shafii,
-      AdjustingMethod adjust_high_lats = MidNight,
-      double dhuhr_minutes = 0)
-
-  get_prayer_times(date, latitude, longitude, timezone, &times)
-  get_prayer_times(year, month, day, latitude, longitude, timezone, &times)
-
-  set_calc_method(method_id)
-  set_asr_method(method_id)
-  set_high_lats_adjust_method(method_id)    // adjust method for higher latitudes
-
-  set_fajr_angle(angle)
-  set_maghrib_angle(angle)
-  set_isha_angle(angle)
-  set_dhuhr_minutes(minutes)    // minutes after mid-day
-  set_maghrib_minutes(minutes)    // minutes after sunset
-  set_isha_minutes(minutes)   // minutes after maghrib
-
-  get_float_time_parts(time, &hours, &minutes)
-  float_time_to_time24(time)
-  float_time_to_time12(time)
-  float_time_to_time12ns(time)
-*/
-
-//double PrayerTimes::times[TimesCount];
-//double PrayerTimes::times[sizeof(TimeName) / sizeof(char*)];
-
-//void PrayerTimes::TIMES(TimeID _time_id)
-//{
-//  times[8];
-//}
-
-
-//double PrayerTimes::times[TimeID time_id];
-
-//void PrayerTimes::TIMES()
-//{
-//  times[sizeof(TimeName) / sizeof(char*)];
-//};
-
+strConfigLocation _configLocation;
+sholatConfig _sholatConfig;
 
 PrayerTimes::PrayerTimes(CalculationMethod calc_method,
                          JuristicMethod asr_juristic,
                          AdjustingMethod adjust_high_lats,
                          double dhuhr_minutes)
-  : calc_method(calc_method)
-  , asr_juristic(asr_juristic)
-  , adjust_high_lats(adjust_high_lats)
-  , dhuhr_minutes(dhuhr_minutes)
+    : calc_method(calc_method), asr_juristic(asr_juristic), adjust_high_lats(adjust_high_lats), dhuhr_minutes(dhuhr_minutes)
 {
-  method_params[MWL]     = MethodConfig(18.0, true,  0.0, false, 17.0); // MWL
-  method_params[ISNA]    = MethodConfig(15.0, true,  0.0, false, 15.0); // ISNA
-  method_params[Egypt]   = MethodConfig(19.5, true,  0.0, false, 17.5); // Egypt
-  method_params[Makkah]  = MethodConfig(18.5, true,  0.0, true,  90.0); // Makkah
-  method_params[Karachi] = MethodConfig(18.0, true,  0.0, false, 18.0); // Karachi
-  method_params[Jafari]  = MethodConfig(16.0, false, 4.0, false, 14.0); // Jafari
-  method_params[Custom]  = MethodConfig(18.0, true,  0.0, false, 17.0); // Custom
+  method_params[MWL] = MethodConfig(18.0, true, 0.0, false, 17.0);     // MWL
+  method_params[ISNA] = MethodConfig(15.0, true, 0.0, false, 15.0);    // ISNA
+  method_params[Egypt] = MethodConfig(19.5, true, 0.0, false, 17.5);   // Egypt
+  method_params[Makkah] = MethodConfig(18.5, true, 0.0, true, 90.0);   // Makkah
+  method_params[Karachi] = MethodConfig(18.0, true, 0.0, false, 18.0); // Karachi
+  method_params[Jafari] = MethodConfig(16.0, false, 4.0, false, 14.0); // Jafari
+  method_params[Custom] = MethodConfig(18.0, true, 0.0, false, 17.0);  // Custom
 }
 
 /*
@@ -121,15 +78,13 @@ PrayerTimes::PrayerTimes(CalculationMethod calc_method,
   double isha_value;    // angle or minutes
 */
 
-
-
 /* return prayer times for a given date */
 void PrayerTimes::get_prayer_times(int year, int month, int day, double _latitude, double _longitude, double _timezone, double times[])
 {
   latitude = _latitude;
   longitude = _longitude;
   timezone = _timezone;
-  julian_date = get_julian_date(year, month, day) - longitude / (double) (15 * 24);
+  julian_date = get_julian_date(year, month, day) - longitude / (double)(15 * 24);
   compute_day_times(times);
   tune_times(times);
 }
@@ -137,17 +92,8 @@ void PrayerTimes::get_prayer_times(int year, int month, int day, double _latitud
 /* return prayer times for a given date */
 void PrayerTimes::get_prayer_times(time_t date, double latitude, double longitude, double timezone, double times[])
 {
-  tm* t = localtime(&date);
+  tm *t = localtime(&date);
   get_prayer_times(1900 + t->tm_year, t->tm_mon + 1, t->tm_mday, latitude, longitude, timezone, times);
-}
-
-/* return prayer times for the day after a given date */
-void PrayerTimes::get_prayer_times_tomorrow(time_t date, double latitude, double longitude, double timezone, double timesTomorrow[])
-{
-  time_t numberOfSecondPerDay = 86400;
-  //tm* t = localtime(&date);
-  tm* t = localtime(&date + numberOfSecondPerDay);
-  get_prayer_times(1900 + t->tm_year, t->tm_mon + 1, t->tm_mday, latitude, longitude, timezone, timesTomorrow);
 }
 
 /* set the calculation method  */
@@ -157,13 +103,12 @@ void PrayerTimes::set_calc_method(CalculationMethod method_id)
 }
 
 /* get hours and minutes parts of a float time */
-void PrayerTimes::get_float_time_parts(double time, int& hours, int& minutes)
+void PrayerTimes::get_float_time_parts(double time, uint8_t &hours, uint8_t &minutes)
 {
-  time = fix_hour(time + 0.5 / 60);   // add 0.5 minutes to round
+  time = fix_hour(time + 0.5 / 60); // add 0.5 minutes to round
   hours = floor(time);
   minutes = floor((time - hours) * 60);
 }
-
 
 /* set the juristic method for Asr */
 void PrayerTimes::set_asr_method(JuristicMethod method_id)
@@ -222,8 +167,6 @@ void PrayerTimes::set_isha_minutes(double minutes)
   calc_method = Custom;
 }
 
-
-
 ///* convert float hours to 24h format */
 //String PrayerTimes::float_time_to_time24(double time)
 //{
@@ -234,17 +177,15 @@ void PrayerTimes::set_isha_minutes(double minutes)
 //  return two_digits_format(hours) + ':' + two_digits_format(minutes);
 //}
 
-
-
 /* convert float hours to 24h format */
 const char *PrayerTimes::float_time_to_time24(double time)
 {
   if ((std::isnan(time)))
     return nullptr; //return NULL
-  int hours, minutes;
+  uint8_t hours, minutes;
   get_float_time_parts(time, hours, minutes);
   static char time24[6];
-  const char* ptr = two_digits_format(hours);
+  const char *ptr = two_digits_format(hours);
   strlcpy(time24, ptr, sizeof(time24));
   strcat(time24, ":");
   ptr = two_digits_format(minutes);
@@ -253,26 +194,28 @@ const char *PrayerTimes::float_time_to_time24(double time)
 }
 
 /* convert float hours to 12h format */
-const char* PrayerTimes::float_time_to_time12(double time, bool no_suffix)
+const char *PrayerTimes::float_time_to_time12(double time, bool no_suffix)
 {
   if ((std::isnan(time)))
     return nullptr; // or return NULL;
-  int hours, minutes;
+  uint8_t hours, minutes;
   get_float_time_parts(time, hours, minutes);
-  const char* suffix = hours >= 12 ? " PM" : " AM";
+  const char *suffix = hours >= 12 ? " PM" : " AM";
   hours = (hours + 12 - 1) % 12 + 1;
   //const char* ptrMinutes = two_digits_format(minutes);
-  const char* ptrHours = two_digits_format(hours);
-  const char* ptrMinutes = two_digits_format(minutes);
+  const char *ptrHours = two_digits_format(hours);
+  const char *ptrMinutes = two_digits_format(minutes);
   static char time12[10];
   strlcpy(time12, ptrHours, sizeof(time12));
   strcat(time12, ":");
   strcat(time12, ptrMinutes);
 
-  if (no_suffix) {
+  if (no_suffix)
+  {
     return time12;
   }
-  else {
+  else
+  {
     strcat(time12, suffix);
     return time12;
   }
@@ -280,20 +223,17 @@ const char* PrayerTimes::float_time_to_time12(double time, bool no_suffix)
 }
 
 /* convert float hours to 12h format with no suffix */
-const char* PrayerTimes::float_time_to_time12ns(double time)
+const char *PrayerTimes::float_time_to_time12ns(double time)
 {
   return float_time_to_time12(time, true);
 }
-
-
-
 
 /* ---------------------- Time-Zone Functions ----------------------- */
 
 /* compute local time-zone for a specific date */
 double PrayerTimes::get_effective_timezone(time_t local_time)
 {
-  tm* tmp = localtime(&local_time);
+  tm *tmp = localtime(&local_time);
   tmp->tm_isdst = 0;
   time_t local = mktime(tmp);
   tmp = gmtime(&local_time);
@@ -305,41 +245,31 @@ double PrayerTimes::get_effective_timezone(time_t local_time)
 /* compute local time-zone for a specific date */
 double PrayerTimes::get_effective_timezone(int year, int month, int day)
 {
-  tm date = { 0 };
+  tm date = {0};
   date.tm_year = year - 1900;
   date.tm_mon = month - 1;
   date.tm_mday = day;
-  date.tm_isdst = -1;   // determine it yourself from system
-  time_t local = mktime(&date);   // seconds since midnight Jan 1, 1970
+  date.tm_isdst = -1;           // determine it yourself from system
+  time_t local = mktime(&date); // seconds since midnight Jan 1, 1970
   return get_effective_timezone(local);
 }
 
-
-
 /* ---------------------- Misc Functions ----------------------- */
 
-
-
-const char* PrayerTimes::int_to_string(int num)
+const char *PrayerTimes::int_to_string(int num)
 {
-  static char tmp[16];
-  tmp[0] = '\0';
+  static char tmp[3];
   sprintf(tmp, "%02d", num);
   return tmp;
 }
-
 
 /* add a leading 0 if necessary */
-const char* PrayerTimes::two_digits_format(int num)
+const char *PrayerTimes::two_digits_format(int num)
 {
-  static char tmp[16];
-  tmp[0] = '\0';
+  static char tmp[3];
   sprintf(tmp, "%02d", num);
   return tmp;
 }
-
-
-
 
 /* ---------------------- Julian Date Functions ----------------------- */
 
@@ -358,22 +288,6 @@ double PrayerTimes::get_julian_date(int year, int month, int day)
   return floor(365.25 * (year + 4716)) + floor(30.6001 * (month + 1)) + day + b - 1524.5;
 }
 
-/* convert a calendar date to julian date (second method) */
-double PrayerTimes::calc_julian_date(int year, int month, int day)
-{
-  double j1970 = 2440588.0;
-  tm date = { 0 };
-  date.tm_year = year - 1900;
-  date.tm_mon = month - 1;
-  date.tm_mday = day;
-  date.tm_isdst = -1;   // determine it yourself from system
-  time_t ms = mktime(&date);    // seconds since midnight Jan 1, 1970
-  double days = floor(ms / (double) (60 * 60 * 24));
-  return j1970 + days - 0.5;
-}
-
-
-
 
 /* ---------------------- Compute Prayer Times ----------------------- */
 
@@ -384,19 +298,19 @@ void PrayerTimes::compute_times(double times[])
 {
   day_portion(times);
 
-  times[Fajr]    = compute_time(180.0 - method_params[calc_method].fajr_angle, times[Fajr]);
+  times[Fajr] = compute_time(180.0 - method_params[calc_method].fajr_angle, times[Fajr]);
   times[Sunrise] = compute_time(180.0 - 0.833, times[Sunrise]);
-  times[Dhuhr]   = compute_mid_day(times[Dhuhr]);
-  times[Asr]     = compute_asr(1 + asr_juristic, times[Asr]);
-  times[Sunset]  = compute_time(0.833, times[Sunset]);
+  times[Dhuhr] = compute_mid_day(times[Dhuhr]);
+  times[Asr] = compute_asr(1 + asr_juristic, times[Asr]);
+  times[Sunset] = compute_time(0.833, times[Sunset]);
   times[Maghrib] = compute_time(method_params[calc_method].maghrib_value, times[Maghrib]);
-  times[Isha]    = compute_time(method_params[calc_method].isha_value, times[Isha]);
+  times[Isha] = compute_time(method_params[calc_method].isha_value, times[Isha]);
 }
 
 /* compute prayer times at given julian date */
 void PrayerTimes::compute_day_times(double times[])
 {
-  double default_times[] = { 5, 6, 12, 13, 18, 18, 18 };    // default times
+  double default_times[] = {5, 6, 12, 13, 18, 18, 18}; // default times
   for (int i = 0; i < TimesCount; ++i)
     times[i] = default_times[i];
 
@@ -411,10 +325,10 @@ void PrayerTimes::adjust_times(double times[])
 {
   for (int i = 0; i < TimesCount; ++i)
     times[i] += timezone - longitude / 15.0;
-  times[Dhuhr] += dhuhr_minutes / 60.0;   // Dhuhr
-  if (method_params[calc_method].maghrib_is_minutes)    // Maghrib
+  times[Dhuhr] += dhuhr_minutes / 60.0;              // Dhuhr
+  if (method_params[calc_method].maghrib_is_minutes) // Maghrib
     times[Maghrib] = times[Sunset] + method_params[calc_method].maghrib_value / 60.0;
-  if (method_params[calc_method].isha_is_minutes)   // Isha
+  if (method_params[calc_method].isha_is_minutes) // Isha
     times[Isha] = times[Maghrib] + method_params[calc_method].isha_value / 60.0;
 
   if (adjust_high_lats != None)
@@ -431,7 +345,7 @@ void PrayerTimes::day_portion(double times[])
 /* adjust Fajr, Isha and Maghrib for locations in higher latitudes */
 void PrayerTimes::adjust_high_lat_times(double times[])
 {
-  double night_time = time_diff(times[Sunset], times[Sunrise]);   // sunset to sunrise
+  double night_time = time_diff(times[Sunset], times[Sunrise]); // sunset to sunrise
 
   // Adjust Fajr
   double fajr_diff = night_portion(method_params[calc_method].fajr_angle) * night_time;
@@ -462,38 +376,39 @@ double PrayerTimes::night_portion(double angle)
 {
   switch (adjust_high_lats)
   {
-    case AngleBased:
-      return angle / 60.0;
-    case MidNight:
-      return 1.0 / 2.0;
-    case OneSeventh:
-      return 1.0 / 7.0;
-    default:
-      // Just to return something!
-      // In original library nothing was returned
-      // Maybe I should throw an exception
-      // It must be impossible to reach here
-      return 0;
+  case AngleBased:
+    return angle / 60.0;
+  case MidNight:
+    return 1.0 / 2.0;
+  case OneSeventh:
+    return 1.0 / 7.0;
+  default:
+    // Just to return something!
+    // In original library nothing was returned
+    // Maybe I should throw an exception
+    // It must be impossible to reach here
+    return 0;
   }
 }
 
 /* set offsets settings */
-void PrayerTimes::tune (double timeOffsets[]) {
-  for (unsigned int i = 0; i < TimesCount; ++i) {
+void PrayerTimes::tune(double timeOffsets[])
+{
+  for (unsigned int i = 0; i < TimesCount; ++i)
+  {
     offset[i] = timeOffsets[i];
   }
 }
 
-
 /* apply offsets to the times */
-double PrayerTimes::tune_times (double times[]) {
-  for (unsigned int i = 0; i < TimesCount; ++i) {
+double PrayerTimes::tune_times(double times[])
+{
+  for (unsigned int i = 0; i < TimesCount; ++i)
+  {
     times[i] += offset[i] / 60;
   }
   return *times;
 }
-
-
 
 /* ---------------------- Calculation Functions ----------------------- */
 
@@ -507,7 +422,7 @@ double PrayerTimes::compute_time(double g, double t)
   double d = sun_declination(julian_date + t);
   double z = compute_mid_day(t);
   double v = 1.0 / 15.0 * darccos((-dsin(g) - dsin(d) * dsin(latitude)) / (dcos(d) * dcos(latitude)));
-  return z + (g > 90.0 ? - v :  v);
+  return z + (g > 90.0 ? -v : v);
 }
 
 /* compute mid-day (Dhuhr, Zawal) time */
@@ -519,7 +434,7 @@ double PrayerTimes::compute_mid_day(double _t)
 }
 
 /* compute the time of Asr */
-double PrayerTimes::compute_asr(int step, double t)  // Shafii: step=1, Hanafi: step=2
+double PrayerTimes::compute_asr(int step, double t) // Shafii: step=1, Hanafi: step=2
 {
   double d = sun_declination(julian_date + t);
   double g = -darccot(step + dtan(fabs(latitude - d)));
@@ -635,16 +550,6 @@ double PrayerTimes::fix_angle(double a)
   return a;
 }
 
-
-
-
-
-
 /* --------------------- Technical Settings -------------------- */
 
-const int PrayerTimes::NUM_ITERATIONS = 1;    // number of iterations needed to compute times
-
-
-
-
-
+const int PrayerTimes::NUM_ITERATIONS = 1; // number of iterations needed to compute times

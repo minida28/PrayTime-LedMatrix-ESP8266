@@ -35,9 +35,10 @@
 #include <AsyncMqttClient.h>
 #include <ESP8266WiFi.h>
 #include <Ticker.h>
-#include "config.h"
 #include "asyncserver.h"
 #include <ArduinoJson.h>
+#include "progmemmatrix.h"
+#include "timehelper.h"
 
 #define CONFIG_FILE_MQTT "/configmqtt.json"
 #define CONFIG_FILE_MQTT_PUBSUB "/configmqttpubsub.json"
@@ -102,6 +103,12 @@ typedef struct
 extern strConfigMqtt configMqtt;
 
 extern uint32_t lastTimePayloadReceived;
+
+
+
+
+extern char bufWatt[10];
+extern char bufVoltage[10];
 
 //
 void connectToMqtt();

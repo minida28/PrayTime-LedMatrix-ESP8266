@@ -396,7 +396,8 @@
         var obj = new Object();
         obj.url = window.location.pathname;
         var myJSON = JSON.stringify(obj);
-        ws.send(myJSON);
+        // ws.send(myJSON);
+        ws.send(obj.url);
       };
       ws.onclose = function (evt) {
         console.log("WebSocket close. Code: " + evt.code + ", Reason: " + evt.reason);
@@ -462,6 +463,7 @@
               document.getElementById("uptime").textContent = json.uptime;
               document.getElementById("lastsync").textContent = json.lastsync;
               document.getElementById("nextsync").textContent = json.nextsync;
+              document.getElementById("lastboot").textContent = json.lastboot;
               document.getElementById("ping_seq_num_recv").textContent = json.ping_seq_num_recv;
               document.getElementById("ping_seq_num_send").textContent = json.ping_seq_num_send;
             }

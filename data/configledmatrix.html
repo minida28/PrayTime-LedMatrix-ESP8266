@@ -488,7 +488,8 @@
         var obj = new Object();
         obj.url = window.location.pathname;
         var myJSON = JSON.stringify(obj);
-        ws.send(myJSON);
+        // ws.send(myJSON);
+        ws.send(obj.url);
 
         //ws.send(encodeWebSocket(longText));
         //ws.send(arrayBuffer);

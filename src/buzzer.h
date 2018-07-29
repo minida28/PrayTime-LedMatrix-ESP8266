@@ -4,6 +4,7 @@
 //#include <stdint.h>
 #include <Arduino.h>
 #include "config.h"
+#include "pinouthelper.h"
 
 
 #define PINBUZZER_2 15 //D8
@@ -24,6 +25,8 @@ void Tone1(uint8_t pinBuzzer, uint16_t duty);
 void Tone10(uint8_t pin, uint16_t duration);
 
 void x_tone(uint8_t pin, uint16_t freq);
+
+void BuzzerSetup();
 
 #endif
 

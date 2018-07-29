@@ -18,7 +18,8 @@
         "cstdlib": "cpp",
         "*.tcc": "cpp",
         "fstream": "cpp",
-        "bitset": "cpp"
+        "bitset": "cpp",
+        "sstream": "cpp"
     },
     // "arduino.path": "C:/Program Files (x86)/Arduino",
     // "arduino.commandPath": "run-arduino.bat",

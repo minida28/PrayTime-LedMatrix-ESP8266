@@ -6,17 +6,23 @@
 
 #include <Arduino.h>
 
+
+
 #define PRINTPORT Serial
 #define DEBUGPORT Serial
 
-#define RELEASEMQTT
+#define PRINT(fmt, ...)                   \
+  {                                           \
+    static const char pfmt[] PROGMEM = fmt; \
+    DEBUGPORT.printf_P(pfmt, ##__VA_ARGS__);  \
+  }
 
-#define PROGMEM_T __attribute__((section(".irom.text.template")))
+#define RELEASEMQTT
 
 #ifndef RELEASEMQTT
 #define DEBUGMQTT(fmt, ...)                   \
   {                                           \
-    static const char pfmt[] PROGMEM_T = fmt; \
+    static const char pfmt[] PROGMEM = fmt; \
     DEBUGPORT.printf_P(pfmt, ##__VA_ARGS__);  \
   }
 #else
@@ -36,6 +42,9 @@ uint32_t lastTimePayloadReceived = 0;
 uint32_t reconnectInterval = 30000;
 uint32_t clientTimeout = 0;
 uint32_t i = 0;
+
+char bufWatt[10];
+char bufVoltage[10];
 
 AsyncMqttClient mqttClient;
 
@@ -252,13 +261,13 @@ void onMqttDisconnect(AsyncMqttClientDisconnectReason reason)
 
 void onMqttSubscribe(uint16_t packetId, uint8_t qos)
 {
-  // DEBUGMQTT("Subscribe acknowledged.\r\n\tpacketId: %d\r\n\tqos: %d\r\n", packetId, qos);
+  PRINT("\r\nSubscribe acknowledged.\r\n\tpacketId: %d\r\n\tqos: %d\r\n", packetId, qos);
   mqttSubscribeFlag = true;
 }
 
 void onMqttUnsubscribe(uint16_t packetId)
 {
-  // DEBUGMQTT("Unsubscribe acknowledged.\r\n\tpacketId: %d\r\n", packetId);
+  PRINT("\r\nUnsubscribe acknowledged.\r\n\tpacketId: %d\r\n", packetId);
   mqttUnsubscribeFlag = true;
 }
 
@@ -302,9 +311,7 @@ void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties 
 
 void onMqttPublish(uint16_t packetId)
 {
-  // DEBUGMQTT("\r\n%s\r\n", __PRETTY_FUNCTION__);
-  // DEBUGMQTT("Publish acknowledged.\r\n");
-  // DEBUGMQTT("  packetId: %d\r\n", packetId);
+  PRINT("\r\nPublish acknowledged.\r\n\tpacketId: %d\r\n", packetId);
   mqttPublishFlag = true;
 }
 
@@ -555,10 +562,10 @@ void mqtt_loop()
     }
   }
 
-  static time_t prevDisplay;
-  if (utcTime != prevDisplay)
+  static uint32_t prevDisplay;
+  if (now != prevDisplay)
   {
-    prevDisplay = utcTime;
+    prevDisplay = now;
     lastTimePayloadReceived++;
   }
 
@@ -591,15 +598,11 @@ void mqtt_loop()
   if (mqttPublishFlag)
   {
     mqttPublishFlag = false;
-    DEBUGMQTT("Publish acknowledged.\r\n");
-    // DEBUGMQTT("  packetId: %d\r\n", packetId);
   }
 
   if (mqttSubscribeFlag)
   {
     mqttSubscribeFlag = false;
-    // DEBUGMQTT("Subscribe acknowledged.\n  packetId: %d\n  qos: %d\r\n", packetId, qos);
-    DEBUGMQTT("Subscribe acknowledged.\r\n");
   }
 
   if (mqttUnsubscribeFlag)

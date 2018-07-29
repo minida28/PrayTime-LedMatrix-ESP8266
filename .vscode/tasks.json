@@ -28,6 +28,13 @@
                     "$platformio"
                 ],
                 "label": "PlatformIO: Upload SPIFFS image"
+            },
+            {
+                "type": "PlatformIO",
+                "task": "Upload",
+                "problemMatcher": [
+                    "$platformio"
+                ]
             }
         ]
     }

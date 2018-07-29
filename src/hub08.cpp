@@ -30,7 +30,7 @@
 //#include <SPI.h>
 //#include "Adafruit_GFX.h"
 #include "HUB08.h"
-#include "config.h"
+#include "displayhelper.h"
 
 #if 0
 #define ASSERT(e)   if (!(e)) { Serial.println(#e); while (1); }
