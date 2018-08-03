@@ -302,7 +302,7 @@ void loop()
     AlarmTrigger();
 
     PageAutomaticMode();
-    DEBUGLOG("case: %d\r\n", PageAutomaticMode());
+    // DEBUGLOG("case: %d\r\n", PageAutomaticMode());
   }
 
   if (tick3000ms)

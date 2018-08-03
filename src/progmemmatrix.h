@@ -85,6 +85,9 @@ const char *const wifimode_P[] PROGMEM =
         AP_Str,
         STA_AP_Str};
 
+const char pgm_provinces_file[] PROGMEM = "/provinces.csv";
+const char pgm_regencies_file[] PROGMEM = "/regencies.csv";
+
 const char pgm_loc[] PROGMEM = "loc";
 const char pgm_hostname[] PROGMEM = "hostname";
 const char pgm_mode[] PROGMEM = "mode";

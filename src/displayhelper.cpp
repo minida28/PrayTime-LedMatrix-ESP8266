@@ -268,7 +268,7 @@ uint8_t PageAutomaticMode()
             return 6;
         }
     }
-    else if (_ledMatrixSettings.pagemode == Manual)
+    else
     {
         MODE = _ledMatrixSettings.operatingmode;
         currentPageMode0 = _ledMatrixSettings.pagemode0;
@@ -276,6 +276,233 @@ uint8_t PageAutomaticMode()
         currentPageMode2 = _ledMatrixSettings.pagemode2;
         return 7;
     }
+}
+
+void load_provinces_file(uint16_t index)
+{
+
+    // DEBUGLOG("%s\r\n", __PRETTY_FUNCTION__);
+
+    File file = SPIFFS.open(FPSTR(pgm_provinces_file), "r");
+    if (!file)
+    {
+        DEBUGLOG("Failed to open provinces list file");
+        //return F("failed");
+        //    return false;
+        file.close();
+        return;
+    }
+
+    // this is going to get the number of bytes in the file and give us the value in an integer
+    int size = file.size();
+    char buf[36];
+
+    int16_t x1Temp, y1Temp;
+    uint16_t wTemp, hTemp;
+
+    wText = 0;
+
+    uint16_t cityIndex = index;
+
+    // iterate csv files
+    for (int i = 0; i < cityIndex; i++)
+    {
+        while (file.available())
+        {
+            if (file.find('\n'))
+            {
+                break;
+            }
+        }
+    }
+
+    int offset = 0;
+    while (file.available())
+    {
+        char rc = file.read();
+        if (rc != '\r')
+        {
+            buf[offset] = rc;
+            offset++;
+        }
+        else
+        {
+            buf[offset] = '\0'; // terminate the string
+            break;
+        }
+    }
+
+    // split the data into its parts
+    char bufTemp[strlen(buf) + 1];
+    strlcpy(bufTemp, buf, sizeof(bufTemp));
+
+    char *token; // this is used by strtok() as an index
+
+    int len;
+
+    // store province ID
+    token = strtok(bufTemp, ",");
+    len = strlen(token) + 1;
+    char provId[len];
+    strlcpy(provId, token, sizeof(provId));
+
+    // store province NAME
+    token = strtok(NULL, ",");
+    len = strlen(token) + 1;
+    char provName[len];
+    strlcpy(provName, token, sizeof(provName));
+
+    // PRINT("province ID: %s, name: %s\r\n", provId, provName);
+
+    // PRINT("startPos: %d, endPos: %d, wFirstChar: %d, offset: %d, string: %s\r\n", startPos, endPos, wFirstChar, offset, buf);
+
+    matrix.print(provName);
+
+    // char* chr = const_cast<char*>(contents.c_str());
+    // matrix.getTextBounds(chr, 0, 0, &x1Temp, &y1Temp, &wTemp, &hTemp);
+    matrix.getTextBounds(buf, 0, 0, &x1Temp, &y1Temp, &wTemp, &hTemp);
+    // matrix.getTextBounds(contents, 0, 0, &x1Temp, &y1Temp, &wTemp, &hTemp);
+    wText = wTemp;
+
+    file.close();
+}
+
+void load_regencies_file(uint16_t selectedProvId)
+{
+
+    // DEBUGLOG("%s\r\n", __PRETTY_FUNCTION__);
+
+    File file = SPIFFS.open(FPSTR(pgm_regencies_file), "r");
+    if (!file)
+    {
+        DEBUGLOG("Failed to open provinces list file");
+        //return F("failed");
+        //    return false;
+        file.close();
+        return;
+    }
+
+    // this is going to get the number of bytes in the file and give us the value in an integer
+    uint32_t size = file.size();
+
+    char buf[36];
+
+    int16_t x1Temp, y1Temp;
+    uint16_t wTemp, hTemp;
+
+    uint16_t wFirstChar;
+
+    wText = 0;
+
+    // uint16_t regenciesIndex = index;
+
+    int num = 0;
+
+    uint32_t offset = 0;
+    uint32_t pos = file.position(); // start position
+    uint32_t start = millis();
+
+    file.seek(11479, SeekSet);
+
+    while (num < 2)
+    {
+        char rc = file.read();
+        if (rc == '\n')
+        {
+            num++;
+        }
+
+        while (num == 2)
+        {
+            char rc = file.read();
+            if (rc != '\r')
+            {
+                buf[offset] = rc;
+                offset++;
+            }
+            else
+            {
+                buf[offset] = '\0'; // terminate the string
+                PRINT("\r\n%s\r\n\r\n", buf);
+                break;
+            }
+        }
+    }
+
+    // split the data into its parts
+    char bufTemp[strlen(buf) + 1];
+    strlcpy(bufTemp, buf, sizeof(bufTemp));
+
+    char *token; // this is used by strtok() as an index
+
+    int len;
+
+    // store regency ID
+    token = strtok(bufTemp, ",");
+    len = strlen(token) + 1;
+    char regencyId[len];
+    strlcpy(regencyId, token, sizeof(regencyId));
+
+    // store province ID
+    token = strtok(NULL, ",");
+    len = strlen(token) + 1;
+    char provId[len];
+    strlcpy(provId, token, sizeof(provId));
+
+    // store regency NAME
+    token = strtok(NULL, ",");
+    len = strlen(token) + 1;
+    char regencyName[len];
+    strlcpy(regencyName, token, sizeof(regencyName));
+
+    // PRINT("province ID: %s, name: %s\r\n", provId, provName);
+
+    // PRINT("startPos: %d, endPos: %d, wFirstChar: %d, offset: %d, string: %s\r\n", startPos, endPos, wFirstChar, offset, buf);
+
+    matrix.print(regencyName);
+
+    uint32_t end = millis();
+    PRINT("\r\nnum: %d, Loading time: %d ms\r\n\r\n", num, end - start);
+
+    /*
+    // split the data into its parts
+    char bufTemp[strlen(buf) + 1];
+    strlcpy(bufTemp, buf, sizeof(bufTemp));
+
+    char *token; // this is used by strtok() as an index
+
+    int len;
+
+    // store regency ID
+    token = strtok(bufTemp, ",");
+    len = strlen(token) + 1;
+    char regencyId[len];
+    strlcpy(regencyId, token, sizeof(regencyId));
+
+    // store province ID
+    token = strtok(NULL, ",");
+    len = strlen(token) + 1;
+    char provId[len];
+    strlcpy(provId, token, sizeof(provId));
+
+    // store regency NAME
+    token = strtok(NULL, ",");
+    len = strlen(token) + 1;
+    char regencyName[len];
+    strlcpy(regencyName, token, sizeof(regencyName));
+
+    PRINT("regencyID ID:%s, provID:%s, name:%s\r\n", regencyId, provId, regencyName);
+
+    matrix.print(regencyName);
+
+    //char* chr = const_cast<char*>(contents.c_str());
+    //matrix.getTextBounds(chr, 0, 0, &x1Temp, &y1Temp, &wTemp, &hTemp);
+    matrix.getTextBounds(buf, 0, 0, &x1Temp, &y1Temp, &wTemp, &hTemp);
+    //matrix.getTextBounds(contents, 0, 0, &x1Temp, &y1Temp, &wTemp, &hTemp);
+    wText = wTemp;
+    */
+
+    file.close();
 }
 
 void DisplaySetup()
@@ -5549,8 +5776,42 @@ void process_runningled_page()
             matrix.setFont(&RepetitionScrolling5pt8b);
             matrix.setFont(&TomThumb);
 
-            // uint16_t x0 = 1;
-            // uint16_t y0 = 6;
+            if (currentPageMode2_old != currentPageMode2)
+            {
+                currentPageMode2_old = currentPageMode2;
+                Serial.print(F("EDIT MODE, PAGE "));
+                Serial.println(currentPageMode2);
+
+                // reset static variables used in this page
+                stateEdit = false;
+                stateSwitch_old = false;
+                count = 0;
+                // tempTimezone = _config.timezone;
+
+                load_regencies_file(11);
+            }
+
+            static int cityIndex = 1;
+
+            static bool stateSwitch_old = 0;
+            if (stateSwitch != stateSwitch_old)
+            {
+
+                stateSwitch_old = stateSwitch;
+
+                if (stateSwitch == HIGH)
+                {
+                    cityIndex++;
+                }
+            }
+
+            matrix.setCursor(0, 6);
+
+            load_provinces_file(cityIndex);
+
+            matrix.setCursor(0, 14);
+
+            load_regencies_file(cityIndex);
         }
 
         // -------------------------------------------------------------------
@@ -5668,8 +5929,6 @@ void process_runningled_page()
             {
             }
 
-
-
             // if (stateSwitch != stateSwitch_old)
             // {
 
@@ -5742,9 +6001,6 @@ void process_runningled_page()
             //         // stateEdit = false;
             //     }
             // }
-
-
-
 
             if (stateEdit)
             {

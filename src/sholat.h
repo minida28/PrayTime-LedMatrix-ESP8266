@@ -44,6 +44,7 @@
 //#include <cmath>
 #include <string>
 //#include <_time.h>
+// #include <stdint.h> // for uint32_t
 #include <time.h>
 
 #define PROG_NAME "sholattimes"
