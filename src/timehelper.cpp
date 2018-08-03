@@ -349,7 +349,11 @@ void TimeSetup()
 
   settimeofday_cb(time_is_set);
 
-  configTZ(TZ_Asia_Jakarta);
+  // configTZ(TZ_Asia_Jakarta);
+  // configTZ(_configLocation.timezonestring);
+  // configTZ("WIB-7");
+  setenv("TZ", _configLocation.timezonestring, 1/*overwrite*/);
+  tzset();
 
   if (_configTime.enablentp)
   {

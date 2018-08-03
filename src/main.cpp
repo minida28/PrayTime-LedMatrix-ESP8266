@@ -142,21 +142,6 @@ void setup()
   Serial.begin(115200);
   Serial.println();
 
-  BuzzerSetup();
-
-  Serial.println(F("Mounting FS..."));
-  if (!SPIFFS.begin())
-  {
-    Serial.println(F("Failed to mount file system"));
-    return;
-  }
-
-  mqtt_setup();
-  
-  AsyncWSBegin();
-
-  DEBUGLOGLN("IP number assigned by DHCP is %s", WiFi.localIP().toString().c_str());
-
   // -------------------------------------------------------------------
   // Setup I2C stuffs
   // -------------------------------------------------------------------
@@ -191,11 +176,68 @@ void setup()
 
   DisplaySetup();
 
+  tickerRefreshDisplay.attach_ms(10, refreshDisplay, 1);
+
+  matrix.setFont(&TomThumb);
+  matrix.setCursor(1, 6);
+  matrix.print(FPSTR(pgm_startingup));
+
+  BuzzerSetup();
+
+  Serial.println(F("Mounting FS..."));
+  if (!SPIFFS.begin())
+  {
+    Serial.println(F("Failed to mount file system"));
+    return;
+  }
+
+  mqtt_setup();
+
+  AsyncWSBegin();
+
+  DEBUGLOGLN("IP number assigned by DHCP is %s", WiFi.localIP().toString().c_str());
+
+  // // -------------------------------------------------------------------
+  // // Setup I2C stuffs
+  // // -------------------------------------------------------------------
+  // DEBUGLOGLN("Clearing I2C Bus"); //http://www.forward.com.au/pfod/ArduinoProgramming/I2C_ClearBus/index.html
+  // int rtn = I2C_ClearBus();       // clear the I2C bus first before calling Wire.begin()
+  // if (rtn != 0)
+  // {
+  //   DEBUGLOGLN("I2C bus error. Could not clear");
+  //   if (rtn == 1)
+  //   {
+  //     DEBUGLOGLN("SCL clock line held low");
+  //   }
+  //   else if (rtn == 2)
+  //   {
+  //     DEBUGLOGLN("SCL clock line held low by slave clock stretch");
+  //   }
+  //   else if (rtn == 3)
+  //   {
+  //     DEBUGLOGLN("SDA data line held low");
+  //   }
+  // }
+  // else
+  // {
+  //   DEBUGLOGLN("bus clear, re-enable Wire.begin();");
+  //   Wire.begin(SDA, SCL);
+  // }
+
+  // // -------------------------------------------------------------------
+  // // Setup PCF8574
+  // // -------------------------------------------------------------------
+  // IoExpanderSetup();
+
+  // DisplaySetup();
+
   RtcSetup();
 
   TimeSetup();
 
   //  AsyncWSBegin();
+
+  tickerRefreshDisplay.detach();
 
   Serial.println(F("Setup completed\r\n"));
 }
@@ -302,7 +344,7 @@ void loop()
     AlarmTrigger();
 
     PageAutomaticMode();
-    DEBUGLOG("case: %d\r\n", PageAutomaticMode());
+    // DEBUGLOG("case: %d\r\n", PageAutomaticMode());
   }
 
   if (tick3000ms)

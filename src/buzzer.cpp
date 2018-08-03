@@ -40,42 +40,42 @@ void buzzer(uint8_t pinBuzzer, uint16_t duty)
     //    int freq_0 = 4435; //2637
     //    int freq_1 = 5274; //2217
     unsigned int freq_0 = 2217; //4699
-    unsigned int freq_1 = 2637 ; //5588
+    unsigned int freq_1 = 2637; //5588
 
     static unsigned long previousMillisBuzzer;
 
     if (buzzerState == 0 && millis() - previousMillisBuzzer >= timeBuzzerOFF)
     {
-      buzzerState = 1; // Update the state
-      tone(BUZZER, freq_1);        // Turn on Solenoid Valve
+      buzzerState = 1;                 // Update the state
+      tone(BUZZER, freq_1);            // Turn on Solenoid Valve
       previousMillisBuzzer = millis(); // Remember the time
       //Serial.println(buzzerState);
     }
     if (buzzerState == 1 && millis() - previousMillisBuzzer >= timeBuzzerState1)
     {
-      buzzerState = 2; // Update the state
-      tone(BUZZER, freq_0);        // Turn on Solenoid Valve
+      buzzerState = 2;                 // Update the state
+      tone(BUZZER, freq_0);            // Turn on Solenoid Valve
       previousMillisBuzzer = millis(); // Remember the time
       //Serial.println(buzzerState);
     }
     if (buzzerState == 2 && millis() - previousMillisBuzzer >= timeBuzzerState2)
     {
-      buzzerState = 3; // Update the state
-      tone(BUZZER, freq_1);        // Turn on Solenoid Valve
+      buzzerState = 3;                 // Update the state
+      tone(BUZZER, freq_1);            // Turn on Solenoid Valve
       previousMillisBuzzer = millis(); // Remember the time
       //Serial.println(buzzerState);
     }
     if (buzzerState == 3 && millis() - previousMillisBuzzer >= timeBuzzerState3)
     {
-      buzzerState = 4; // Update the state
-      tone(BUZZER, freq_0);        // Turn on Solenoid Valve
+      buzzerState = 4;                 // Update the state
+      tone(BUZZER, freq_0);            // Turn on Solenoid Valve
       previousMillisBuzzer = millis(); // Remember the time
       //Serial.println(buzzerState);
     }
     if (buzzerState == 4 && millis() - previousMillisBuzzer >= timeBuzzerState4)
     {
-      buzzerState = 0; // Update the state
-      noTone(BUZZER);          // Turn on Solenoid Valve
+      buzzerState = 0;                 // Update the state
+      noTone(BUZZER);                  // Turn on Solenoid Valve
       previousMillisBuzzer = millis(); // Remember the time
       //Serial.println(buzzerState);
       alarmState = LOW;
@@ -174,20 +174,26 @@ void Tone0(uint8_t pinBuzzer, uint16_t duty)
   static bool sound;
   static unsigned long startMillis;
   unsigned int freq = 4000;
-  if (tone0) {
+  // if (tone0) {
+  //   tone0 = false;
+  //   startMillis = millis();
+  //   tone(pinBuzzer, freq);
+  //   sound = true;
+  // }
+  // if (sound && millis() - startMillis >= 50) {
+  //   noTone(pinBuzzer);
+  //   sound = false;
+  // }
+
+  if (tone0)
+  {
     tone0 = false;
-    startMillis = millis();
-    tone(pinBuzzer, freq);
-    sound = true;
-  }
-  if (sound && millis() - startMillis >= 50) {
-    noTone(pinBuzzer);
-    sound = false;
+    tone(pinBuzzer, freq, 50);
   }
 }
 
 // void Tone0(uint8_t pinBuzzer, uint16_t duty)
-// {  
+// {
 //   unsigned int freq = 8000;
 //   unsigned long dur = 50;
 //   tone(pinBuzzer, freq, dur);
@@ -195,7 +201,8 @@ void Tone0(uint8_t pinBuzzer, uint16_t duty)
 
 void Tone1(uint8_t pinBuzzer, uint16_t duty)
 {
-  if (tone1) {
+  if (tone1)
+  {
 
     unsigned int freq = 4000;
 
@@ -278,14 +285,17 @@ void Tone10(uint8_t pinBuzzer, uint16_t duration)
   static time_t start;
   static bool state = LOW;
   unsigned int freq = 2375; //4750
-  if (tone10) {
-    if (state == LOW) {
+  if (tone10)
+  {
+    if (state == LOW)
+    {
       start = millis();
       state = HIGH;
       tone(pinBuzzer, freq);
       //tone(pinBuzzer, 440);
     }
-    if (state == HIGH && millis() - start >= duration) {
+    if (state == HIGH && millis() - start >= duration)
+    {
       state = LOW;
       noTone(pinBuzzer);
       tone10 = false;
@@ -295,13 +305,9 @@ void Tone10(uint8_t pinBuzzer, uint16_t duration)
 
 void BuzzerSetup()
 {
-    pinMode(BUZZER, OUTPUT);
+  pinMode(BUZZER, OUTPUT);
   digitalWrite(BUZZER, LOW);
 
   pinMode(LED_1, OUTPUT);
   digitalWrite(LED_1, LOW);
 }
-
-
-
-

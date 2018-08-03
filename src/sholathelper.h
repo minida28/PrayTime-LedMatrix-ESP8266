@@ -6,6 +6,7 @@
 // #include "sntphelper.h"
 #include "timehelper.h"
 #include "progmemmatrix.h"
+#include "locationhelper.h"
 
 extern PrayerTimes sholat;
 

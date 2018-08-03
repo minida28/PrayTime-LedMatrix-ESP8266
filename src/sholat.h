@@ -44,6 +44,7 @@
 //#include <cmath>
 #include <string>
 //#include <_time.h>
+// #include <stdint.h> // for uint32_t
 #include <time.h>
 
 #define PROG_NAME "sholattimes"
@@ -55,17 +56,6 @@ enum
   VERSION_MAJOR = 1,
   VERSION_MINOR = 0,
 };
-
-typedef struct
-{
-  char city[48] = "KOTA BEKASI";
-  int8_t timezone = 70;
-  double latitude = -6.263718;
-  double longitude = 106.981958;
-} strConfigLocation;
-extern strConfigLocation _configLocation;
-
-
 
 // Calculation Methods
 typedef enum CalculationMethod

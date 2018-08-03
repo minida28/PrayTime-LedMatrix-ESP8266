@@ -568,10 +568,10 @@
         console.log(this.responseText);
         //document.getElementById('confLocation').value = json.location;
         // document.getElementById('province').textContent = json.province;
-        document.getElementById('city').textContent = json.city;
+        document.getElementById('city').textContent = json.district;
         document.getElementById('latitude').textContent = json.latitude;
         document.getElementById('longitude').textContent = json.longitude;
-        document.getElementById('timezone').textContent = timeZoneString(json.timezone);
+        document.getElementById('timezone').textContent = timeZoneString(json.timezonestring);
         document.getElementById('calcMethod').value = json.calcMethod;
         document.getElementById('asrJuristic').value = json.asrJuristic;
         document.getElementById('highLatsAdjustMethod').value = json.highLatsAdjustMethod;
@@ -596,7 +596,8 @@
     function sendConfig(element) {
       json.saveconfig = window.location.pathname;
       delete json.province;
-      delete json.city;
+      delete json.regency;
+      delete json.district;
       delete json.timezone;
       delete json.latitude;
       delete json.longitude;
@@ -669,11 +670,11 @@
 
     function timeZoneString(val) {
       var tzStr;
-      if (val == 70) {
+      if (val == "WIB-7") {
         tzStr = "WIB";
-      } else if (val == 80) {
+      } else if (val == "WITA-8") {
         tzStr = "WITA";
-      } else if (val == 90) {
+      } else if (val == "WIT-9") {
         tzStr = "WIT";
       }
 

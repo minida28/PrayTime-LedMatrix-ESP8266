@@ -85,6 +85,12 @@ const char *const wifimode_P[] PROGMEM =
         AP_Str,
         STA_AP_Str};
 
+const char pgm_provincedb_file[] PROGMEM = "/provinces.csv";
+const char pgm_regencydb_file[] PROGMEM = "/regencies.csv";
+const char pgm_districtdb_file[] PROGMEM = "/districts.csv";
+const char pgm_regenciestartpos_file[] PROGMEM = "/regenciesList.csv";
+const char pgm_districtstartpos_file[] PROGMEM = "/districtsList.csv";
+
 const char pgm_loc[] PROGMEM = "loc";
 const char pgm_hostname[] PROGMEM = "hostname";
 const char pgm_mode[] PROGMEM = "mode";
@@ -254,8 +260,10 @@ const char pgm_enablentp[] PROGMEM = "enablentp";
 const char pgm_enablertc[] PROGMEM = "enablertc";
 
 const char pgm_province[] PROGMEM = "province";
-const char pgm_city[] PROGMEM = "city";
+const char pgm_regency[] PROGMEM = "regency";
+const char pgm_district[] PROGMEM = "district";
 const char pgm_timezone[] PROGMEM = "timezone";
+const char pgm_timezonestring[] PROGMEM = "timezonestring";
 const char pgm_latitude[] PROGMEM = "latitude";
 const char pgm_longitude[] PROGMEM = "longitude";
 const char pgm_dst[] PROGMEM = "dst";
@@ -292,5 +300,9 @@ const char pgm_upnprootdevice[] PROGMEM = "upnp:rootdevice";
 const char pgm_wwwauth[] PROGMEM = "wwwauth";
 const char pgm_wwwuser[] PROGMEM = "wwwuser";
 const char pgm_wwwpass[] PROGMEM = "wwwpass";
+
+// Others
+const char pgm_startingup[] PROGMEM = "Starting-up...";
+const char pgm_loading[] PROGMEM = "Loading...";
 
 #endif

@@ -51,7 +51,6 @@
 #include <RtcDS3231.h> //RTC library
 #include "timehelper.h"
 
-strConfigLocation _configLocation;
 sholatConfig _sholatConfig;
 
 PrayerTimes::PrayerTimes(CalculationMethod calc_method,

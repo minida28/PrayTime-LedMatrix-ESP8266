@@ -3,6 +3,7 @@
 #include "sholat.h"
 #include "sholathelper.h"
 #include "timehelper.h"
+#include "locationhelper.h"
 
 #include <pgmspace.h>
 #include "asyncserver.h"
@@ -152,8 +153,8 @@ void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventTyp
         //ws.close(clientID_old, 4000, const_cast<char *>(text.c_str()));
 
         int len = strlen_P(pgm_txt_serverloseconnection);
-        char text[len+1];
-        snprintf_P(text, sizeof(text), pgm_txt_serverloseconnection );
+        char text[len + 1];
+        snprintf_P(text, sizeof(text), pgm_txt_serverloseconnection);
         ws.close(clientID_old, 4000, text);
       }
 
@@ -194,7 +195,7 @@ void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventTyp
   else if (type == WS_EVT_DATA)
   {
     AwsFrameInfo *info = (AwsFrameInfo *)arg;
-    
+
     char msg[len + 1];
 
     if (info->final && info->index == 0 && info->len == len)
@@ -390,6 +391,10 @@ void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventTyp
           file.close();
 
           load_config_location();
+
+          setenv("TZ", _configLocation.timezonestring, 1 /*overwrite*/);
+          tzset();
+
           process_sholat();
 
           //beep
@@ -1080,7 +1085,6 @@ void AsyncWSBegin()
       DEBUGLOG("_CONTENT_LENGTH: %u\r\n", request->contentLength());
     }
 
-    
     int i;
 
     int headers = request->headers();
@@ -1296,7 +1300,8 @@ void AsyncWSBegin()
     root["hr"] = dt.Hour();
     root["min"] = dt.Minute();
     root["sec"] = dt.Second();
-    root["tz"] = _configLocation.timezone;
+    // root["tz"] = TimezoneFloat();
+    root["tzStr"] = _configLocation.timezonestring;
     root["utc"] = now;
     root["local"] = localTime;
 
@@ -1638,7 +1643,8 @@ void sendDateTime(uint8_t mode)
   root["hr"] = dt.Hour();
   root["min"] = dt.Minute();
   root["sec"] = dt.Second();
-  root["tz"] = _configLocation.timezone;
+  // root["tz"] = TimezoneFloat();
+  root["tzStr"] = _configLocation.timezonestring;
   root["utc"] = now;
   root["local"] = localTime;
 
@@ -2012,13 +2018,11 @@ void send_config_location(AsyncWebServerRequest *request)
   StaticJsonBuffer<256> jsonBuffer;
   JsonObject &root = jsonBuffer.createObject();
 
-  if (!root.success())
-  {
-    return;
-  }
-
-  root[FPSTR(pgm_city)] = _configLocation.city;
-  root[FPSTR(pgm_timezone)] = _configLocation.timezone;
+  root[FPSTR(pgm_province)] = _configLocation.province;
+  root[FPSTR(pgm_regency)] = _configLocation.regency;
+  root[FPSTR(pgm_district)] = _configLocation.district;
+  // root[FPSTR(pgm_timezone)] = TimezoneFloat();
+  root[FPSTR(pgm_timezonestring)] = _configLocation.timezonestring;
   root[FPSTR(pgm_latitude)] = _configLocation.latitude;
   root[FPSTR(pgm_longitude)] = _configLocation.longitude;
 
@@ -2054,9 +2058,11 @@ void send_config_sholat(AsyncWebServerRequest *request)
   DynamicJsonBuffer jsonBuffer;
   JsonObject &root = jsonBuffer.createObject();
 
-  // root[FPSTR(pgm_province)] = _config.province;
-  root[FPSTR(pgm_city)] = _configLocation.city;
-  root[FPSTR(pgm_timezone)] = _configLocation.timezone;
+  root[FPSTR(pgm_province)] = _configLocation.province;
+  root[FPSTR(pgm_regency)] = _configLocation.regency;
+  root[FPSTR(pgm_district)] = _configLocation.district;
+  root[FPSTR(pgm_timezone)] = TimezoneFloat();
+  root[FPSTR(pgm_timezonestring)] = _configLocation.timezonestring;
   root[FPSTR(pgm_latitude)] = _configLocation.latitude;
   root[FPSTR(pgm_longitude)] = _configLocation.longitude;
 
@@ -2142,10 +2148,14 @@ void sendConfigSholat(uint8_t mode)
   StaticJsonBuffer<1024> jsonBuffer;
   JsonObject &root = jsonBuffer.createObject();
 
-  root[FPSTR(pgm_location)] = _configLocation.city;
+  root[FPSTR(pgm_province)] = _configLocation.province;
+  root[FPSTR(pgm_regency)] = _configLocation.regency;
+  root[FPSTR(pgm_district)] = _configLocation.district;
+  root[FPSTR(pgm_timezone)] = TimezoneFloat();
+  root[FPSTR(pgm_timezonestring)] = _configLocation.timezonestring;
   root[FPSTR(pgm_latitude)] = _configLocation.latitude;
   root[FPSTR(pgm_longitude)] = _configLocation.longitude;
-  root[FPSTR(pgm_timezone)] = _configLocation.timezone;
+
 
   // calcMethod
   if (_sholatConfig.calcMethod == Jafari)
@@ -2363,14 +2373,40 @@ bool load_config_location()
   root.prettyPrintTo(DEBUGPORT);
 #endif
 
-  strlcpy(_configLocation.city, root[FPSTR(pgm_city)], sizeof(_configLocation.city));
-  _configLocation.timezone = root[FPSTR(pgm_timezone)];
-  _configLocation.latitude = root[FPSTR(pgm_latitude)];
-  _configLocation.longitude = root[FPSTR(pgm_longitude)];
+  if (root[FPSTR(pgm_province)].success())
+  {
+    strlcpy(_configLocation.province, root[FPSTR(pgm_province)], sizeof(_configLocation.province));
+  }
+  if (root[FPSTR(pgm_regency)].success())
+  {
+    strlcpy(_configLocation.regency, root[FPSTR(pgm_regency)], sizeof(_configLocation.regency));
+  }
+  if (root[FPSTR(pgm_district)].success())
+  {
+    strlcpy(_configLocation.district, root[FPSTR(pgm_district)], sizeof(_configLocation.district));
+  }
+  // if (root[FPSTR(pgm_timezone)].success())
+  // {
+  //   _configLocation.timezone = root[FPSTR(pgm_timezone)];
+  // }
+  if (root[FPSTR(pgm_timezonestring)].success())
+  {
+    strlcpy(_configLocation.timezonestring, root[FPSTR(pgm_timezonestring)], sizeof(_configLocation.timezonestring));
+  }
+  if (root[FPSTR(pgm_latitude)].success())
+  {
+    _configLocation.latitude = root[FPSTR(pgm_latitude)];
+  }
+  if (root[FPSTR(pgm_longitude)].success())
+  {
+    _configLocation.longitude = root[FPSTR(pgm_longitude)];
+  }
 
   DEBUGASYNCWS("\r\nConfig LOCATION loaded successfully.\r\n");
-  DEBUGASYNCWS("city: %s\r\n", _configLocation.city);
-  DEBUGASYNCWS("timezone: %d\r\n", _configLocation.timezone);
+  DEBUGASYNCWS("province: %s\r\n", _configLocation.province);
+  DEBUGASYNCWS("regency: %s\r\n", _configLocation.regency);
+  DEBUGASYNCWS("district: %s\r\n", _configLocation.district);
+  DEBUGASYNCWS("timezonestring: %s\r\n", _configLocation.timezonestring);
   DEBUGASYNCWS("latitude: %f\r\n", _configLocation.latitude);
   DEBUGASYNCWS("longitude: %f\r\n", _configLocation.longitude);
 
@@ -2627,7 +2663,8 @@ bool load_config_sholat()
   //check
   DEBUGASYNCWS("\r\nSholat settings loaded successfully.\r\n");
   //DEBUGASYNCWS("location: %s\r\n", _sholatConfig.location);
-  DEBUGASYNCWS("timezone: %d\r\n", _configLocation.timezone);
+  // DEBUGASYNCWS("timezone: %d\r\n", TimezoneFloat());
+  DEBUGASYNCWS("timezonestring: %s\r\n", _configLocation.timezonestring);
   DEBUGASYNCWS("latitude: %f\r\n", _configLocation.latitude);
   DEBUGASYNCWS("longitude: %f\r\n", _configLocation.longitude);
   DEBUGASYNCWS("calcMethod: %d\r\n", _sholatConfig.calcMethod);
@@ -2862,8 +2899,10 @@ bool save_config_location()
   StaticJsonBuffer<512> jsonBuffer;
   JsonObject &json = jsonBuffer.createObject();
 
-  json[FPSTR(pgm_city)] = _configLocation.city;
-  json[FPSTR(pgm_timezone)] = _configLocation.timezone;
+  json[FPSTR(pgm_province)] = _configLocation.province;
+  json[FPSTR(pgm_regency)] = _configLocation.regency;
+  json[FPSTR(pgm_district)] = _configLocation.district;
+  json[FPSTR(pgm_timezonestring)] = _configLocation.timezonestring;
   json[FPSTR(pgm_latitude)] = _configLocation.latitude;
   json[FPSTR(pgm_longitude)] = _configLocation.longitude;
 
@@ -3071,41 +3110,97 @@ bool save_config_ledmatrix()
 
 void load_running_text()
 {
-  File runningTextFile = SPIFFS.open(RUNNING_TEXT_FILE, "r");
-  if (!runningTextFile)
+  // DEBUGLOG("%s\r\n", __PRETTY_FUNCTION__);
+
+  File file = SPIFFS.open(RUNNING_TEXT_FILE, "r");
+  if (!file)
   {
     DEBUGLOG("Failed to open running text file");
     //return F("failed");
     //    return false;
+    file.close();
     return;
   }
 
   // this is going to get the number of bytes in the file and give us the value in an integer
-  int fileSize = runningTextFile.size();
-  //Serial.println(fileSize);
+  int size = file.size();
+  //Serial.println(size);
   //int chunkSize=1;
   int chunkSize = 512;
   //This is a character array to store a chunk of the file.
   //We'll store 1024 characters at a time
   // char contents[fileSize];
-  char buf[chunkSize];
-  int numberOfChunks = (fileSize / chunkSize) + 1;
+  // char buf[chunkSize];
+  char buf[36];
+  int numberOfChunks = (size / chunkSize) + 1;
 
   // int count = 0;
-  int remainingChunks = fileSize;
+  int remainingChunks = size;
 
   int16_t x1Temp, y1Temp;
   uint16_t wTemp, hTemp;
 
+  uint16_t wFirstChar;
+
   wText = 0;
 
+  static int offset = -1;
+  int i = -1;
+  while (file.available())
+  {
+    offset++;
+    file.seek(offset, SeekSet);
+    // file.read((uint8_t *)buf, 1);
+    char temp[2];
+    file.read((uint8_t *)temp, 1);
+    temp[1] = '\0';
+
+    buf[offset] = temp[0];
+    buf[offset + 1] = '\0';
+
+    matrix.getTextBounds(buf, 0, 0, &x1Temp, &y1Temp, &wTemp, &hTemp);
+    if (wTemp > 63)
+    {
+      // calculate widht of first char
+      char temp[2];
+      temp[0] = buf[0];
+      temp[1] = '\0';
+      matrix.getTextBounds(temp, 0, 0, &x1Temp, &y1Temp, &wFirstChar, &hTemp);
+      break;
+    }
+    //  PRINT("x1Temp: %d", x1Temp);
+  }
+  // buf[offset + 1] = '\0';
+  PRINT("X: %d, wFirstChar: %d, offset: %d, string: %s\r\n", X, wFirstChar, offset, buf);
+
+  offset = -1;
+  matrix.print(buf);
+
+  // if (offset > 10)
+  // {
+
+  //   offset = -1;
+  // }
+
+  // for (int i = 0; i < numberOfChunks; i++)
+  // {
+  // }
+
+  // file.seek(offset, mode);
+  // while (file.available())
+  // {
+  //   file.read();
+  //   Serial.println(file.position());
+  // }
+
+  /*
   for (int i = 0; i < numberOfChunks; i++)
   {
     if (remainingChunks - chunkSize < 0)
     {
       chunkSize = remainingChunks;
     }
-    runningTextFile.read((uint8_t *)buf, chunkSize);
+    file.read((uint8_t *)buf, chunkSize);
     buf[chunkSize] = '\0';
 
     //Convert UTF8-string to Extended ASCII
@@ -3118,6 +3213,7 @@ void load_running_text()
     //buf[0] = (char)0; // clear buffer
     remainingChunks = remainingChunks - chunkSize;
   }
+  */
 
   //char* chr = const_cast<char*>(contents.c_str());
   //matrix.getTextBounds(chr, 0, 0, &x1Temp, &y1Temp, &wTemp, &hTemp);
@@ -3125,12 +3221,10 @@ void load_running_text()
   //matrix.getTextBounds(contents, 0, 0, &x1Temp, &y1Temp, &wTemp, &hTemp);
   wText = wTemp;
 
-  runningTextFile.close();
+  file.close();
 
   //contents = "";
   //return contents;
-
-  DEBUGLOG("%s\r\n", __PRETTY_FUNCTION__);
 
   //return F("success");
 }
@@ -3566,7 +3660,7 @@ void sendSholatSchedule(uint8_t mode)
   root[FPSTR(pgm_curr)] = sholatNameStr(CURRENTTIMEID);
   root[FPSTR(pgm_next)] = sholatNameStr(NEXTTIMEID);
 
-  root[FPSTR(pgm_loc)] = _configLocation.city;
+  root[FPSTR(pgm_loc)] = _configLocation.district;
   //  root[FPSTR(pgm_day)] = dayNameStr(weekday(local_time()));
   //  root[FPSTR(pgm_date)] = getDateStr(local_time());
   root[FPSTR(pgm_fajr)] = sholatTimeArray[0];

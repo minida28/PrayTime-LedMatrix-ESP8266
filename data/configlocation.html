@@ -121,6 +121,7 @@
             <!-- Column 1 content -->
             <!--</div>-->
             <div class="column" style="display:hidden">
+            <!--<div class="column">-->
               <!-- Column 2 content -->
               <div class="box">
 
@@ -180,10 +181,10 @@
                   <label class="label">Data source</label>
                   <div class="control">
                     <div class="select">
-                      <select id="datasource" onchange="loadDataSource();">
-                        <option style="display:none">Choose data source</option>
+                      <select id="datasource">
+                        <!--<option style="display:none">Choose data source</option>-->
                         <option value="DATABASE">DATABASE</option>
-                        <option value="MANUAL">MANUAL</option>
+                        <!--<option value="MANUAL">MANUAL</option>-->
                       </select>
                     </div>
                   </div>
@@ -200,10 +201,21 @@
                 </div>
 
                 <div class="field" name="city" style="display:none">
-                  <label class="label">City/Regencies</label>
+                  <label class="label">Kota/Kabupaten</label>
                   <div class="control">
                     <div class="select is-small">
-                      <select id="city" onchange="updateTz(); updateLatLon();">
+                      <select id="city" onchange="updateDistrictsDropdown();">
+                      </select>
+                    </div>
+                  </div>
+                  <!--<p id="tzlatlon" class="help is-danger is-italic"></p>-->
+                </div>
+                
+                <div class="field" name="district" style="display:none">
+                  <label class="label">Kecamatan</label>
+                  <div class="control">
+                    <div class="select is-small">
+                      <select id="district" onchange="updateTz(); updateLatLon();">
                       </select>
                     </div>
                   </div>
@@ -232,9 +244,9 @@
                     <div class="select">
                       <select id="timezone-dropdown">
                         <option style="display:none">Set Timezone</option>
-                        <option value="70">WIB</option>
-                        <option value="80">WITA</option>
-                        <option value="90">WIT</option>
+                        <option value="WIB-7">WIB</option>
+                        <option value="WITA-8">WITA</option>
+                        <option value="WIT-9">WIT</option>
                       </select>
                     </div>
                   </div>
@@ -339,26 +351,28 @@
     var json;
     var lan;
     var lon;
-    var city;
+    var district;
 
     window.onload = function () {
-      getConfigValues("googleapikey.txt");
+      getConfigValues("/googleapikey.txt");
       // loadScript();
       loadProvincesDB();
       loadRegenciesDB();
-      getConfigValues("config/location");
+      loadDistrictsDB();
+      getConfigValues("/config/location");
       startSocket();
     }
+    
 
     function getConfigValues(url) {
       var req = new XMLHttpRequest();
       if (req) {
         req.open("GET", url, true);
-        if (url === "config/location") {
+        if (url === "/config/location") {
           req.addEventListener("load", reqListenerLocation);
           // req.addEventListener("load", myMap);
         }
-        else if (url === "googleapikey.txt") {
+        else if (url === "/googleapikey.txt") {
           req.addEventListener("load", reqListenerApiKey);
           // req.addEventListener("load", myMap);
         }
@@ -371,21 +385,21 @@
       //console.log(this.responseText);
       var json = JSON.parse(this.responseText);
       console.log(json);
-      city = json.city;
+      district = json.district;
       lat = json.latitude;
       lon = json.longitude;
 
-      document.getElementById("city-input").value = json.city;
-      document.getElementById("timezone-dropdown").value = json.timezone;
+      document.getElementById("city-input").value = json.district;
+      document.getElementById("timezone-dropdown").value = json.timezonestring;
       document.getElementById("latitude-input").value = json.latitude;
       document.getElementById("longitude-input").value = json.longitude;
 
-      document.getElementById("city-current").textContent = json.city;
-      document.getElementById("timezone-current").textContent = timeZoneString(json.timezone);
+      document.getElementById("city-current").textContent = json.district;
+      document.getElementById("timezone-current").textContent = json.timezonestring;
       document.getElementById("latitude-current").textContent = json.latitude;
       document.getElementById("longitude-current").textContent = json.longitude;
 
-      myMap(city, lat, lon);
+      myMap(district, lat, lon);
     }
 
     function reqListenerApiKey() {
@@ -422,7 +436,7 @@
       // var y = Number(lon).toFixed(7);
 
       var mapOptions = {
-        zoom: 10,
+        zoom: 6.5,
         center: { lat: lat, lng: lon }
       };
       map = new google.maps.Map(document.getElementById('map'),
@@ -482,7 +496,8 @@
         var obj = new Object();
         obj.url = window.location.pathname;
         var myJSON = JSON.stringify(obj);
-        ws.send(myJSON);
+        // ws.send(myJSON);
+        ws.send(obj.url);
       };
       ws.onclose = function (evt) {
         console.log("WebSocket close. Code: " + evt.code + ", Reason: " + evt.reason);
@@ -526,8 +541,13 @@
 
     function sendConfig() {
       var datasource = document.getElementById('datasource');
+      
+      var dropdownProvince = document.getElementById('province');
+      
       var dropdownCity = document.getElementById('city');
       var inputCity = document.getElementById('city-input');
+      
+      var dropdownDistrict = document.getElementById('district');
 
       var spanTimezone = document.getElementById('timezone-span');
       var spanLatitude = document.getElementById('latitude-span');
@@ -543,14 +563,18 @@
       // json.datasource = datasource.value;
       if (datasource.value === "DATABASE") {
 
-        json.city = dropdownCity.options[dropdownCity.selectedIndex].text;
-        json.timezone = parseInt(spanTimezone.value);
+        json.province = dropdownProvince.options[dropdownProvince.selectedIndex].text;
+        json.regency = dropdownCity.options[dropdownCity.selectedIndex].text;
+        json.district = dropdownDistrict.options[dropdownDistrict.selectedIndex].text;
+        json.timezonestring = spanTimezone.value;
         json.latitude = parseFloat(spanLatitude.value);
         json.longitude = parseFloat(spanLongitude.value);
       }
       else if (datasource.value === "MANUAL") {
-        json.city = inputCity.value;
-        json.timezone = parseInt(dropdownTimezone.value);
+        json.province = inputCity.value;
+        json.regency = inputCity.value;
+        json.district = inputCity.value;
+        json.timezonestring = dropdownTimezone.value;
         json.latitude = parseFloat(inputLatitude.value);
         json.longitude = parseFloat(inputLongitude.value);
       }
@@ -593,6 +617,32 @@
       request.onload = function () {
         if (request.status === 200) {
           dataRegencies = JSON.parse(request.responseText);
+          // console.log(dataRegencies);
+          loadDataSource();
+        }
+        else {
+          // Reached the server, but it returned an error
+        }
+      }
+      request.onerror = function () {
+        console.error('An error occurred fetching the JSON from ' + url);
+      };
+      request.send();
+    }
+    
+    var dataDistricts;
+    
+    function loadDistrictsDB() {
+      const url = 'districts.json';
+
+      const request = new XMLHttpRequest();
+      request.open('GET', url, true);
+
+      request.onload = function () {
+        if (request.status === 200) {
+          dataDistricts = JSON.parse(request.responseText);
+          // console.log(dataRegencies);
+          // loadDataSource();
         }
         else {
           // Reached the server, but it returned an error
@@ -621,6 +671,7 @@
       if (dropdown.value === "DATABASE") {
         updateProvincesDropdown();
         document.getElementsByName('province')[0].style.display = "inline-block";
+        document.getElementById('btnSave-div').style.display = "none";
       }
       // else if (dropdown.value === "GPS")
       // {
@@ -633,7 +684,7 @@
         document.getElementsByName('timezone-dropdown')[0].style.display = "inline-block";
         document.getElementsByName('latitude-input')[0].style.display = "inline-block";
         document.getElementsByName('longitude-input')[0].style.display = "inline-block";
-        document.getElementById('btnSave-div').style.display = "block";
+        document.getElementById('btnSave-div').style.display = "inline-block";
 
         city = document.getElementById('city-input').value;
         lat = parseFloat(document.getElementById('latitude-input').value);
@@ -663,6 +714,7 @@
 
     function updateRegenciesDropdown() {
       document.getElementsByName('city')[0].style.display = "inline-block";
+      document.getElementsByName('district')[0].style.display = "none";
       document.getElementsByName('timezone-span')[0].style.display = "none";
       document.getElementsByName('latitude-span')[0].style.display = "none";
       document.getElementsByName('longitude-span')[0].style.display = "none";
@@ -688,8 +740,10 @@
       var option;
       var j = -1;
       var index;
-      for (var i = dataRegencies.length - 1; i > -1; i--) {
-        if (document.getElementById('province').value === dataRegencies[i].province_id) {
+      for (var i = dataRegencies.length - 1; i > -1; i--)
+      {
+        var provinceID = parseInt(document.getElementById('province').value);
+        if (provinceID === dataRegencies[i].province_id) {
           j++;
           option = document.createElement('option');
           option.text = dataRegencies[i].name;
@@ -698,41 +752,93 @@
         }
       }
     }
+    
+    function updateDistrictsDropdown() {
+      document.getElementsByName('district')[0].style.display = "block";
+      // document.getElementsByName('city')[0].style.display = "inline-block";
+      document.getElementsByName('timezone-span')[0].style.display = "none";
+      document.getElementsByName('latitude-span')[0].style.display = "none";
+      document.getElementsByName('longitude-span')[0].style.display = "none";
+      document.getElementById('btnSave-div').style.display = "none";
+
+
+      //reset tz, lat, lon
+      document.getElementById('timezone-span').value = "";
+      document.getElementById('latitude-span').value = "";
+      document.getElementById('longitude-span').value = "";
+      document.getElementById('tzlatlon').textContent = " ";
+
+      var dropdown = document.getElementById('district');
+      // removeOptions(dropdown);
+      dropdown.length = 0;
+
+      var defaultOption = document.createElement('option');
+      defaultOption.text = 'Pilih Kecamatan';
+
+      dropdown.add(defaultOption);
+      dropdown.selectedIndex = 0;
+
+      var option;
+      var j = -1;
+      var index;
+      for (var i = dataDistricts.length - 1; i > -1; i--)
+      {
+        var regencyID = parseInt(document.getElementById('city').value);
+        if (regencyID === dataDistricts[i].regency_id) {
+          j++;
+          option = document.createElement('option');
+          option.text = dataDistricts[i].name;
+          option.value = dataDistricts[i].id;
+          dropdown.add(option);
+        }
+      }
+    }
 
     function updateTz() {
       var dropdownProvince = document.getElementById("province");
       var dropdownCity = document.getElementById("city");
+      
+      var provinceFound = false;
 
       province = dropdownProvince.options[dropdownProvince.selectedIndex].text;
       city = dropdownCity.options[dropdownCity.selectedIndex].text;
 
-      for (var i = 0; i < dataProvinces.length; i++) {
-        if (dropdownProvince.value === dataProvinces[i].id) {
+      for (var i = 0; i < dataProvinces.length; i++)
+      {
+        // console.log(dataProvinces[i].timezone);
+        // console.log(dropdownProvince.value, dataProvinces[i].id);
+        if (parseInt(dropdownProvince.value) === dataProvinces[i].id)
+        {
           //update timezone
           document.getElementById('timezone-span').value = dataProvinces[i].timezone;
-
+          provinceFound = true;
           // document.getElementsByName('timezone-span')[0].style.display = "inline-block";
         }
       }
+      
+      if (provinceFound)
+      {console.log("Yay province found!");}
+      else
+      {console.log("No province found!");}
     }
 
     // google.maps.event.addDomListener(window, 'load', myMap);
 
     function updateLatLon() {
-      var dropdownProvince = document.getElementById("province");
-      var dropdownCity = document.getElementById("city");
+      // var dropdownProvince = document.getElementById("province");
+      var dropdownDistrict = document.getElementById("district");
 
-      province = dropdownProvince.options[dropdownProvince.selectedIndex].text;
-      city = dropdownCity.options[dropdownCity.selectedIndex].text;
+      // province = dropdownProvince.options[dropdownProvince.selectedIndex].text;
+      city = dropdownDistrict.options[dropdownDistrict.selectedIndex].text;
 
-      for (var i = 0; i < dataRegencies.length; i++) {
-        if (dropdownCity.value === dataRegencies[i].id) {
+      for (var i = 0; i < dataDistricts.length; i++) {
+        if (parseInt(dropdownDistrict.value) === dataDistricts[i].id) {
           //update lat, lon
-          lat = dataRegencies[i].latitude;
-          lon = dataRegencies[i].longitude;
+          lat = dataDistricts[i].latitude;
+          lon = dataDistricts[i].longitude;
 
-          document.getElementById('latitude-span').value = dataRegencies[i].latitude;
-          document.getElementById('longitude-span').value = dataRegencies[i].longitude;
+          document.getElementById('latitude-span').value = dataDistricts[i].latitude;
+          document.getElementById('longitude-span').value = dataDistricts[i].longitude;
 
           // document.getElementsByName('latitude-span')[0].style.display = "inline-block";
           // document.getElementsByName('longitude-span')[0].style.display = "inline-block";
@@ -746,16 +852,17 @@
       document.getElementById('tzlatlon').textContent = "Tz: " + tzStr + " , Lat: " + lat + " , Lon: " + lon;
 
       //update Google Map
+      console.log("Update Google Map", "city:",city, "lat:",lat, "lon:",lon);
       myMap(city, lat, lon);
     }
 
     function timeZoneString(val) {
       var tzStr;
-      if (val == 70) {
+      if (val == "WIB-7") {
         tzStr = "WIB";
-      } else if (val == 80) {
+      } else if (val == "WITA-8") {
         tzStr = "WITA";
-      } else if (val == 90) {
+      } else if (val == "WIT-9") {
         tzStr = "WIT";
       }
 

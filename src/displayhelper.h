@@ -5,12 +5,14 @@
 #include "hub08.h"
 #include "buzzer.h"
 #include "ioexpanderhelper.h"
+#include "locationhelper.h"
 
 #include "timehelper.h"
 #include "sholathelper.h"
 #include <ESP8266WiFi.h>
 #include "encoderhelper.h"
 #include "mqtt.h"
+#include <Ticker.h>
 
 #include "font.h"
 
@@ -80,8 +82,9 @@ typedef enum PageTitleMode1
 
 typedef enum PageTitleMode2
 {
-  set_timezone,
-  set_coordinate,
+  set_province,
+  set_regency,
+  set_district,
   set_date,
   set_time,
   PageTitleMode2Count
@@ -105,6 +108,8 @@ typedef struct {
 extern ledMatrixSettings _ledMatrixSettings;
 
 extern bool enterEditModeFromShortcut;
+
+extern Ticker tickerRefreshDisplay;
 
 
 extern uint16_t wText, hText;

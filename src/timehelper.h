@@ -5,6 +5,7 @@
 #include <sys/time.h>  // struct timeval
 #include <coredecls.h> // settimeofday_cb()
 #include "rtchelper.h"
+#include "locationhelper.h"
 #include <Ticker.h>
 
 /*==============================================================================*/

@@ -39,6 +39,8 @@ HUB08 matrix(pinA, pinB, C, D, OE, R1, STB, CLK);
 
 ledMatrixSettings _ledMatrixSettings;
 
+Ticker tickerRefreshDisplay;
+
 uint16_t wText, hText;
 
 char bufSECONDMATRIX[3];
@@ -268,7 +270,7 @@ uint8_t PageAutomaticMode()
             return 6;
         }
     }
-    else if (_ledMatrixSettings.pagemode == Manual)
+    else
     {
         MODE = _ledMatrixSettings.operatingmode;
         currentPageMode0 = _ledMatrixSettings.pagemode0;
@@ -278,11 +280,1056 @@ uint8_t PageAutomaticMode()
     }
 }
 
+// input the provName to get the provId
+uint8_t get_province_id(const char *ptrProvName)
+{
+    PRINT("\r\n%s\r\n", __PRETTY_FUNCTION__);
+
+    File file = SPIFFS.open(FPSTR(pgm_provincedb_file), "r");
+    if (!file)
+    {
+        // PRINT("Failed to open provinces file");
+        file.close();
+        return 0;
+    }
+
+    // construct array with comman at start & end
+    int len;
+    len = strlen(ptrProvName);
+    char buf[len + 3];
+    sprintf(buf, ",%s,", ptrProvName);
+
+    while (file.available())
+    {
+        if (file.find(buf))
+        {
+            break;
+        }
+    }
+
+    // move current position
+    // to the beginning of line
+    file.seek((-1 * (len + 4)), SeekCur);
+
+    for (int i = 0; i < 2; i++)
+    {
+        char c = file.read();
+        buf[i] = c;
+        if (i == 1)
+        {
+            buf[i + 1] = '\0';
+        }
+    }
+
+    file.close();
+
+    return atoi(buf);
+}
+
+// // input the provName to get the provId
+// uint8_t get_province_id(const char *ptrProvName)
+// {
+//     PRINT("\r\n%s\r\n", __PRETTY_FUNCTION__);
+
+//     File file = SPIFFS.open(FPSTR(pgm_provinces_file), "r");
+//     if (!file)
+//     {
+//         // PRINT("Failed to open provinces file");
+//         file.close();
+//         return 0;
+//     }
+
+//     int offset = 0;
+//     char buf[64];
+//     uint32_t size = file.size();
+
+//     while (file.available())
+//     {
+//         char rc = file.read();
+//         if (rc != '\n' && file.position() <= size)
+//         {
+//             if (rc != '\r')
+//             {
+//                 buf[offset] = rc;
+//                 offset++;
+//             }
+//         }
+
+//         bool processData = false;
+
+//         if (rc == '\n' || file.position() == size)
+//         {
+//             // maxProvIndex++;
+
+//             buf[offset] = '\0'; // terminate the string
+//             offset = 0;
+
+//             processData = true;
+//         }
+
+//         if (processData)
+//         {
+//             // split the data into its parts
+//             char bufTemp[strlen(buf) + 1];
+//             strlcpy(bufTemp, buf, sizeof(bufTemp));
+
+//             char *token; // this is used by strtok() as an index
+
+//             int len;
+
+//             // store province ID
+//             token = strtok(bufTemp, ",");
+//             len = strlen(token) + 1;
+//             char provId[len];
+//             strlcpy(provId, token, sizeof(provId));
+
+//             // store province NAME
+//             token = strtok(NULL, ",");
+//             len = strlen(token) + 1;
+//             char provName[len];
+//             strlcpy(provName, token, sizeof(provName));
+
+//             if (strncmp(ptrProvName, provName, strlen(provName)) == 0)
+//             {
+//                 // provIndex = maxProvIndex;
+//                 // PRINT("\r\nProvince %s found!\r\n", provName);
+
+//                 return atoi(provId);
+//             }
+//         }
+//     }
+
+//     file.close();
+// }
+
+uint8_t get_province_index_and_max_index(char *provinceName, uint8_t *index, uint8_t *maxIndex)
+{
+    PRINT("\r\n%s\r\n", __PRETTY_FUNCTION__);
+
+    File file = SPIFFS.open(FPSTR(pgm_provincedb_file), "r");
+    if (!file)
+    {
+        file.close();
+        return 0;
+    }
+
+    // skip first line
+    while (file.available())
+    {
+        if (file.find('\n'))
+        {
+            break;
+        }
+    }
+
+    // start searching
+    uint8_t offset = 0;
+    char buf[128];
+    uint8_t tempIndex = 0;
+
+    while (file.available())
+    {
+        char c = file.read();
+        if (c != '\r' && c != '\n')
+        {
+            buf[offset] = c;
+            offset++;
+        }
+
+        bool processData = false;
+
+        if (c == '\n')
+        {
+            buf[offset] = '\0';
+            offset = 0;
+
+            processData = true;
+        }
+
+        if (processData)
+        {
+            // split the data into its parts
+            char bufTemp[strlen(buf) + 1];
+            strlcpy(bufTemp, buf, sizeof(bufTemp));
+
+            char *token; // this is used by strtok() as an index
+
+            // parse province ID
+            token = strtok(bufTemp, ",");
+            // parse province Name
+            token = strtok(NULL, ",");
+            if (strncmp(provinceName, token, strlen(token)) == 0)
+            {
+                *index = tempIndex;
+            }
+            else
+            {
+                tempIndex++;
+            }
+        }
+    }
+
+    *maxIndex = tempIndex;
+
+    file.close();
+    return true;
+}
+
+uint8_t get_province_detail_info(uint8_t index, char *bufForProvinceName, char *bufForTimezonestring)
+{
+    PRINT("\r\n%s\r\n", __PRETTY_FUNCTION__);
+
+    File file = SPIFFS.open(FPSTR(pgm_provincedb_file), "r");
+    if (!file)
+    {
+        file.close();
+        return 0;
+    }
+
+    // skip first line
+    while (file.available())
+    {
+        if (file.find('\n'))
+        {
+            break;
+        }
+    }
+
+    // iterate based on index
+    for (uint8_t i = 0; i < index; i++)
+    {
+        while (file.available())
+        {
+            if (file.find('\n'))
+            {
+                break;
+            }
+        }
+    }
+
+    uint8_t offset = 0;
+    char buf[128];
+
+    while (file.available())
+    {
+        char c = file.read();
+        if (c != '\r' && c != '\n')
+        {
+            buf[offset] = c;
+            offset++;
+        }
+
+        bool processData = false;
+
+        if (c == '\n')
+        {
+            buf[offset] = '\0';
+            offset = 0;
+
+            processData = true;
+        }
+
+        if (processData)
+        {
+            // split the data into its parts
+            char bufTemp[strlen(buf) + 1];
+            strlcpy(bufTemp, buf, sizeof(bufTemp));
+
+            char *token; // this is used by strtok() as an index
+
+            // parse province ID
+            token = strtok(bufTemp, ",");
+            // parse province Name
+            token = strtok(NULL, ",");
+            strlcpy(bufForProvinceName, token, strlen(token) + 1);
+            // parse latitude
+            token = strtok(NULL, ",");
+            // parse longitude
+            token = strtok(NULL, ",");
+            // parse timezonestring
+            token = strtok(NULL, ",");
+            strlcpy(bufForTimezonestring, token, strlen(token) + 1);
+
+            break;
+        }
+    }
+
+    file.close();
+    return true;
+}
+
+// input the provName to get the provId
+uint16_t get_regency_id(const char *ptrRegencyName)
+{
+    PRINT("\r\n%s\r\n", __PRETTY_FUNCTION__);
+
+    File file = SPIFFS.open(FPSTR(pgm_regencydb_file), "r");
+    if (!file)
+    {
+        // PRINT("Failed to open provinces file");
+        file.close();
+        return 0;
+    }
+
+    // construct array with comman at start & end
+    int len;
+    len = strlen(ptrRegencyName);
+    char buf[len + 3];
+    sprintf(buf, ",%s,", ptrRegencyName);
+
+    while (file.available())
+    {
+        if (file.find(buf))
+        {
+            break;
+        }
+    }
+
+    // PRINT("file.position(): %d\r\n", file.position());
+
+    // move current position
+    // to the beginning of line
+    file.seek((-1 * (len + 9)), SeekCur);
+
+    for (int i = 0; i < 4; i++)
+    {
+        char c = file.read();
+        buf[i] = c;
+        if (i == 3)
+        {
+            buf[i + 1] = '\0';
+            // PRINT("buf: %s\r\n", buf);
+        }
+    }
+
+    file.close();
+
+    return atoi(buf);
+}
+
+// input the provName to get the provId
+uint32_t get_regency_start_pos(uint16_t provId)
+{
+    PRINT("\r\n%s\r\n", __PRETTY_FUNCTION__);
+
+    File file = SPIFFS.open(FPSTR(pgm_regenciestartpos_file), "r");
+    if (!file)
+    {
+        file.close();
+        return 0;
+    }
+
+    int offset = 0;
+    char buf[64];
+
+    while (file.available())
+    {
+        char c = file.read();
+        if (c != '\n')
+        {
+            if (c != '\r')
+            {
+                buf[offset] = c;
+                offset++;
+            }
+        }
+
+        bool processData = false;
+
+        if (c == '\n')
+        {
+            buf[offset] = '\0';
+            offset = 0;
+
+            processData = true;
+        }
+
+        if (processData)
+        {
+            // split the data into its parts
+            char bufTemp[strlen(buf) + 1];
+            strlcpy(bufTemp, buf, sizeof(bufTemp));
+
+            char *token; // this is used by strtok() as an index
+
+            // split regency ID token
+            token = strtok(bufTemp, ",");
+
+            // compare with given regency Id
+            if (atoi(token) == provId)
+            {
+                // get start position
+                token = strtok(NULL, ",");
+
+                return atol(token);
+            }
+        }
+    }
+
+    file.close();
+    return 0;
+}
+
+uint8_t get_regency_index_and_max_index(uint32_t startPos, char *regencyName, uint8_t *index, uint8_t *maxIndex)
+{
+    PRINT("\r\n%s\r\n", __PRETTY_FUNCTION__);
+
+    File file = SPIFFS.open(FPSTR(pgm_regencydb_file), "r");
+    if (!file)
+    {
+        file.close();
+        return 0;
+    }
+
+    // reset position
+    file.seek(startPos, SeekSet);
+
+    // start searching
+    uint8_t offset = 0;
+    char buf[64];
+    uint8_t entry = 0;
+    uint8_t tempIndex = 0;
+    uint16_t referenceId = 0;
+
+    while (file.available())
+    {
+        char c = file.read();
+        if (c != '\r' && c != '\n')
+        {
+            buf[offset] = c;
+            offset++;
+        }
+
+        bool processData = false;
+
+        if (c == '\n')
+        {
+            buf[offset] = '\0';
+            offset = 0;
+
+            processData = true;
+        }
+
+        if (processData)
+        {
+            // split the data into its parts
+            char bufTemp[strlen(buf) + 1];
+            strlcpy(bufTemp, buf, sizeof(bufTemp));
+
+            char *token; // this is used by strtok() as an index
+
+            // parse district ID
+            token = strtok(bufTemp, ",");
+            // parse regency ID
+            token = strtok(NULL, ",");
+            if (referenceId == 0)
+            {
+                referenceId = atoi(token);
+            }
+            else
+            {
+                if (referenceId == atoi(token))
+                {
+                    entry++;
+                }
+                else
+                {
+                    *maxIndex = entry;
+
+                    break;
+                }
+            }
+
+            // parse district name
+            token = strtok(NULL, ",");
+            if (strncmp(regencyName, token, strlen(token)) == 0)
+            {
+                *index = tempIndex;
+            }
+            else
+            {
+                tempIndex++;
+            }
+        }
+    }
+
+    file.close();
+    return true;
+}
+
+// input the provName to get the provId
+uint8_t get_regency_detail_info(uint32_t startPos, uint8_t index, char *bufForRegencyName)
+{
+    PRINT("\r\n%s\r\n", __PRETTY_FUNCTION__);
+
+    File file = SPIFFS.open(FPSTR(pgm_regencydb_file), "r");
+    if (!file)
+    {
+        file.close();
+        return 0;
+    }
+
+    // offset start position
+    file.seek(startPos, SeekSet);
+
+    // iterate based on index
+    for (uint8_t i = 0; i < index; i++)
+    {
+        while (file.available())
+        {
+            if (file.find('\n'))
+            {
+                break;
+            }
+        }
+    }
+
+    uint8_t offset = 0;
+    char buf[64];
+
+    while (file.available())
+    {
+        char c = file.read();
+        if (c != '\r' && c != '\n')
+        {
+            buf[offset] = c;
+            offset++;
+        }
+
+        bool processData = false;
+
+        if (c == '\n')
+        {
+            buf[offset] = '\0';
+            offset = 0;
+
+            processData = true;
+        }
+
+        if (processData)
+        {
+            // split the data into its parts
+            char bufTemp[strlen(buf) + 1];
+            strlcpy(bufTemp, buf, sizeof(bufTemp));
+
+            char *token; // this is used by strtok() as an index
+
+            // parse regency ID
+            token = strtok(bufTemp, ",");
+            // parse province ID
+            token = strtok(NULL, ",");
+            // parse regency name
+            token = strtok(NULL, ",");
+            strlcpy(bufForRegencyName, token, strlen(token) + 1);
+
+            break;
+        }
+    }
+
+    file.close();
+    return true;
+}
+
+uint16_t create_regency_start_position(const char *fileName)
+{
+    PRINT("\r\n%s\r\n", __PRETTY_FUNCTION__);
+
+    File file = SPIFFS.open(fileName, "r");
+    if (!file)
+    {
+        file.close();
+        return 0;
+    }
+
+    // skip first line
+    while (file.available())
+    {
+        if (file.find('\n'))
+        {
+            break;
+        }
+    }
+
+    int count = 0;
+
+    char buf[11];
+
+    int offset = 0;
+
+    uint32_t pos = file.position();
+
+    int old_province_id = 0;
+
+    const char *listFileName = "/regenciesList.csv";
+
+    if (SPIFFS.exists(listFileName))
+    {
+        // SPIFFS.remove(listFileName);
+        return true;
+    }
+
+    File listFile = SPIFFS.open(listFileName, "a");
+    listFile.println(F("province_id,pos"));
+
+    while (file.available())
+    {
+        char c = file.read();
+
+        if (count >= 5 && count <= 6)
+        {
+            buf[offset] = c;
+            offset++;
+        }
+        else if (count == 7)
+        {
+            buf[offset] = '\0';
+            offset = 0;
+        }
+
+        if (c != '\n')
+        {
+            count++;
+        }
+        else
+        {
+            count = 0;
+
+            int province_id = atoi(buf);
+
+            if (province_id != old_province_id)
+            {
+                old_province_id = province_id;
+                char temp[7];
+                itoa(pos, temp, 10);
+                strcat(buf, ",");
+                strcat(buf, temp);
+
+                listFile.println(buf);
+            }
+
+            pos = file.position();
+        }
+    }
+
+    listFile.close();
+
+    file.close();
+
+    return count;
+}
+
+uint16_t create_district_start_position(const char *fileName)
+{
+    PRINT("\r\n%s\r\n", __PRETTY_FUNCTION__);
+
+    File file = SPIFFS.open(fileName, "r");
+    if (!file)
+    {
+        file.close();
+        return 0;
+    }
+
+    //skip first line
+    while (file.available())
+    {
+        if (file.find('\n'))
+        {
+            break;
+        }
+    }
+
+    int count = 0;
+
+    char buf[11];
+
+    int offset = 0;
+
+    uint32_t pos = file.position();
+
+    int old_regency_id = 0;
+
+    const char *listFileName = "/districtsList.csv";
+
+    if (SPIFFS.exists(listFileName))
+    {
+        // SPIFFS.remove(listFileName);
+        return true;
+    }
+
+    File listFile = SPIFFS.open(listFileName, "a");
+    listFile.println(F("regency_id,pos"));
+
+    while (file.available())
+    {
+        char c = file.read();
+
+        if (count >= 8 && count <= 11)
+        {
+            buf[offset] = c;
+            offset++;
+        }
+        else if (count == 12)
+        {
+            buf[offset] = '\0';
+            offset = 0;
+        }
+
+        if (c != '\n')
+        {
+            count++;
+        }
+        else
+        {
+            count = 0;
+
+            int regency_id = atoi(buf);
+
+            if (regency_id != old_regency_id)
+            {
+                old_regency_id = regency_id;
+                char temp[7];
+                itoa(pos, temp, 10);
+                strcat(buf, ",");
+                strcat(buf, temp);
+
+                listFile.println(buf);
+            }
+
+            pos = file.position();
+        }
+    }
+
+    listFile.close();
+
+    file.close();
+
+    return count;
+}
+
+// input the provName to get the provId
+uint32_t get_district_start_pos(uint16_t regencyId)
+{
+    PRINT("\r\n%s\r\n", __PRETTY_FUNCTION__);
+
+    File file = SPIFFS.open(FPSTR(pgm_districtstartpos_file), "r");
+    if (!file)
+    {
+        file.close();
+        return 0;
+    }
+
+    int offset = 0;
+    char buf[64];
+
+    while (file.available())
+    {
+        char c = file.read();
+        if (c != '\n')
+        {
+            if (c != '\r')
+            {
+                buf[offset] = c;
+                offset++;
+            }
+        }
+
+        bool processData = false;
+
+        if (c == '\n')
+        {
+            buf[offset] = '\0';
+            offset = 0;
+
+            processData = true;
+        }
+
+        if (processData)
+        {
+            // split the data into its parts
+            char bufTemp[strlen(buf) + 1];
+            strlcpy(bufTemp, buf, sizeof(bufTemp));
+
+            char *token; // this is used by strtok() as an index
+
+            // split regency ID token
+            token = strtok(bufTemp, ",");
+
+            // compare with given regency Id
+            if (atoi(token) == regencyId)
+            {
+                // get start position
+                token = strtok(NULL, ",");
+
+                return atol(token);
+            }
+        }
+    }
+
+    file.close();
+    return 0;
+}
+
+// // input the provName to get the provId
+// uint8_t get_district_max_entry(uint32_t startPos)
+// {
+//     PRINT("\r\n%s\r\n", __PRETTY_FUNCTION__);
+
+//     File file = SPIFFS.open(FPSTR(pgm_districts_file), "r");
+//     if (!file)
+//     {
+//         file.close();
+//         return 0;
+//     }
+
+//     // move start position
+//     file.seek(startPos, SeekSet);
+
+//     // get regency Id for subsequent comparison
+//     uint8_t len = 4;
+//     char bufReffId[len + 1];
+//     for (uint8_t i = 0; i < len; i++)
+//     {
+//         char c = file.read();
+//         bufReffId[i] = c;
+//     }
+//     bufReffId[len] = '\0';
+
+//     // PRINT("bufReffId: %s\r\n", bufReffId);
+
+//     // reset position
+//     file.seek(startPos, SeekSet);
+
+//     // start searching
+//     char bufTempId[len + 1];
+//     uint8_t offset = 0;
+//     uint8_t count = 0;
+//     uint8_t entry = 0;
+
+//     while (file.available())
+//     {
+//         char c = file.read();
+
+//         if (count >= 8 && count <= 11)
+//         {
+//             bufTempId[offset] = c;
+//             offset++;
+//         }
+//         else if (count == 12)
+//         {
+//             bufTempId[offset] = '\0';
+//             offset = 0;
+//         }
+
+//         if (c != '\n')
+//         {
+//             count++;
+//         }
+//         else
+//         {
+//             count = 0;
+
+//             if (atoi(bufTempId) == atoi(bufReffId))
+//             {
+//                 entry++;
+//             }
+//             else
+//             {
+//                 break;
+//             }
+//         }
+//     }
+
+//     file.close();
+//     return entry;
+// }
+
+uint8_t get_district_index_and_max_entry(uint32_t startPos, char *districtName, uint8_t *index, uint8_t *maxIndex)
+{
+    PRINT("\r\n%s\r\n", __PRETTY_FUNCTION__);
+
+    File file = SPIFFS.open(FPSTR(pgm_districtdb_file), "r");
+    if (!file)
+    {
+        file.close();
+        return 0;
+    }
+
+    // // move start position
+    // file.seek(startPos, SeekSet);
+
+    // // get regency Id for subsequent comparison
+    // uint8_t len = 4;
+    // char bufReffId[len + 1];
+    // for (uint8_t i = 0; i < len; i++)
+    // {
+    //     char c = file.read();
+    //     bufReffId[i] = c;
+    // }
+    // bufReffId[len] = '\0';
+
+    // PRINT("bufReffId: %s\r\n", bufReffId);
+
+    // reset position
+    file.seek(startPos, SeekSet);
+
+    // start searching
+    uint8_t offset = 0;
+    char buf[64];
+    uint8_t entry = 0;
+    uint8_t tempIndex = 0;
+    uint16_t referenceId = 0;
+
+    while (file.available())
+    {
+        char c = file.read();
+        if (c != '\r' && c != '\n')
+        {
+            buf[offset] = c;
+            offset++;
+        }
+
+        bool processData = false;
+
+        if (c == '\n')
+        {
+            buf[offset] = '\0';
+            offset = 0;
+
+            processData = true;
+        }
+
+        if (processData)
+        {
+            // split the data into its parts
+            char bufTemp[strlen(buf) + 1];
+            strlcpy(bufTemp, buf, sizeof(bufTemp));
+
+            char *token; // this is used by strtok() as an index
+
+            // parse district ID
+            token = strtok(bufTemp, ",");
+            // parse regency ID
+            token = strtok(NULL, ",");
+            if (referenceId == 0)
+            {
+                referenceId = atoi(token);
+            }
+            else
+            {
+                if (referenceId == atoi(token))
+                {
+                    entry++;
+                }
+                else
+                {
+                    *maxIndex = entry;
+
+                    break;
+                }
+            }
+
+            // parse district name
+            token = strtok(NULL, ",");
+            if (strncmp(districtName, token, strlen(token)) == 0)
+            {
+                *index = tempIndex;
+            }
+            else
+            {
+                tempIndex++;
+            }
+        }
+    }
+
+    file.close();
+    return true;
+}
+
+// input the provName to get the provId
+uint8_t get_district_detail_info(uint32_t startPos, uint8_t index, char *bufForDistrictName, double *latitude, double *longitude)
+{
+    PRINT("\r\n%s\r\n", __PRETTY_FUNCTION__);
+
+    File file = SPIFFS.open(FPSTR(pgm_districtdb_file), "r");
+    if (!file)
+    {
+        file.close();
+        return 0;
+    }
+
+    // offset start position
+    file.seek(startPos, SeekSet);
+
+    // iterate based on index
+    for (uint8_t i = 0; i < index; i++)
+    {
+        while (file.available())
+        {
+            if (file.find('\n'))
+            {
+                break;
+            }
+        }
+    }
+
+    uint8_t offset = 0;
+    char buf[64];
+
+    while (file.available())
+    {
+        char c = file.read();
+        if (c != '\r' && c != '\n')
+        {
+            buf[offset] = c;
+            offset++;
+        }
+
+        bool processData = false;
+
+        if (c == '\n')
+        {
+            buf[offset] = '\0';
+            offset = 0;
+
+            processData = true;
+        }
+
+        if (processData)
+        {
+            // split the data into its parts
+            char bufTemp[strlen(buf) + 1];
+            strlcpy(bufTemp, buf, sizeof(bufTemp));
+
+            char *token; // this is used by strtok() as an index
+
+            // parse district ID
+            token = strtok(bufTemp, ",");
+            // parse regency ID
+            token = strtok(NULL, ",");
+            // parse district name
+            token = strtok(NULL, ",");
+            strlcpy(bufForDistrictName, token, strlen(token) + 1);
+            // parse latitude
+            token = strtok(NULL, ",");
+            *latitude = atof(token);
+            // parse longitude
+            token = strtok(NULL, ",");
+            *longitude = atof(token);
+
+            break;
+        }
+    }
+
+    file.close();
+    return true;
+}
+
 void DisplaySetup()
 {
     matrix.begin();
     matrix.off();
     matrix.setTextWrap(0);
+    matrix.clearDisplay();
 }
 
 void DisplayLoop()
@@ -1213,7 +2260,7 @@ void process_runningled_page()
             char contents[32];
             if (page == 0)
             {
-                sprintf(contents, "%s", _configLocation.city);
+                sprintf(contents, "%s", _configLocation.district);
             }
             if (page == 1)
             {
@@ -5319,7 +6366,7 @@ void process_runningled_page()
         static bool stateEdit = false;
         static uint32_t startMillis = 0;
         static bool stateSwitch_old = false;
-        static int16_t count = 0;
+        // static int16_t count = 0;
         static int16_t pos = -1;
         static int16_t encoder0Pos_old = encoder0Pos;
 
@@ -5332,39 +6379,10 @@ void process_runningled_page()
             stateEdit = false;
             startMillis = millis();
             stateSwitch_old = false;
-            count = 0;
+            // count = 0;
             pos = -1;
             encoder0Pos_old = encoder0Pos;
         }
-
-        // static uint32_t timerSwitch;
-
-        // if (stateSwitch != stateSwitch_old)
-        // {
-
-        //     stateSwitch_old = stateSwitch;
-
-        //     if (stateSwitch == HIGH)
-        //     {
-        //         // startMillis = millis();
-
-        //         // stateEdit = !stateEdit;
-
-        //         // timerSwitch = millis();
-        //         // alarmState = HIGH;
-        //         // tone0 = HIGH;
-
-        //         // if (stateEdit == false)
-        //         // {
-        //         //   _config.timezone = tempTimezone;
-        //         //   save_config();
-        //         // }
-        //     }
-        //     else if (stateSwitch == LOW)
-        //     {
-        //         // stateEdit = false;
-        //     }
-        // }
 
         bool encoder0PosIncreasing = false;
         bool encoder0PosDecreasing = false;
@@ -5391,7 +6409,7 @@ void process_runningled_page()
         else if (encoder0PosDecreasing && stateEdit == false)
         {
             currentPageMode2--;
-            if (currentPageMode2 <= 0 || currentPageMode2 >= PageTitleMode2Count)
+            if (currentPageMode2 < 0)
             {
                 currentPageMode2 = PageTitleMode2Count - 1;
             }
@@ -5399,144 +6417,292 @@ void process_runningled_page()
 
         // -------------------------------------------------------------------
         // MODE 2, PAGE 0
-        // SETTING TIMEZONE
+        // SET PROVINCE
         // -------------------------------------------------------------------
         if (currentPageMode2 == 0)
         {
-            // static int8_t tempTimezone = 0;
+            //clear Screen
+            matrix.clearDisplay();
 
+            matrix.setFont(&bold_led_board_7_regular4pt7b);
+            matrix.setFont(&FiveBySeven5pt7b);
+            matrix.setFont(&F14LED7pt8b);
+            matrix.setFont(&RepetitionScrolling5pt8b);
+            matrix.setFont(&TomThumb);
+
+            static bool yesNo = false;
+            static int16_t xYesNo = 0;
+
+            static uint8_t index = 0;
+            static uint8_t maxIndex = 0;
+            static uint8_t tempIndex = 0;
+            static char bufTempProvinceName[sizeof(_configLocation.timezonestring)];
+            static char bufTempTimezonestring[sizeof(_configLocation.timezonestring)];
+            // static double tempTimezone = 0.0;
+
+            // run once
             if (currentPageMode2_old != currentPageMode2)
             {
                 currentPageMode2_old = currentPageMode2;
-                Serial.print(F("EDIT MODE, PAGE "));
-                Serial.println(currentPageMode2);
+                PRINT("EDIT MODE, PAGE %d\r\n", currentPageMode2);
 
                 // reset static variables used in this page
                 stateEdit = false;
                 stateSwitch_old = false;
-                count = 0;
-                // tempTimezone = _config.timezone;
+                yesNo = false;
+                pos = -1;
+
+                strlcpy(bufTempProvinceName, _configLocation.province, sizeof(bufTempProvinceName));
+
+                tickerRefreshDisplay.attach_ms(25, refreshDisplay, 1);
+
+                matrix.setFont(&TomThumb);
+                matrix.setCursor(1, 6);
+                matrix.print(FPSTR(pgm_loading));
+
+                uint32_t start;
+
+                start = millis();
+                get_province_index_and_max_index(_configLocation.province, &index, &maxIndex);
+                tempIndex = index;
+                PRINT("Province name: %s, index: %d, maxIndex: %d\r\n", _configLocation.province, index, maxIndex);
+                PRINT("Completed in:%lums\r\n", millis() - start);
+
+                PRINT("\r\n");
+
+                tickerRefreshDisplay.detach();
             }
 
-            //clear Screen
-            matrix.clearDisplay();
+            static bool stateSwitch_old = false;
+            if (stateSwitch != stateSwitch_old)
+            {
+                stateSwitch_old = stateSwitch;
+
+                if (stateSwitch == true)
+                {
+                    startMillis = millis();
+                }
+                else if (stateSwitch == false)
+                {
+                    if (enterEditModeFromShortcut)
+                    {
+                        enterEditModeFromShortcut = false;
+                    }
+                    else if (millis() <= startMillis + 500)
+                    {
+                        stateEdit = true;
+                        pos++;
+                        if (pos > 1)
+                        {
+                            // reset
+                            pos = -1;
+                            stateEdit = false;
+
+                            if (yesNo)
+                            {
+                                strlcpy(_configLocation.province, bufTempProvinceName, sizeof(_configLocation.province));
+                                strlcpy(_configLocation.timezonestring, bufTempTimezonestring, sizeof(_configLocation.timezonestring));
+                                PRINT("\r\nProvince changed to: %s, timezonestring: %s\r\n\r\n", _configLocation.province, _configLocation.timezonestring);
+
+                                // reset to no
+                                yesNo = false;
+
+                                tone1 = HIGH;
+                            }
+                            else
+                            {
+                                // revert back to current index
+                                tempIndex = index;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (stateEdit)
+            {
+                static uint8_t pos_old = 0;
+                if (pos != pos_old)
+                {
+                    pos_old = pos;
+                    PRINT("pos: %d\r\n", pos);
+                }
+
+                if (pos == 0)
+                {
+                    if (encoder0PosIncreasing)
+                    {
+                        tempIndex++;
+                        if (tempIndex > maxIndex)
+                        {
+                            tempIndex = 0;
+                        }
+                    }
+                    else if (encoder0PosDecreasing)
+                    {
+                        if (tempIndex != 0)
+                        {
+                            tempIndex--;
+                        }
+                        else
+                        {
+                            tempIndex = maxIndex;
+                        }
+                    }
+                }
+                else if (pos == 1)
+                {
+                    if (encoder0PosIncreasing || encoder0PosDecreasing)
+                    {
+                        yesNo = !yesNo;
+                    }
+                }
+
+                static uint8_t tempIndex_old = 0;
+                if (tempIndex != tempIndex_old)
+                {
+                    tempIndex_old = tempIndex;
+
+                    uint32_t start = millis();
+                    get_province_detail_info(tempIndex, bufTempProvinceName, bufTempTimezonestring);
+                    PRINT("tempIndex:%d, province name:%s, timezonestring: %s\r\n",
+                          tempIndex, bufTempProvinceName, bufTempTimezonestring);
+                    PRINT("Processed in:%lums\r\n", millis() - start);
+
+                    PRINT("\r\n");
+                }
+            }
+
+            char str[16];
+            const GFXfont *font;
+            int16_t x, y;
+            uint16_t w, h;
 
             // -------
             // Row 0
             // -------
+            bool ROW_0 = true;
 
-            char str[16];
-            const char *ptr = PSTR("Set Timezone");
-            strcpy_P(str, ptr);
+            if (ROW_0)
+            {
+                if (stateEdit == false)
+                {
+                    const char *ptr = PSTR("PROPINSI");
+                    strcpy_P(str, ptr);
 
-            int16_t x0, y0;
-            uint16_t w, h;
-            matrix.setFont(&TomThumb);
-            matrix.getTextBounds(str, 0, 0, &x0, &y0, &w, &h);
-            uint16_t x1 = (matrix.width() - (w - 4)) / 2;
-            uint16_t y1 = (matrix.height() / 2 - h) / 2 + h - 0;
-            //update x1 and y1 value
-            matrix.getTextBounds(str, x1, y1, &x0, &y0, &w, &h);
+                    font = &TomThumb;
+                    matrix.setFont(font);
 
-            //Print to led matrix
-            matrix.setCursor(x1, y1);
-            matrix.print(str);
+                    matrix.getTextBounds(str, 0, 0, &x, &y, &w, &h);
+
+                    // set starting row row based on font type
+                    if (font == &TomThumb)
+                    {
+                        x = (matrix.width() - w) / 2 + 4;
+                        y = (matrix.height() / 2 - h) / 2 + h;
+                    }
+                    else
+                    {
+                        x = (matrix.width() - w) / 2;
+                        y = (matrix.height() / 2 - h) / 2 + h;
+                    }
+
+                    x = 1;
+
+                    //Print to led matrix
+                    matrix.setCursor(x, y);
+                    matrix.print(str);
+                }
+                else if (stateEdit)
+                {
+                    const char *ptr = PSTR("SAVE: ");
+                    strcpy_P(str, ptr);
+
+                    // font = &Org_01;
+                    font = &TomThumb;
+                    matrix.setFont(font);
+
+                    x = 1;
+                    y = 6;
+
+                    // Print to led matrix
+                    matrix.setCursor(x, y);
+                    matrix.print(str);
+
+                    // Print yesNo
+                    xYesNo = matrix.getCursorX();
+
+                    if (yesNo)
+                    {
+                        ptr = PSTR("YES");
+                    }
+                    else
+                    {
+                        ptr = PSTR("NO");
+                    }
+                    strcpy_P(str, ptr);
+                    matrix.print(str);
+                }
+            }
 
             // -------
             // Row 1
             // -------
+            bool ROW_1 = true;
 
-            // matrix.setFont(&TomThumb);
-            // matrix.setFont(&bold_led_board_7_regular4pt7b);
-            // matrix.setFont(&RepetitionScrolling5pt8b);
-            matrix.setFont(&FiveBySeven5pt7b);
-            // matrix.setFont(&Org_01);
-
-            if (stateEdit)
+            if (ROW_1)
             {
-                if (encoder0PosIncreasing)
-                {
-                    count++;
-                    if (count == timezoneCount)
-                    {
-                        count = 0;
-                    }
-                }
-                else if (encoder0PosDecreasing)
-                {
-                    count--;
-                    if (count < 0)
-                    {
-                        count = timezoneCount - 1;
-                    }
-                }
+                matrix.setFont(&TomThumb);
+                // matrix.setFont(&bold_led_board_7_regular4pt7b);
+                // matrix.setFont(&RepetitionScrolling5pt8b);
+                // matrix.setFont(&FiveBySeven5pt7b);
+                // matrix.setFont(&Org_01);
 
-                if (count == WIB)
-                {
-                    ptr = PSTR("WIB (+7)");
-                    // tempTimezone = 70;
-                }
-                if (count == WITA)
-                {
-                    ptr = PSTR("WITA (+8)");
-                    // tempTimezone = 80;
-                }
-                if (count == WIT)
-                {
-                    ptr = PSTR("WIT (+9)");
-                    // tempTimezone = 90;
-                }
+                int16_t x = 1;
+                int16_t y = 14;
 
-                strcpy_P(str, ptr);
-
-                matrix.getTextBounds(str, 0, 0, &x0, &y0, &w, &h);
-                x1 = (matrix.width() - (w - 4)) / 2;
-                y1 = (matrix.height() / 2 - h) / 2 + h - 1;
-
-                if (state500ms)
+                if (stateEdit == false)
                 {
-                    // matrix.fillRect(x1, y1, w - 5, h, 0);
-                    ptr = PSTR("");
+                    matrix.setCursor(x, y);
+                    matrix.print(_configLocation.province);
                 }
-            }
-            else
-            {
-                if (_configLocation.timezone == 70)
+                else if (stateEdit)
                 {
-                    ptr = PSTR("WIB (+7)");
-                    count = 0;
-                }
-                else if (_configLocation.timezone == 80)
-                {
-                    ptr = PSTR("WITA (+8)");
-                    count = 1;
-                }
-                else if (_configLocation.timezone == 90)
-                {
-                    ptr = PSTR("WIT (+9)");
-                    count = 2;
-                }
-                else
-                {
-                    ptr = PSTR("Unknown");
+                    matrix.setCursor(x, y);
+                    matrix.print(bufTempProvinceName);
                 }
             }
 
-            strcpy_P(str, ptr);
+            // blink
+            if (state500ms && stateEdit)
+            {
+                int16_t x = 0;
+                int16_t y = 0;
+                uint16_t w = 0;
+                uint16_t h = 0;
 
-            matrix.getTextBounds(str, 0, 0, &x0, &y0, &w, &h);
-            x1 = (matrix.width() - (w - 4)) / 2;
-            y1 = (matrix.height() / 2 - h) / 2 + h - 1;
-            //update x1 and y1 value
-            // matrix.getTextBounds(str, x1, y1, &x0, &y0, &w, &h);
-
-            matrix.setCursor(x1, y1 + 8);
-            matrix.print(str);
+                if (pos == 0) // province
+                {
+                    x = 1;
+                    y = 8;
+                    w = 63;
+                    h = 7;
+                }
+                if (pos == 1)
+                {
+                    x = xYesNo;
+                    y = 1;
+                    w = 11;
+                    h = 5;
+                }
+                matrix.fillRect(x, y, w, h, false);
+                // matrix.drawRect(x, y, w, h, true);
+            }
         }
 
         // -------------------------------------------------------------------
         // MODE 2, PAGE 1
-        // SETTING LOCATION
+        // SETTING REGENCY
         // -------------------------------------------------------------------
         else if (currentPageMode2 == 1)
         {
@@ -5549,15 +6715,637 @@ void process_runningled_page()
             matrix.setFont(&RepetitionScrolling5pt8b);
             matrix.setFont(&TomThumb);
 
-            // uint16_t x0 = 1;
-            // uint16_t y0 = 6;
+            static bool yesNo = false;
+            static int16_t xYesNo = 0;
+
+            static uint8_t provId = 0;
+            static uint8_t index = 0;
+            static uint8_t maxIndex = 0;
+            static uint8_t tempIndex = 0;
+            static uint32_t startPos = 0;
+            static char bufTempRegencyName[48];
+
+            if (currentPageMode2_old != currentPageMode2)
+            {
+                currentPageMode2_old = currentPageMode2;
+                PRINT("EDIT MODE, PAGE %d\r\n", currentPageMode2);
+
+                // reset static variables used in this page
+                stateEdit = false;
+                stateSwitch_old = false;
+                // count = 0;
+                // tempTimezone = _config.timezone;
+
+                strlcpy(bufTempRegencyName, _configLocation.regency, sizeof(bufTempRegencyName));
+
+                tickerRefreshDisplay.attach_ms(25, refreshDisplay, 1);
+
+                matrix.setFont(&TomThumb);
+                matrix.setCursor(1, 6);
+                matrix.print(FPSTR(pgm_loading));
+
+                uint32_t start;
+
+                // buffer for file name
+                char regencyDbFile[strlen_P(pgm_regencydb_file) + 1];
+
+                // copy file name from PROGMEM to buffer
+                strcpy_P(regencyDbFile, pgm_regencydb_file);
+
+                start = millis();
+                create_regency_start_position(regencyDbFile);
+                PRINT("Processed in:%lums\r\n", millis() - start);
+
+                const char *provNameToSearch = _configLocation.province;
+
+                start = millis();
+                provId = get_province_id(provNameToSearch);
+                if (provId)
+                {
+                    PRINT("Found province %s, Id: %d\r\n", provNameToSearch, provId);
+                }
+                else
+                {
+                    PRINT("Province %s cannot be found!\r\n", provNameToSearch);
+                }
+                PRINT("Completed in:%lums\r\n", millis() - start);
+
+                start = millis();
+                startPos = get_regency_start_pos(provId);
+                PRINT("Start seek Position: %d\r\n", startPos);
+                PRINT("Completed in:%lums\r\n", millis() - start);
+
+                start = millis();
+                get_regency_index_and_max_index(startPos, _configLocation.regency, &index, &maxIndex);
+                tempIndex = index;
+                PRINT("Start reading at pos %d, regency index: %d, maxIndex: %d\r\n", startPos, index, maxIndex);
+                PRINT("Completed in:%lums\r\n", millis() - start);
+
+                PRINT("\r\n");
+
+                tickerRefreshDisplay.detach();
+            }
+
+            static bool stateSwitch_old = false;
+            if (stateSwitch != stateSwitch_old)
+            {
+                stateSwitch_old = stateSwitch;
+
+                if (stateSwitch == true)
+                {
+                    startMillis = millis();
+                }
+                else if (stateSwitch == false)
+                {
+                    if (enterEditModeFromShortcut)
+                    {
+                        enterEditModeFromShortcut = false;
+                    }
+                    else if (millis() <= startMillis + 500)
+                    {
+                        stateEdit = true;
+                        pos++;
+                        if (pos > 1)
+                        {
+                            // reset
+                            pos = -1;
+                            stateEdit = false;
+
+                            if (yesNo)
+                            {
+                                strlcpy(_configLocation.regency, bufTempRegencyName, sizeof(_configLocation.regency));
+
+                                PRINT("\r\nRegency updated to:%s\r\n\r\n", _configLocation.regency);
+
+                                // reset to no
+                                yesNo = false;
+
+                                tone1 = HIGH;
+                            }
+                            else
+                            {
+                                // revert back to current index
+                                tempIndex = index;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (stateEdit)
+            {
+                static uint8_t pos_old = 0;
+                if (pos != pos_old)
+                {
+                    pos_old = pos;
+                    PRINT("pos: %d\r\n", pos);
+                }
+
+                if (pos == 0)
+                {
+                    if (encoder0PosIncreasing)
+                    {
+                        tempIndex++;
+                        if (tempIndex > maxIndex)
+                        {
+                            tempIndex = 0;
+                        }
+                    }
+                    else if (encoder0PosDecreasing)
+                    {
+                        if (tempIndex != 0)
+                        {
+                            tempIndex--;
+                        }
+                        else
+                        {
+                            tempIndex = maxIndex;
+                        }
+                    }
+                }
+                else if (pos == 1)
+                {
+                    if (encoder0PosIncreasing || encoder0PosDecreasing)
+                    {
+                        yesNo = !yesNo;
+                    }
+                }
+
+                static uint8_t tempIndex_old = 0;
+                if (tempIndex != tempIndex_old)
+                {
+                    tempIndex_old = tempIndex;
+                    get_regency_detail_info(startPos, tempIndex, bufTempRegencyName);
+                    PRINT("tempIndex:%d, district name:%s\r\n\r\n",
+                          tempIndex, bufTempRegencyName);
+                }
+            }
+
+            char str[16];
+            const GFXfont *font;
+            int16_t x, y;
+            uint16_t w, h;
+
+            // -------
+            // Row 0
+            // -------
+            bool ROW_0 = true;
+
+            if (ROW_0)
+            {
+                if (stateEdit == false)
+                {
+                    const char *ptr = PSTR("KOTA/KAB");
+                    strcpy_P(str, ptr);
+
+                    font = &TomThumb;
+                    matrix.setFont(font);
+
+                    matrix.getTextBounds(str, 0, 0, &x, &y, &w, &h);
+
+                    // set starting row row based on font type
+                    if (font == &TomThumb)
+                    {
+                        x = (matrix.width() - w) / 2 + 4;
+                        y = (matrix.height() / 2 - h) / 2 + h;
+                    }
+                    else
+                    {
+                        x = (matrix.width() - w) / 2;
+                        y = (matrix.height() / 2 - h) / 2 + h;
+                    }
+
+                    x = 1;
+
+                    //Print to led matrix
+                    matrix.setCursor(x, y);
+                    matrix.print(str);
+                }
+                else if (stateEdit)
+                {
+                    const char *ptr = PSTR("SAVE: ");
+                    strcpy_P(str, ptr);
+
+                    // font = &Org_01;
+                    font = &TomThumb;
+                    matrix.setFont(font);
+
+                    x = 1;
+                    y = 6;
+
+                    // Print to led matrix
+                    matrix.setCursor(x, y);
+                    matrix.print(str);
+
+                    // Print yesNo
+                    xYesNo = matrix.getCursorX();
+
+                    if (yesNo)
+                    {
+                        ptr = PSTR("YES");
+                    }
+                    else
+                    {
+                        ptr = PSTR("NO");
+                    }
+                    strcpy_P(str, ptr);
+                    matrix.print(str);
+                }
+            }
+
+            // -------
+            // Row 1
+            // -------
+            bool ROW_1 = true;
+
+            if (ROW_1)
+            {
+                matrix.setFont(&TomThumb);
+                // matrix.setFont(&bold_led_board_7_regular4pt7b);
+                // matrix.setFont(&RepetitionScrolling5pt8b);
+                // matrix.setFont(&FiveBySeven5pt7b);
+                // matrix.setFont(&Org_01);
+
+                int16_t x = 1;
+                int16_t y = 14;
+
+                if (stateEdit == false)
+                {
+                    matrix.setCursor(x, y);
+                    matrix.print(_configLocation.regency);
+                }
+                else if (stateEdit)
+                {
+                    matrix.setCursor(x, y);
+                    matrix.print(bufTempRegencyName);
+                }
+            }
+
+            // blink
+            if (state500ms && stateEdit)
+            {
+                int16_t x = 0;
+                int16_t y = 0;
+                uint16_t w = 0;
+                uint16_t h = 0;
+
+                if (pos == 0) // province
+                {
+                    x = 1;
+                    y = 8;
+                    w = 63;
+                    h = 7;
+                }
+                if (pos == 1)
+                {
+                    x = xYesNo;
+                    y = 1;
+                    w = 11;
+                    h = 5;
+                }
+                matrix.fillRect(x, y, w, h, false);
+                // matrix.drawRect(x, y, w, h, true);
+            }
         }
 
         // -------------------------------------------------------------------
         // MODE 2, PAGE 2
+        // SETTING DISTRICT
+        // -------------------------------------------------------------------
+        else if (currentPageMode2 == 2)
+        {
+            //clear Screen
+            matrix.clearDisplay();
+
+            matrix.setFont(&bold_led_board_7_regular4pt7b);
+            matrix.setFont(&FiveBySeven5pt7b);
+            matrix.setFont(&F14LED7pt8b);
+            matrix.setFont(&RepetitionScrolling5pt8b);
+            matrix.setFont(&TomThumb);
+
+            static bool yesNo = false;
+            static int16_t xYesNo = 0;
+
+            static uint16_t regencyId = 0;
+            static uint8_t index = 0;
+            static uint8_t tempIndex = 0;
+            static uint8_t maxIndex = 0;
+            static uint32_t startPos = 0;
+            static char bufTempDistrictName[48];
+            static double tempLat;
+            static double tempLon;
+
+            if (currentPageMode2_old != currentPageMode2)
+            {
+                currentPageMode2_old = currentPageMode2;
+                PRINT("EDIT MODE, PAGE %d\r\n", currentPageMode2);
+
+                // reset static variables used in this page
+                stateEdit = false;
+                stateSwitch_old = false;
+                // count = 0;
+                // tempTimezone = _config.timezone;
+
+                strlcpy(bufTempDistrictName, _configLocation.district, sizeof(bufTempDistrictName));
+
+                tickerRefreshDisplay.attach_ms(25, refreshDisplay, 1);
+
+                matrix.setFont(&TomThumb);
+                matrix.setCursor(1, 6);
+                matrix.print(FPSTR(pgm_loading));
+
+                uint32_t start;
+
+                // buffer for file name
+                char districtDbFile[strlen_P(pgm_districtdb_file) + 1];
+
+                // copy file name from PROGMEM to buffer
+                strcpy_P(districtDbFile, pgm_districtdb_file);
+
+                start = millis();
+                create_district_start_position(districtDbFile);
+                PRINT("Completed in:%lums\r\n", millis() - start);
+
+                const char *regencyNameToSearch = _configLocation.regency;
+
+                start = millis();
+                regencyId = get_regency_id(regencyNameToSearch);
+                if (regencyId)
+                {
+                    PRINT("Found regency %s, Id: %d\r\n", regencyNameToSearch, regencyId);
+                }
+                else
+                {
+                    PRINT("Regency %s cannot be found!\r\n", regencyNameToSearch);
+                }
+                PRINT("Completed in:%lums\r\n", millis() - start);
+
+                start = millis();
+                startPos = get_district_start_pos(regencyId);
+                PRINT("Found regency Id %d, start pos: %d\r\n", regencyId, startPos);
+                PRINT("Completed in:%lums\r\n", millis() - start);
+
+                start = millis();
+                get_district_index_and_max_entry(startPos, _configLocation.district, &index, &maxIndex);
+                tempIndex = index;
+                PRINT("Start reading at pos %d, district index: %d, maxIndex: %d\r\n", startPos, index, maxIndex);
+                PRINT("Completed in:%lums\r\n", millis() - start);
+
+                // start = millis();
+                // startPos = get_regency_pos(provId);
+                // PRINT("Start seek Position: %d\r\n", startPos);
+                // PRINT("Completed in:%lums\r\n", millis() - start);
+
+                // const char *regencyNameToSearch = _configLocation.regency;
+
+                // start = millis();
+                // numEntry = get_regency_entry_number(startPos, regencyNameToSearch);
+                // PRINT("Regency entry number: %d\r\n", numEntry);
+                // PRINT("Completed in:%lums\r\n", millis() - start);
+
+                PRINT("\r\n");
+
+                tickerRefreshDisplay.detach();
+            }
+
+            static bool stateSwitch_old = false;
+            if (stateSwitch != stateSwitch_old)
+            {
+                stateSwitch_old = stateSwitch;
+
+                if (stateSwitch == true)
+                {
+                    startMillis = millis();
+                }
+                else if (stateSwitch == false)
+                {
+                    if (enterEditModeFromShortcut)
+                    {
+                        enterEditModeFromShortcut = false;
+                    }
+                    else if (millis() <= startMillis + 500)
+                    {
+                        stateEdit = true;
+                        pos++;
+                        if (pos > 1)
+                        {
+                            // reset
+                            pos = -1;
+                            stateEdit = false;
+
+                            if (yesNo)
+                            {
+                                strlcpy(_configLocation.district, bufTempDistrictName, sizeof(_configLocation.district));
+                                _configLocation.latitude = tempLat;
+                                _configLocation.longitude = tempLon;
+
+                                index = tempIndex;
+
+                                PRINT("\r\nDistrict updated, name:%s, lat:%f, lon:%f\r\n\r\n",
+                                      _configLocation.district, _configLocation.latitude, _configLocation.longitude);
+
+                                save_config_location();
+
+                                process_sholat();
+
+                                // reset to no
+                                yesNo = false;
+
+                                tone1 = HIGH;
+                            }
+                            else
+                            {
+                                // revert back to current index
+                                tempIndex = index;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (stateEdit)
+            {
+                static uint8_t pos_old = 0;
+                if (pos != pos_old)
+                {
+                    pos_old = pos;
+                    PRINT("pos: %d\r\n", pos);
+                }
+
+                if (pos == 0)
+                {
+                    if (encoder0PosIncreasing)
+                    {
+                        tempIndex++;
+                        if (tempIndex > maxIndex)
+                        {
+                            tempIndex = 0;
+                        }
+                    }
+                    else if (encoder0PosDecreasing)
+                    {
+                        if (tempIndex != 0)
+                        {
+                            tempIndex--;
+                        }
+                        else
+                        {
+                            tempIndex = maxIndex;
+                        }
+                    }
+                }
+                else if (pos == 1)
+                {
+                    if (encoder0PosIncreasing || encoder0PosDecreasing)
+                    {
+                        yesNo = !yesNo;
+                    }
+                }
+
+                static uint8_t tempIndex_old = 0;
+                if (tempIndex != tempIndex_old)
+                {
+                    tempIndex_old = tempIndex;
+                    get_district_detail_info(startPos, tempIndex, bufTempDistrictName, &tempLat, &tempLon);
+                    PRINT("tempIndex:%d, district name:%s, lat:%f, lon:%f\r\n\r\n",
+                          tempIndex, bufTempDistrictName, tempLat, tempLon);
+                }
+            }
+
+            char str[16];
+            const GFXfont *font;
+            int16_t x, y;
+            uint16_t w, h;
+
+            // -------
+            // Row 0
+            // -------
+            bool ROW_0 = true;
+
+            if (ROW_0)
+            {
+                if (stateEdit == false)
+                {
+                    const char *ptr = PSTR("KECAMATAN");
+                    strcpy_P(str, ptr);
+
+                    font = &TomThumb;
+                    matrix.setFont(font);
+
+                    matrix.getTextBounds(str, 0, 0, &x, &y, &w, &h);
+
+                    // set starting row row based on font type
+                    if (font == &TomThumb)
+                    {
+                        x = (matrix.width() - w) / 2 + 4;
+                        y = (matrix.height() / 2 - h) / 2 + h;
+                    }
+                    else
+                    {
+                        x = (matrix.width() - w) / 2;
+                        y = (matrix.height() / 2 - h) / 2 + h;
+                    }
+
+                    x = 1;
+
+                    //Print to led matrix
+                    matrix.setCursor(x, y);
+                    matrix.print(str);
+                }
+                else if (stateEdit)
+                {
+                    const char *ptr = PSTR("SAVE: ");
+                    strcpy_P(str, ptr);
+
+                    // font = &Org_01;
+                    font = &TomThumb;
+                    matrix.setFont(font);
+
+                    x = 1;
+                    y = 6;
+
+                    // Print to led matrix
+                    matrix.setCursor(x, y);
+                    matrix.print(str);
+
+                    // Print yesNo
+                    xYesNo = matrix.getCursorX();
+
+                    if (yesNo)
+                    {
+                        ptr = PSTR("YES");
+                    }
+                    else
+                    {
+                        ptr = PSTR("NO");
+                    }
+                    strcpy_P(str, ptr);
+                    matrix.print(str);
+                }
+            }
+
+            // -------
+            // Row 1
+            // -------
+            bool ROW_1 = true;
+
+            if (ROW_1)
+            {
+                matrix.setFont(&TomThumb);
+                // matrix.setFont(&bold_led_board_7_regular4pt7b);
+                // matrix.setFont(&RepetitionScrolling5pt8b);
+                // matrix.setFont(&FiveBySeven5pt7b);
+                // matrix.setFont(&Org_01);
+
+                int16_t x = 1;
+                int16_t y = 14;
+
+                if (stateEdit == false)
+                {
+                    matrix.setCursor(x, y);
+                    matrix.print(_configLocation.district);
+                }
+                else if (stateEdit)
+                {
+                    // parse_regencies_file(startPos, numEntry, bufTempRegencyName, &tempLat, &tempLon);
+
+                    matrix.setCursor(x, y);
+                    matrix.print(bufTempDistrictName);
+                }
+            }
+
+            // blink
+            if (state500ms && stateEdit)
+            {
+                int16_t x = 0;
+                int16_t y = 0;
+                uint16_t w = 0;
+                uint16_t h = 0;
+
+                if (pos == 0) // province
+                {
+                    x = 1;
+                    y = 8;
+                    w = 63;
+                    h = 7;
+                }
+                if (pos == 1)
+                {
+                    x = xYesNo;
+                    y = 1;
+                    w = 11;
+                    h = 5;
+                }
+                matrix.fillRect(x, y, w, h, false);
+                // matrix.drawRect(x, y, w, h, true);
+            }
+        }
+
+        // -------------------------------------------------------------------
+        // MODE 2, PAGE 3
         // SETTING DATE
         // -------------------------------------------------------------------
-        if (currentPageMode2 == 2)
+        else if (currentPageMode2 == 3)
         {
             //clear Screen
             matrix.clearDisplay();
@@ -5576,8 +7364,7 @@ void process_runningled_page()
             if (currentPageMode2_old != currentPageMode2)
             {
                 currentPageMode2_old = currentPageMode2;
-                Serial.print(F("EDIT MODE, PAGE "));
-                Serial.println(currentPageMode2);
+                PRINT("EDIT MODE, PAGE %d\r\n", currentPageMode2);
 
                 // store current page
                 _ledMatrixSettings.pagemode2 = currentPageMode2;
@@ -5668,8 +7455,6 @@ void process_runningled_page()
             {
             }
 
-
-
             // if (stateSwitch != stateSwitch_old)
             // {
 
@@ -5742,9 +7527,6 @@ void process_runningled_page()
             //         // stateEdit = false;
             //     }
             // }
-
-
-
 
             if (stateEdit)
             {
@@ -6047,10 +7829,10 @@ void process_runningled_page()
         }
 
         // -------------------------------------------------------------------
-        // MODE 2, PAGE 3
+        // MODE 2, PAGE 4
         // SETTING TIME
         // -------------------------------------------------------------------
-        if (currentPageMode2 == 3)
+        else if (currentPageMode2 == 4)
         {
             //clear Screen
             matrix.clearDisplay();
@@ -6067,8 +7849,7 @@ void process_runningled_page()
             if (currentPageMode2_old != currentPageMode2)
             {
                 currentPageMode2_old = currentPageMode2;
-                Serial.print(F("EDIT MODE, PAGE "));
-                Serial.println(currentPageMode2);
+                PRINT("EDIT MODE, PAGE %d\r\n", currentPageMode2);
 
                 // store current page
                 _ledMatrixSettings.pagemode2 = currentPageMode2;
